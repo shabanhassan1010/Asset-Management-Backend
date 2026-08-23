@@ -43,6 +43,7 @@ public class AuthController : ControllerBase
     [HttpPost(BaseRouter.AuthRouter.Refresh)]
     [AllowAnonymous]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AuthResponseDto>> Refresh(RefreshTokenCommand command,CancellationToken cancellationToken)
     {

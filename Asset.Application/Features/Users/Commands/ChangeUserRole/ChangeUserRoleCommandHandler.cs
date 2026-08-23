@@ -1,11 +1,11 @@
+#region
 using Asset.Application.Common.Interfaces;
 using MediatR;
-using Asset.Domain.Identity;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Enum;
+#endregion
 
 namespace Asset.Application.Features.Users.Commands.ChangeUserRole;
-
 public class ChangeUserRoleCommandHandler : IRequestHandler<ChangeUserRoleCommand>
 {
     #region Fields
@@ -16,7 +16,8 @@ public class ChangeUserRoleCommandHandler : IRequestHandler<ChangeUserRoleComman
     #endregion
 
     #region Constructor
-    public ChangeUserRoleCommandHandler(IUserRepository users,IRefreshTokenRepository refreshTokens,
+    public ChangeUserRoleCommandHandler(IUserRepository users,
+                                        IRefreshTokenRepository refreshTokens,
                                         ICurrentUserService currentUser,
                                         IIdentityUnitOfWork unitOfWork)
     {
@@ -53,13 +54,8 @@ public class ChangeUserRoleCommandHandler : IRequestHandler<ChangeUserRoleComman
                 throw new BusinessException("This is the last active administrator. Promote somebody else first.");
         }
 
-        // Rule 3 - the old sessions carry the old role inside a signed token
-        // that cannot be edited. Revoking the refresh tokens means the next
-        // refresh fails and the user signs in again with the new role.
-        //
-        // Both writes are wrapped in one transaction because UserManager saves
-        // on its own: without it, a failure between the two leaves the new role
-        // active with the old sessions still alive.
+        // Rule 3 - the old sessions carry the old role inside a signed token that cannot be edited.
+        // Revoking the refresh tokens means the next refresh fails and the user signs in again with the new role.
         await _unitOfWork.ExecuteInTransactionAsync(async () =>
         {
             await _users.ReplaceRoleAsync(user, currentRole, request.Role, cancellationToken);

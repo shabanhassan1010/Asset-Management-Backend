@@ -16,26 +16,29 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     public RefreshTokenRepository(AppIdentityDbContext context) => _context = context;
     #endregion
 
-    #region Methods
+    #region Logout & Refresh Token Method
     public Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken)
     {
-        // Tracked, because the caller flips IsRevoked on the row it gets back.
-        // Hits the unique index configured on Token.
         return _context.RefreshTokens.FirstOrDefaultAsync(t => t.Token == token, cancellationToken);
-    }       
-    public async Task AddAsync(RefreshToken refreshToken, CancellationToken cancellationToken)
-    {
-        // Staged only. The handler commits through the unit of work, so this
-        // insert and everything else in the request succeed or fail together.
-         await _context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
     }
+    #endregion
+
+    #region Refresh Token
     public async Task RevokeAllForUserAsync(string userId, CancellationToken cancellationToken)
     {
-        var live = await _context.RefreshTokens.Where(t => t.UserId == userId && !t.IsRevoked && t.ExpiresAt > DateTime.UtcNow)
+        var live = await _context.RefreshTokens.Where(t => 
+                                                      t.UserId == userId &&  // Get Refresh token related to this user
+                                                     !t.IsRevoked &&         // and get which   IsRevoked = false   
+                                                      t.ExpiresAt > DateTime.UtcNow)  // get Token which is not Expire 
                                                .ToListAsync(cancellationToken);
 
         foreach (var token in live)
             token.IsRevoked = true;
     }
-    #endregion
+    #endregion 
+
+    public async Task AddAsync(RefreshToken refreshToken, CancellationToken cancellationToken)
+    {
+         await _context.RefreshTokens.AddAsync(refreshToken, cancellationToken);
+    }
 }

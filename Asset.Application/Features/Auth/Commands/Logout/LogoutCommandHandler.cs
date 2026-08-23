@@ -1,38 +1,32 @@
+#region
 using Asset.Application.Common.Interfaces;
 using MediatR;
+#endregion
 
 namespace Asset.Application.Features.Auth.Commands.Logout;
-
-/// <summary>
-/// Revokes the refresh token the caller presents - this device only, so
-/// signing out on a laptop does not sign the same person out on their phone.
-///
-/// A JWT cannot be un-issued, so the access token stays valid until it
-/// expires. That is why its lifetime is minutes, not days.
-/// </summary>
 public class LogoutCommandHandler : IRequestHandler<LogoutCommand>
 {
-    private readonly IRefreshTokenRepository _refreshTokens;
-    private readonly ICurrentUserService _currentUser;
-    private readonly IIdentityUnitOfWork _unitOfWork;
+    #region Fields
+    private readonly IRefreshTokenRepository _refreshTokens;  // Get refresh Tokens from database
+    private readonly ICurrentUserService _currentUser;       //  know which user did this request
+    private readonly IIdentityUnitOfWork _unitOfWork;  
+    #endregion
 
-    public LogoutCommandHandler(
-        IRefreshTokenRepository refreshTokens,
-        ICurrentUserService currentUser,
-        IIdentityUnitOfWork unitOfWork)
+    #region Constructor
+    public LogoutCommandHandler(IRefreshTokenRepository refreshTokens,ICurrentUserService currentUser,IIdentityUnitOfWork unitOfWork)
     {
         _refreshTokens = refreshTokens;
         _currentUser = currentUser;
         _unitOfWork = unitOfWork;
     }
+    #endregion
 
     public async Task Handle(LogoutCommand request, CancellationToken cancellationToken)
     {
+        // Get refresh Tokens from database
         var stored = await _refreshTokens.GetByTokenAsync(request.RefreshToken, cancellationToken);
 
-        // Deliberately silent when the token is missing, already revoked, or
-        // belongs to somebody else. Logout is idempotent, and a 404 here would
-        // let a caller probe which token values exist.
+        // stored.IsRevoked: Mean Token is exists but he is cancelled
         if (stored is null || stored.IsRevoked || stored.UserId != _currentUser.UserId)
             return;
 

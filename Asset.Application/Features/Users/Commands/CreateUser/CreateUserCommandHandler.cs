@@ -39,9 +39,6 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserL
         if (await _users.EmailExistsAsync(request.Email, cancellationToken))
             throw new ConflictException($"Email '{request.Email}' is already in use.");
 
-        if (await _users.EmailExistsAsync(request.Email, cancellationToken))
-            throw new ConflictException($"Email '{request.Email}' is already in use.");
-
         if (!await _unitOfWork.Employees.ExistsAsync(request.EmployeeId, cancellationToken))
             throw new NotFoundException($"Employee {request.EmployeeId} was not found.");
 
@@ -58,13 +55,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserL
             EmployeeId = request.EmployeeId
         };
 
-        // UserManager fills Id, the normalised columns, the security stamp and
-        // the password hash (R1.2 - PBKDF2 with a per-user salt). None of that
-        // is set by hand, which is the whole reason for keeping Identity.
         var errors = await _users.CreateAsync(user, request.Password, request.Role, cancellationToken);
-
-        // Anything left is a race that beat the checks above, or an Identity
-        // policy the validator does not mirror.
         if (errors.Count > 0)
             throw new ConflictException(string.Join(" ", errors));
 

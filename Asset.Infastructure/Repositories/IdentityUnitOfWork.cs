@@ -3,11 +3,6 @@ using Asset.Application.Common.Interfaces;
 using Asset.Infastructure.DBContext.Identity;
 #endregion
 
-/// <summary>
-/// EF Core's change tracker already is a unit of work; this is what lets the
-/// application layer commit without seeing DbContext.
-/// </summary>
-/// 
 namespace Asset.Infastructure.Repositories;
 public class IdentityUnitOfWork : IIdentityUnitOfWork
 {

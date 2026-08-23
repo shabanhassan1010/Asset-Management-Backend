@@ -1,6 +1,5 @@
 using Asset.Application.Features.Users.DTOs;
 using Asset.Domain.Enum;
-using Asset.Domain.Identity;
 using MediatR;
 
 namespace Asset.Application.Features.Users.Commands.CreateUser;

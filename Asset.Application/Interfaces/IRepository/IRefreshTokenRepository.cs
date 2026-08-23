@@ -1,11 +1,11 @@
 using Asset.Domain.Identity;
-
 namespace Asset.Application.Common.Interfaces;
 
 public interface IRefreshTokenRepository
 {
     Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken);
 
+    // Use it when I Save New User In Database
     Task AddAsync(RefreshToken refreshToken, CancellationToken cancellationToken);
 
     /// <summary>

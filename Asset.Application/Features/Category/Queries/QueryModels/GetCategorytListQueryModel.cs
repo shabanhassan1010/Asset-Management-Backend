@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Asset.Application.Features.Category.Queries.QueryModels
 {
-    public class GetCategoryListQueryModel : IRequest<ApiResponse<List<GetCategoryListResponse>>> , ICachedQuery
+    public class GetCategoryListQueryModel : IRequest<ApiResponse<IReadOnlyList<GetCategoryListResponse>>> , ICachedQuery
     {
         public string CacheKey => CacheKeys.CategoryList;
         public TimeSpan Duration => TimeSpan.FromMinutes(30);

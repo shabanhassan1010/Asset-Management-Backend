@@ -25,24 +25,21 @@ namespace Asset.Infastructure.Repositories
 
         #region Methods
         // Get
-        public Task<List<GetLocationListResponse>> GetAllProjectedAsync(CancellationToken ct)
+        public async Task<IReadOnlyList<GetLocationListResponse>> GetAllProjectedAsync(CancellationToken ct)
         {
             var query = _dbContext.Locations.AsNoTracking().Where(c => c.IsActive);
 
-            return query
-                .OrderBy(c => c.LocationName)
-                .Select(c => new GetLocationListResponse
-                {
-                    Id = c.Id,
-                    LocationName = c.LocationName,
-                    Address = c.Address,
-                    IsActive = c.IsActive,
-                    AssetsCount = c.Assets.Count()
-                })
-                .ToListAsync(ct);
-
+            return await query.OrderBy(c => c.LocationName)
+                        .Select(c => new GetLocationListResponse
+                        {
+                            Id = c.Id,
+                            LocationName = c.LocationName,
+                            Address = c.Address,
+                            IsActive = c.IsActive,
+                            AssetsCount = c.Assets.Count()
+                        }).ToListAsync(ct);
         }      
-        public async Task<List<AssetEntity>> GetTrackedAssetsByLocationAsync(int locationId, CancellationToken ct)
+        public async Task<IReadOnlyList<AssetEntity>> GetTrackedAssetsByLocationAsync(int locationId, CancellationToken ct)
         {
             return await _dbContext.Assets
                         .Where(a => a.LocationId == locationId)

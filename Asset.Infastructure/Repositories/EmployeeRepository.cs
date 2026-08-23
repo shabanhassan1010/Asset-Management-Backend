@@ -33,7 +33,7 @@ namespace Asset.Infastructure.Repositories
         {
             return _dbContext.Employees.Include(e => e.Department).FirstOrDefaultAsync(e => e.Id == id, ct);
         }
-        public async Task<List<Employee>> GetAllWithDepartmentAsync(CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<Employee>> GetAllWithDepartmentAsync(CancellationToken cancellationToken)
         {
             return await _dbContext.Employees.AsNoTracking().Include(e => e.Department).OrderBy(e => e.FullName).ToListAsync(cancellationToken);
         }                 

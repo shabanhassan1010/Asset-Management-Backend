@@ -10,7 +10,7 @@ using MediatR;
 namespace Asset.Application.Features.Locations.Queries.QueryHandlers
 {
     public class LocationQueryHandler :
-                                        IRequestHandler<GetLocationListQueryModel, ApiResponse<List<GetLocationListResponse>>>,
+                                        IRequestHandler<GetLocationListQueryModel, ApiResponse<IReadOnlyList<GetLocationListResponse>>>,
                                         IRequestHandler<GetLocationByIdQueryModel, ApiResponse<GetLocationByIdResponse>>
     {
         #region Fields
@@ -26,11 +26,11 @@ namespace Asset.Application.Features.Locations.Queries.QueryHandlers
         }
         #endregion
 
-        public async Task<ApiResponse<List<GetLocationListResponse>>> Handle(GetLocationListQueryModel request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<IReadOnlyList<GetLocationListResponse>>> Handle(GetLocationListQueryModel request, CancellationToken cancellationToken)
         {
             var list = await _locationRepository.GetAllProjectedAsync(cancellationToken);
 
-            return new ApiResponse<List<GetLocationListResponse>>
+            return new ApiResponse<IReadOnlyList<GetLocationListResponse>>
             {
                 data = list,
                 Success = true,

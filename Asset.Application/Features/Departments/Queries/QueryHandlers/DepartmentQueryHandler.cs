@@ -11,7 +11,7 @@ using MediatR;
 namespace Asset.Application.Features.Departments.Queries.QueryHandlers
 {
     public class DepartmentQueryHandler :
-                                        IRequestHandler<GetDepartmentListQueryModel, ApiResponse<List<GetDepartmentListResponse>>>,
+                                        IRequestHandler<GetDepartmentListQueryModel, ApiResponse<IReadOnlyList<GetDepartmentListResponse>>>,
                                         IRequestHandler<GetDepartmentByIdQueryModel, ApiResponse<GetDepartmentByIdResponse>>
     {
         #region Fields
@@ -28,11 +28,11 @@ namespace Asset.Application.Features.Departments.Queries.QueryHandlers
         #endregion
 
         #region Handlers
-        public async Task<ApiResponse<List<GetDepartmentListResponse>>> Handle(GetDepartmentListQueryModel request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<IReadOnlyList<GetDepartmentListResponse>>> Handle(GetDepartmentListQueryModel request, CancellationToken cancellationToken)
         {
             var list = await _unitOfWork.Departments.GetAllProjectedAsync(cancellationToken);
 
-            return new ApiResponse<List<GetDepartmentListResponse>>
+            return new ApiResponse<IReadOnlyList<GetDepartmentListResponse>>
             {
                 data = list,
                 Success = true,

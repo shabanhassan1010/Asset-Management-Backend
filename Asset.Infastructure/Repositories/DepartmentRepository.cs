@@ -24,9 +24,9 @@ namespace Asset.Infastructure.Repositories
         #region Methods
 
         // Get 
-        public Task<List<GetDepartmentListResponse>> GetAllProjectedAsync(CancellationToken ct)
+        public async Task<IReadOnlyList<GetDepartmentListResponse>> GetAllProjectedAsync(CancellationToken ct)
         {
-            return _dbContext.Departments
+            return await _dbContext.Departments
                 .AsNoTracking()
                 .Where(d => d.IsActive)
                 .OrderBy(d => d.DepartmentName)

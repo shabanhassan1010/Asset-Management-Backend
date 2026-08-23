@@ -12,7 +12,7 @@ using MediatR;
 
 namespace Asset.Application.Features.Employees.Queries.QueryHandlers
 {
-    public class GetEmployeeListQueryHandler :  IRequestHandler<GetEmployeeListQueryModel, List<GetEmployeeListQueryResponse>> ,
+    public class GetEmployeeListQueryHandler :  IRequestHandler<GetEmployeeListQueryModel, IReadOnlyList<GetEmployeeListQueryResponse>> ,
                                                 IRequestHandler<GetAvailableEmployeesQueryModel, IReadOnlyList<AvailableEmployeeDto>>,
                                                 IRequestHandler<GetEmployeesPaginatedQuery, ApiResponse<PagedResult<GetEmployeeListQueryResponse>>>,
                                                 IRequestHandler<GetEmployeeByIdQueryModel, ApiResponse<GetEmployeeByIdResponse>>
@@ -34,7 +34,7 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
         #endregion
 
         #region Handlers
-        public async Task<List<GetEmployeeListQueryResponse>> Handle(GetEmployeeListQueryModel request, CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<GetEmployeeListQueryResponse>> Handle(GetEmployeeListQueryModel request, CancellationToken cancellationToken)
         {
             var employees = await _unitOfWork.Employees.GetAllWithDepartmentAsync(cancellationToken);
             return _mapper.Map<List<GetEmployeeListQueryResponse>>(employees);
@@ -45,13 +45,12 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
             var takenIds = await userRepository.GetLinkedEmployeeIdsAsync(cancellationToken);
             var available = await _unitOfWork.Employees.GetAvailableAsync(takenIds,request.departmentId, cancellationToken);
 
-            return available
-                    .Select(e => new AvailableEmployeeDto
-                    {
-                        Id = e.Id,
-                        FullName = e.FullName,
-                    })
-                    .ToList(); ;
+            return available.Select(e => new AvailableEmployeeDto
+                            {
+                                Id = e.Id,
+                                FullName = e.FullName,
+                            })
+                            .ToList(); ;
         }
 
         public async Task<ApiResponse<PagedResult<GetEmployeeListQueryResponse>>> Handle(GetEmployeesPaginatedQuery request, CancellationToken cancellationToken)

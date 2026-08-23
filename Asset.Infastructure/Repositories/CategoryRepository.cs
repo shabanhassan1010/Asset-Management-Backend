@@ -27,11 +27,11 @@ namespace Asset.Infastructure.Repositories
         #region Methods
 
         // Get
-        public Task<List<GetCategoryListResponse>> GetAllProjectedAsync(CancellationToken ct)
+        public async Task<IReadOnlyList<GetCategoryListResponse>> GetAllProjectedAsync(CancellationToken ct)
         {
             var query = _dbContext.Categories.AsNoTracking().Where(c => c.IsActive);
 
-            return query
+            return await query
                 .OrderBy(c => c.CategoryName)
                 .Select(c => new GetCategoryListResponse
                 {

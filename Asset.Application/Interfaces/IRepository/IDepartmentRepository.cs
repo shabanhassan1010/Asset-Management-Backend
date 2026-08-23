@@ -9,7 +9,7 @@ namespace Asset.Application.Interfaces.IRepository
                                              ICheckRepository<Department>
     {
         // Read
-        Task<List<GetDepartmentListResponse>> GetAllProjectedAsync(CancellationToken ct);
+        Task<IReadOnlyList<GetDepartmentListResponse>> GetAllProjectedAsync(CancellationToken ct);
         Task<int> CountEmployeesAsync(int departmentId, CancellationToken ct);
         Task<int> CountAssetsAsync(int departmentId, CancellationToken ct);
 

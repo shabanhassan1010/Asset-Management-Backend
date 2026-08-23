@@ -4,7 +4,7 @@ using Asset.Application.Features.Locations.Queries.QueryResponse;
 using MediatR;
 namespace Asset.Application.Features.Locations.Queries.QueryModels
 {
-    public class GetLocationListQueryModel : IRequest<ApiResponse<List<GetLocationListResponse>>>, ICachedQuery
+    public class GetLocationListQueryModel : IRequest<ApiResponse<IReadOnlyList<GetLocationListResponse>>>, ICachedQuery
     {
         public string CacheKey => CacheKeys.LocationList;
         public TimeSpan Duration => TimeSpan.FromMinutes(30);

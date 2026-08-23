@@ -7,7 +7,7 @@ namespace Asset.Application.Interfaces.IRepository
         // Get
         Task<Employee?> GetByIdAsync(int id, CancellationToken ct);
         Task<Employee?> GetByIdWithDepartmentAsNoTrackingAsync(int id, CancellationToken ct);
-        Task<List<Employee>> GetAllWithDepartmentAsync(CancellationToken cancellationToken);
+        Task<IReadOnlyList<Employee>> GetAllWithDepartmentAsync(CancellationToken cancellationToken);
         Task<IReadOnlyList<Employee>> GetAvailableAsync(IReadOnlyList<int> takenEmployeeIds, int? departmentId, CancellationToken cancellationToken);
         Task<(List<Employee> Items, int TotalCount)> GetPagedAsync(string search, int? departmentId, bool? isActive, int pageNumber, int pageSize, CancellationToken ct);
         // Check

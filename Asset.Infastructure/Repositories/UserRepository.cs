@@ -63,8 +63,6 @@ public class UserRepository : IUserRepository
         if (isActive.HasValue)
             query = query.Where(u => u.IsActive == isActive.Value);
 
-        // The role join, written out because IdentityUser exposes no navigation
-        // to go through.
         var withRoles = from user in query
                         join userRole in _context.UserRoles on user.Id equals userRole.UserId into userRoles
                         from userRole in userRoles.DefaultIfEmpty()
@@ -74,9 +72,6 @@ public class UserRepository : IUserRepository
 
         if (role.HasValue)
         {
-            // Converted outside the expression: EF cannot translate ToString()
-            // on an enum into SQL, and doing it here keeps the comparison a
-            // plain string equality the provider understands.
             var roleName = role.Value.ToString();
             withRoles = withRoles.Where(x => x.RoleName == roleName);
         }
@@ -84,13 +79,10 @@ public class UserRepository : IUserRepository
         // Counted before paging, so the total reflects the filter, not the page.
         var totalCount = await withRoles.CountAsync(cancellationToken);
 
-        var rows = await withRoles
-            // A deterministic sort is required: without one, SQL Server may
-            // return the same row on two different pages.
-            .OrderBy(x => x.User.UserName)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
+        var rows = await withRoles.OrderBy(x => x.User.UserName)
+                                  .Skip((pageNumber - 1) * pageSize)
+                                  .Take(pageSize)
+                                  .ToListAsync(cancellationToken);
 
         var items = rows.Select(x => new UserWithRole(x.User, x.RoleName.ToRole())).ToList();
 

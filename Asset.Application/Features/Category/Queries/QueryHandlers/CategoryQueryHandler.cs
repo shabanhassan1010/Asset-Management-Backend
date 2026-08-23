@@ -16,7 +16,7 @@ using Microsoft.Extensions.Localization;
 namespace Asset.Application.Features.Category.Queries.QueryHandlers
 {
     public class CategoryQueryHandler : BaseResponseHandler,
-                                        IRequestHandler<GetCategoryListQueryModel, ApiResponse<List<GetCategoryListResponse>>>,
+                                        IRequestHandler<GetCategoryListQueryModel, ApiResponse<IReadOnlyList<GetCategoryListResponse>>>,
                                         IRequestHandler<GetCategoryByIdQueryModel, ApiResponse<GetCategoryByIdResponse>>
     {
         #region Fields
@@ -33,13 +33,13 @@ namespace Asset.Application.Features.Category.Queries.QueryHandlers
         #endregion
 
         #region Handlers
-        public async Task<ApiResponse<List<GetCategoryListResponse>>> Handle(GetCategoryListQueryModel request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<IReadOnlyList<GetCategoryListResponse>>> Handle(GetCategoryListQueryModel request, CancellationToken cancellationToken)
         {
             var categories = await _unitOfWork.Categories.GetAllProjectedAsync(cancellationToken);
 
-            return new ApiResponse<List<GetCategoryListResponse>>
+            return new ApiResponse<IReadOnlyList<GetCategoryListResponse>>
             {
-                data = _mapper.Map<List<GetCategoryListResponse>>(categories),
+                data = _mapper.Map<IReadOnlyList<GetCategoryListResponse>>(categories),
                 Success = true,
                 Message = "Categories Retrieved Successfully"
             };

@@ -71,6 +71,3 @@ public class UsersController : ControllerBase
     }
     #endregion
 }
-
-public record ChangeUserRoleRequest(Role Role);
-public record ChangeUserStatusRequest(bool IsActive);

@@ -1,10 +1,11 @@
-#region
+﻿#region
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Asset.Application.Common.Constants;
 using Asset.Application.Common.Interfaces;
+using Asset.Application.Features.Auth.DTOs;
 using Asset.Domain.Enum;
 using Asset.Domain.Identity;
 using Asset.Infastructure.Security;
@@ -26,41 +27,35 @@ public class JwtTokenService : IJwtTokenService
     }
     #endregion
 
-    #region Functions
+    #region Login Function
     public AccessTokenResult CreateAccessToken(ApplicationUser user, Role role)
     {
-        var expiresAt = DateTime.UtcNow.AddMinutes(_settings.AccessTokenMinutes);
+        var expiresAt = DateTime.UtcNow.AddMinutes(_settings.AccessTokenMinutes);  // 15 minuts
 
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, user.Id), 
-            new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Name, user.UserName ?? string.Empty),
-            new(ClaimTypes.Role, role.ToString()),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Sub, user.Id),                      // Sub (Subject)   => related for any User?
+            new(ClaimTypes.NameIdentifier, user.Id),                       // (NameIdentifier) => will make [Asp.Net Core] work with [User Id] like [Identity claim]
+            new(ClaimTypes.Name, user.UserName ?? string.Empty),          // Store [User Name]
+            new(ClaimTypes.Role, role.ToString()),                       // Store  [Role]                                                                         
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // this is Unique Identifier for [JWT]  => each Access Token has Different Id
         };
 
-        if (!string.IsNullOrEmpty(user.Email))
+        if (!string.IsNullOrEmpty(user.Email))                        // If User have an [email] set this in [JWT]
             claims.Add(new Claim(ClaimTypes.Email, user.Email));
 
-        // The bridge to Employees. It has to travel in the token because
-        // Employees lives in the other DbContext - EF cannot Include across
-        // that boundary, so carrying the id here saves a cross-context query on
-        // every "show me my assets" request (R4).
-        //if (user.EmployeeId.HasValue)
-        //    claims.Add(new Claim("employeeId", user.EmployeeId.Value.ToString()));
 
         if (user.EmployeeId.HasValue)
         {
             claims.Add(new Claim(CustomClaimTypes.EmployeeId, user.EmployeeId.Value.ToString()));
         }
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.SigningKey));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.SigningKey));   // use SigningKey
         var token = new JwtSecurityToken(
-            issuer: _settings.Issuer,
-            audience: _settings.Audience,
-            claims: claims,
-            notBefore: DateTime.UtcNow,
+            issuer: _settings.Issuer,          //  مين اصدر التوكن؟
+            audience: _settings.Audience,     // الـتوكن  ده معمول لمين؟
+            claims: claims,                  //  دي البيانات التي وضعتها داخل الـ JWT.    
+            notBefore: DateTime.UtcNow,       // الـتوكن  يصبح صالحًا من الوقت ده.
             expires: expiresAt,
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256));
 

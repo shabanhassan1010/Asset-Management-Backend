@@ -25,14 +25,30 @@ public class UserRepository : IUserRepository
     }
     #endregion
 
-    #region Methods
-    // Get
+
+    #region Login & Refresh Token Methods
     public Task<ApplicationUser?> GetByUserNameAsync(string userName, CancellationToken cancellationToken)
-         => _context.Users.FirstOrDefaultAsync(u => u.NormalizedUserName == _userManager.NormalizeName(userName), cancellationToken);
+    {
+        return _context.Users.FirstOrDefaultAsync(u => u.NormalizedUserName == _userManager.NormalizeName(userName), cancellationToken);
+    }
+    public Task<bool> CheckPasswordAsync(ApplicationUser user, string password, CancellationToken cancellationToken)
+    {
+        return _userManager.CheckPasswordAsync(user, password);
+    }
+    public async Task<Role> GetRoleAsync(ApplicationUser user, CancellationToken cancellationToken)
+    {
+        var roles = await _userManager.GetRolesAsync(user);
+        return roles.FirstOrDefault().ToRole();   // ToRole  -> convert (Role.Admin)  into    Role = Admin
+    }
+    #endregion
+
+    #region Refresh Token
     public Task<ApplicationUser?> GetByIdAsync(string userId, CancellationToken cancellationToken)
     {
         return _context.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
     }
+    #endregion
+
     public async Task<(IReadOnlyList<UserWithRole> Items, int TotalCount)> GetPagedAsync(string? search, Role? role, bool? isActive, int pageNumber, int pageSize, CancellationToken cancellationToken)
     {
         // AsNoTracking: these rows are read and mapped, never modified.
@@ -41,9 +57,7 @@ public class UserRepository : IUserRepository
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim().ToUpperInvariant();
-            query = query.Where(u =>
-                u.NormalizedUserName!.Contains(term) ||
-                u.NormalizedEmail!.Contains(term));
+            query = query.Where(u =>u.NormalizedUserName!.Contains(term) || u.NormalizedEmail!.Contains(term));
         }
 
         if (isActive.HasValue)
@@ -51,13 +65,12 @@ public class UserRepository : IUserRepository
 
         // The role join, written out because IdentityUser exposes no navigation
         // to go through.
-        var withRoles =
-            from user in query
-            join userRole in _context.UserRoles on user.Id equals userRole.UserId into userRoles
-            from userRole in userRoles.DefaultIfEmpty()
-            join identityRole in _context.Roles on userRole.RoleId equals identityRole.Id into identityRoles
-            from identityRole in identityRoles.DefaultIfEmpty()
-            select new { User = user, RoleName = identityRole.Name };
+        var withRoles = from user in query
+                        join userRole in _context.UserRoles on user.Id equals userRole.UserId into userRoles
+                        from userRole in userRoles.DefaultIfEmpty()
+                        join identityRole in _context.Roles on userRole.RoleId equals identityRole.Id into identityRoles
+                        from identityRole in identityRoles.DefaultIfEmpty()
+                        select new { User = user, RoleName = identityRole.Name };
 
         if (role.HasValue)
         {
@@ -79,24 +92,17 @@ public class UserRepository : IUserRepository
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var items = rows
-            .Select(x => new UserWithRole(x.User, x.RoleName.ToRole()))
-            .ToList();
+        var items = rows.Select(x => new UserWithRole(x.User, x.RoleName.ToRole())).ToList();
 
         return (items, totalCount);
-    }
-    public async Task<Role> GetRoleAsync(ApplicationUser user, CancellationToken cancellationToken)
-    {
-        var roles = await _userManager.GetRolesAsync(user);
-        return roles.FirstOrDefault().ToRole();
-    }
+    } 
     public async Task<IReadOnlyList<int>> GetLinkedEmployeeIdsAsync(CancellationToken cancellationToken)
     {
         return await _context.Users.AsNoTracking().Where(u => u.EmployeeId != null)
                                                   .Select(u => u.EmployeeId!.Value)
                                                   .ToListAsync(cancellationToken);
     }
-    public Task<int> CountActiveAdminsExcludingAsync(string excludedUserId, CancellationToken cancellationToken)
+    public Task<int>  CountActiveAdminsExcludingAsync(string excludedUserId, CancellationToken cancellationToken)
     {
         var adminRoleName = Role.Admin.ToString();
 
@@ -104,39 +110,17 @@ public class UserRepository : IUserRepository
                 join userRole in _context.UserRoles on user.Id equals userRole.UserId
                 join role in _context.Roles on userRole.RoleId equals role.Id
                 where user.Id != excludedUserId && user.IsActive && role.Name == adminRoleName
-                select user.Id)
-                .CountAsync(cancellationToken);
-    }
+                select user.Id).CountAsync(cancellationToken);
+    }   
 
 
-    // Check
-    public Task<bool> CheckPasswordAsync(ApplicationUser user, string password, CancellationToken cancellationToken)
-    {
-        return _userManager.CheckPasswordAsync(user, password);
-    }       
-    public Task<bool> UserNameExistsAsync(string userName, CancellationToken cancellationToken)
-    {
-        return _context.Users.AnyAsync(u => u.NormalizedUserName == _userManager.NormalizeName(userName), cancellationToken);
-    }
-    public Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken)
-    {
-        return _context.Users.AnyAsync(u => u.NormalizedEmail == _userManager.NormalizeEmail(email), cancellationToken);
-    }
-    public Task<bool> EmployeeHasUserAsync(int employeeId, CancellationToken cancellationToken)
-    {
-        return _context.Users.AnyAsync(u => u.EmployeeId == employeeId, cancellationToken);
-    }
-
-
-    // Create
+    #region Create User Methods
     public async Task<IReadOnlyList<string>> CreateAsync( ApplicationUser user, string password, Role role, CancellationToken cancellationToken)
     {
-        // Hashes the password, fills Id, the normalised columns and the security
-        // stamp, and saves. R1.2 in one call.
         try
         {
             var created = await _userManager.CreateAsync(user, password);
-            if (!created.Succeeded)
+            if (!created.Succeeded)  // If password is not corrrect or do not match Identity rules
                 return created.Errors.Select(e => e.Description).ToList();
         }
         catch
@@ -150,14 +134,30 @@ public class UserRepository : IUserRepository
 
         return Array.Empty<string>();
     }
+    public Task<bool> EmployeeHasUserAsync(int employeeId, CancellationToken cancellationToken)
+    {
+        return _context.Users.AnyAsync(u => u.EmployeeId == employeeId, cancellationToken);
+    }
+    public Task<bool> UserNameExistsAsync(string userName, CancellationToken cancellationToken)
+    {
+        return _context.Users.AnyAsync(u => u.NormalizedUserName == _userManager.NormalizeName(userName), cancellationToken);
+    }
+    public Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken)
+    {
+        return _context.Users.AnyAsync(u => u.NormalizedEmail == _userManager.NormalizeEmail(email), cancellationToken);
+    }
+    #endregion
 
-
-    // Update
+    #region Change Role Method
     public async Task ReplaceRoleAsync(ApplicationUser user, Role currentRole, Role newRole, CancellationToken cancellationToken)
     {
         await _userManager.RemoveFromRoleAsync(user, currentRole.ToString());
         await _userManager.AddToRoleAsync(user, newRole.ToString());
     }
-    public Task UpdateAsync(ApplicationUser user, CancellationToken cancellationToken) => _userManager.UpdateAsync(user);
     #endregion
+
+    public Task UpdateAsync(ApplicationUser user, CancellationToken cancellationToken)
+    {
+        return _userManager.UpdateAsync(user);
+    } 
 }

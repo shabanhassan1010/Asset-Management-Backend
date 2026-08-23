@@ -1,5 +1,4 @@
 using FluentValidation;
-
 namespace Asset.Application.Features.Users.Commands.ChangeUserRole;
 
 public class ChangeUserRoleCommandValidator : AbstractValidator<ChangeUserRoleCommand>

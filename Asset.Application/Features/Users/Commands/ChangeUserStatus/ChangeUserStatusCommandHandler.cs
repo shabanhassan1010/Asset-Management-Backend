@@ -39,7 +39,9 @@ public class ChangeUserStatusCommandHandler : IRequestHandler<ChangeUserStatusCo
         // Only disabling can lock somebody out, so both guards sit on that side.
         if (!request.IsActive)
         {
-            if (user.Id == _currentUser.UserId)
+            // [_currentUser.UserId]   -> this is user which he sent request.
+            // [user.Id]               -> this is user which I went to disable it
+            if (user.Id == _currentUser.UserId)  
                 throw new BusinessException("You cannot disable your own account.");
 
             var role = await _users.GetRoleAsync(user, cancellationToken);
@@ -53,15 +55,17 @@ public class ChangeUserStatusCommandHandler : IRequestHandler<ChangeUserStatusCo
 
         user.IsActive = request.IsActive;
 
+        // Must Use Transaction 
+        // If [Update] was Success  -------------------  [Revoke Refresh] Tokens was failed   = this will make data inconsistence
         await _unitOfWork.ExecuteInTransactionAsync(async () =>
         {
+            // 1. Update User.IsActive  (save user changes)
             await _users.UpdateAsync(user, cancellationToken);
 
-            // A disabled account must stop working now, not when its token
-            // happens to expire.
+            // 2. Revoke Refresh Tokens
             if (!request.IsActive)
                 await _refreshTokens.RevokeAllForUserAsync(user.Id, cancellationToken);
         }, cancellationToken);
-        #endregion
     }
+    #endregion
 }

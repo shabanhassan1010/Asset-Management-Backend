@@ -1,3 +1,4 @@
+#region
 using Asset.Application.Common.Interfaces;
 using Asset.Application.Common.Models;
 using Asset.Application.Features.Auth.DTOs;
@@ -5,27 +6,25 @@ using Asset.Domain.Exceptions;
 using Asset.Domain.Identity;
 using AutoMapper;
 using MediatR;
+#endregion
 
 namespace Asset.Application.Features.Auth.Commands.Refresh;
-
-/// <summary>
-/// R1.6 - refresh with rotation. The presented token is always retired and a
-/// new one issued, so a stolen token is usable at most once.
-/// </summary>
 public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, AuthResponseDto>
 {
+    #region Fields
     private readonly IRefreshTokenRepository _refreshTokens;
     private readonly IUserRepository _users;
     private readonly IJwtTokenService _tokenService;
     private readonly IIdentityUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    #endregion
 
-    public RefreshTokenCommandHandler(
-        IRefreshTokenRepository refreshTokens,
-        IUserRepository users,
-        IJwtTokenService tokenService,
-        IIdentityUnitOfWork unitOfWork,
-        IMapper mapper)
+    #region Constructor
+    public RefreshTokenCommandHandler(IRefreshTokenRepository refreshTokens,
+                                      IUserRepository users,
+                                      IJwtTokenService tokenService,
+                                      IIdentityUnitOfWork unitOfWork,
+                                      IMapper mapper)
     {
         _refreshTokens = refreshTokens;
         _users = users;
@@ -33,25 +32,23 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
         _unitOfWork = unitOfWork;
         _mapper = mapper;
     }
+    #endregion
 
+    #region Handler
     public async Task<AuthResponseDto> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
         // One message for every failure below, for the same reason as login.
         const string invalid = "The refresh token is invalid or has expired. Please sign in again.";
 
+        // take this refresh Tokens which user sent it and search about it in database
         var stored = await _refreshTokens.GetByTokenAsync(request.RefreshToken, cancellationToken);
 
         if (stored is null)
             throw new AuthenticationFailedException(invalid);
 
-        // A revoked token being presented means one of two things: the user
-        // signed out, or somebody replayed a token that was already rotated.
-        // Both are handled the same way - kill every session for that user. If
-        // it really was stolen, the thief and the victim are both signed out
-        // and the victim notices something is wrong.
-        if (stored.IsRevoked)
+        if (stored.IsRevoked)   // If IsRevoked true => IsRevoked is cacelled so I can not use it to get new [Access token]
         {
-            await _refreshTokens.RevokeAllForUserAsync(stored.UserId, cancellationToken);
+            await _refreshTokens.RevokeAllForUserAsync(stored.UserId, cancellationToken);  // search for all refresh token and make IsRevoked = True
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             throw new AuthenticationFailedException(invalid);
         }
@@ -96,4 +93,5 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
             User = _mapper.Map<CurrentUserDto>(new UserWithRole(user, role))
         };
     }
+    #endregion
 }

@@ -15,10 +15,6 @@
 
         public const string AssetTypeList = "assettypes:list";
 
-        /// <summary>
-        /// The lookup lists carry AssetsCount, so creating, deleting or moving
-        /// an asset makes all three stale. Asset commands clear them together.
-        /// </summary>
         public static readonly string[] ListsAffectedByAssetChanges =
         {
             CategoryList,

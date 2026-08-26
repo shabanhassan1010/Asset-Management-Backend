@@ -1,13 +1,9 @@
-﻿using Asset.Application.Common.Caching;
+﻿#region
+using Asset.Application.Common.Caching;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-
+#endregion
 namespace Asset.Infastructure.Service
 {
     public class RedisCacheService : ICacheService

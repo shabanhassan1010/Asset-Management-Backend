@@ -1,13 +1,13 @@
-﻿using Asset.Domain.Identity;
+﻿#region
+using Asset.Domain.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+#endregion
 namespace Asset.Infastructure.DBContext.Identity
 {
     public class AppIdentityDbContext : IdentityDbContext<ApplicationUser>
     {
-        public AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options)
-            : base(options)
-        {}
+        public AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options): base(options) {}
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -24,7 +24,7 @@ namespace Asset.Infastructure.DBContext.Identity
                 e.HasOne(x => x.User)
                  .WithMany()
                  .HasForeignKey(x => x.UserId)
-                 .OnDelete(DeleteBehavior.Cascade);
+                 .OnDelete(DeleteBehavior.Cascade);  // when i delete user all tokens will delete by default
             });
         }
     }

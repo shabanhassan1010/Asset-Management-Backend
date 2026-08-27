@@ -33,8 +33,10 @@ namespace Asset.Infastructure
             services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(connectionString));
             services.AddIdentityCore<ApplicationUser>(options =>
             {
+                // Password
                 options.Password.RequiredLength = 8;
                 options.Password.RequireNonAlphanumeric = false;
+                // Email
                 options.User.RequireUniqueEmail = true;
             })
             .AddRoles<IdentityRole>().AddEntityFrameworkStores<AppIdentityDbContext>();
@@ -63,7 +65,6 @@ namespace Asset.Infastructure
             #endregion
 
             #region Repositories
-
             services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IAssetRepository, AssetRepository>();
@@ -74,7 +75,6 @@ namespace Asset.Infastructure
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddScoped<IDashboardRepository, DashboardRepository>();
             services.AddScoped<IAssetTypeRepository, AssetTypeRepository>();
-
             #endregion
 
             #region Identity and tokens
@@ -83,7 +83,6 @@ namespace Asset.Infastructure
             services.AddScoped<IIdentityUnitOfWork, IdentityUnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-
             #endregion
 
             #region Caching (Redis)

@@ -5,7 +5,7 @@ public partial class AssetManagementDbContext
 {
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(
-            typeof(AssetManagementDbContext).Assembly);
+        // Go to this assembly and see if any class excute [IEntityTypeConfiguration<T>] and exectue it
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AssetManagementDbContext).Assembly);
     }
 }

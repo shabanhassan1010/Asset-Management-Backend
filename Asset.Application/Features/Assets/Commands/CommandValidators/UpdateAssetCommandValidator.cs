@@ -38,6 +38,9 @@ namespace Asset.Application.Features.Assets.Commands.CommandValidators
                 .WithMessage("An employee must be assigned when status is 'Assigned'.")
                 .When(x => x.Status == 2);
 
+            RuleFor(x => x.CategoryId).GreaterThan(0);
+            RuleFor(x => x.AssetTypeId).GreaterThan(0);
+
             RuleFor(x => x.PurchaseCost)
                 .GreaterThanOrEqualTo(0).WithMessage("Purchase cost cannot be negative.")
                 .When(x => x.PurchaseCost.HasValue);

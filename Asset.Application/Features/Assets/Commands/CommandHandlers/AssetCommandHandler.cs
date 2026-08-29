@@ -44,13 +44,33 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
         #region Methods
         public async Task<ApiResponse<CreateAssetResponseDto>> Handle(CreateAssetCommandModel request, CancellationToken cancellationToken)
         {
+            // The database has a unique index on AssetCode. We check here first so the user gets a clear message instead of a raw SqlException
+            var codeExists = await _unitOfWork.Assets.AnyAsync(a => a.AssetCode == request.AssetCode, cancellationToken);
+
+            if (codeExists)
+                throw new ConflictException("An asset with this code already exists.");
+
+            // Serial numbers are optional — not every asset has one — so this is only checked when the user actually supplied one.
+            if (!string.IsNullOrWhiteSpace(request.SerialNumber))
+            {
+                var serialExists = await _unitOfWork.Assets.AnyAsync(a => a.SerialNumber == request.SerialNumber, cancellationToken);
+
+                if (serialExists)
+                    throw new ConflictException("An asset with this serial number already exists.");
+            }
             request.DepartmentId = request.DepartmentId is null or 0 ? null : request.DepartmentId;
             request.AssignedEmployeeId = request.AssignedEmployeeId is null or 0 ? null : request.AssignedEmployeeId;
             request.LocationId = request.LocationId is null or 0 ? null : request.LocationId;
 
             var entity = _mapper.Map<AssetEntity>(request);
+
+            // Identity comes from the validated token, never from the request body.
+            entity.CreatedAt = DateTime.UtcNow;
+            entity.CreatedByUserId = _currentUser.UserId;
+
             await _unitOfWork.Assets.AddAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
             await InvalidateLookupCountsAsync(cancellationToken);
             return new ApiResponse<CreateAssetResponseDto>
             {
@@ -62,9 +82,30 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
 
         public async Task<ApiResponse<UpdateAssetResponseDto>> Handle(UpdateAssetCommandModel request, CancellationToken cancellationToken)
         {
+            // Parsed before anything else: a malformed value is the client's  mistake, and Convert.FromBase64String would otherwise surface it as a 500.
+            if (!TryParseRowVersion(request.RowVersion, out var rowVersion))
+                throw new ConflictException("The row version is missing or malformed. Please reload the asset.");
+
             var entity = await _unitOfWork.Assets.GetForUpdateAsync(request.AssetId, cancellationToken);
             if (entity is null)
                 throw new NotFoundException($"Asset {request.AssetId} was not found.");
+
+            // a.Id != request.AssetId matters: without it, saving an asset whose
+            // code did not change would be rejected for clashing with itself.
+            var codeExists = await _unitOfWork.Assets.AnyAsync(a => a.AssetCode == request.AssetCode && a.Id != request.AssetId, cancellationToken);
+
+            if (codeExists)
+                throw new ConflictException("An asset with this code already exists.");
+
+
+            if (!string.IsNullOrWhiteSpace(request.SerialNumber))
+            {
+                var serialExists = await _unitOfWork.Assets
+                    .AnyAsync(a => a.SerialNumber == request.SerialNumber && a.Id != request.AssetId, cancellationToken);
+
+                if (serialExists)
+                    throw new ConflictException("An asset with this serial number already exists.");
+            }
 
             request.DepartmentId = request.DepartmentId is null or 0 ? null : request.DepartmentId;
             request.AssignedEmployeeId = request.AssignedEmployeeId is null or 0 ? null : request.AssignedEmployeeId;
@@ -74,11 +115,13 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             _mapper.Map(request, entity);
 
             entity.UpdatedAt = DateTime.UtcNow;
+            entity.UpdatedByUserId = _currentUser.UserId;
 
-            _unitOfWork.Assets.SetOriginalRowVersion(entity, Convert.FromBase64String(request.RowVersion));
+            _unitOfWork.Assets.SetOriginalRowVersion(entity, rowVersion);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await InvalidateLookupCountsAsync(cancellationToken);
+
             return new ApiResponse<UpdateAssetResponseDto>
             {
                 data = _mapper.Map<UpdateAssetResponseDto>(entity),
@@ -137,6 +180,23 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
         {
             foreach (var key in CacheKeys.ListsAffectedByAssetChanges)
                 await _cache.RemoveAsync(key, ct);
+        }
+        private static bool TryParseRowVersion(string value, out byte[] result)
+        {
+            result = Array.Empty<byte>();
+
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            try
+            {
+                result = Convert.FromBase64String(value);
+                return result.Length > 0;
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
         }
         #endregion
     }

@@ -18,6 +18,7 @@
         public int? DepartmentId { get; set; }
         public int? AssignedEmployeeId { get; set; }
         public int? LocationId { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public string RowVersion { get; set; }
     }
 }

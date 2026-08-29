@@ -28,7 +28,6 @@ namespace Asset.Application.Mapping.AssetDto
                 .ForMember(dest => dest.Location, opt => opt.Ignore())
                 .ForMember(dest => dest.AssetTransfers, opt => opt.Ignore());
 
-            // ده الناقص
             CreateMap<AssetEntity, CreateAssetResponseDto>()
                 .ForMember(dest => dest.AssetId, opt => opt.MapFrom(src => src.Id));
         }

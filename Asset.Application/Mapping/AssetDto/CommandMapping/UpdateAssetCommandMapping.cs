@@ -8,13 +8,12 @@ namespace Asset.Application.Mapping.AssetDto
         private void UpdateAssetCommandMapping()
         {
             CreateMap<UpdateAssetCommandModel, AssetEntity>()
-                // الحقول دي مش بتتغير من الـ request خالص
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.AssetCode, opt => opt.Ignore())   // ثابت بعد الإنشاء
-                .ForMember(dest => dest.RowVersion, opt => opt.Ignore())  // SQL Server بيولّدها
+                .ForMember(dest => dest.AssetCode, opt => opt.Ignore())   
+                .ForMember(dest => dest.RowVersion, opt => opt.Ignore()) 
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedByUserId, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())     // بنحطها في الـ handler
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())    
                 .ForMember(dest => dest.UpdatedByUserId, opt => opt.Ignore())
                 .ForMember(dest => dest.Category, opt => opt.Ignore())
                 .ForMember(dest => dest.AssetType, opt => opt.Ignore())

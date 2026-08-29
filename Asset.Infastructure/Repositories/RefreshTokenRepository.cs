@@ -17,9 +17,9 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     #endregion
 
     #region Logout & Refresh Token Method
-    public Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken)
+    public Task<RefreshToken?> GetByTokenHashAsync(string tokenHash, CancellationToken cancellationToken)
     {
-        return _context.RefreshTokens.FirstOrDefaultAsync(t => t.Token == token, cancellationToken);
+        return _context.RefreshTokens.FirstOrDefaultAsync(t => t.TokenHash == tokenHash, cancellationToken);
     }
     #endregion
 

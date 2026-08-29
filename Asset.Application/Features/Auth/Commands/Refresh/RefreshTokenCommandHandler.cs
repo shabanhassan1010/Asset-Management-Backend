@@ -2,6 +2,7 @@
 using Asset.Application.Common.Interfaces;
 using Asset.Application.Common.Models;
 using Asset.Application.Features.Auth.DTOs;
+using Asset.Application.Interfaces.IRepository;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Identity;
 using AutoMapper;
@@ -13,6 +14,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
 {
     #region Fields
     private readonly IRefreshTokenRepository _refreshTokens;
+    private readonly ITokenHasher _tokenHasher;
     private readonly IUserRepository _users;
     private readonly IJwtTokenService _tokenService;
     private readonly IIdentityUnitOfWork _unitOfWork;
@@ -21,12 +23,14 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
 
     #region Constructor
     public RefreshTokenCommandHandler(IRefreshTokenRepository refreshTokens,
+                                      ITokenHasher tokenHasher,
                                       IUserRepository users,
                                       IJwtTokenService tokenService,
                                       IIdentityUnitOfWork unitOfWork,
                                       IMapper mapper)
     {
         _refreshTokens = refreshTokens;
+        _tokenHasher = tokenHasher;
         _users = users;
         _tokenService = tokenService;
         _unitOfWork = unitOfWork;
@@ -40,8 +44,9 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
         // One message for every failure below, for the same reason as login.
         const string invalid = "The refresh token is invalid or has expired. Please sign in again.";
 
+        var incomingHash = _tokenHasher.Hash(request.RefreshToken);
         // take this refresh Tokens which user sent it and search about it in database
-        var stored = await _refreshTokens.GetByTokenAsync(request.RefreshToken, cancellationToken);
+        var stored = await _refreshTokens.GetByTokenHashAsync(incomingHash, cancellationToken);
 
         if (stored is null)
             throw new AuthenticationFailedException(invalid);
@@ -66,16 +71,16 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
 
         var accessToken = _tokenService.CreateAccessToken(user, role);
         var newRefreshToken = _tokenService.CreateRefreshToken();
-
+        var newTokenHash = _tokenHasher.Hash(newRefreshToken.Token);
         // Rotation: retire the old row and point it at its replacement, so the
         // chain is walkable when a replay has to be investigated.
         stored.IsRevoked = true;
-        stored.ReplacedByToken = newRefreshToken.Token;
+        stored.ReplacedByTokenHash = newTokenHash;
 
         await _refreshTokens.AddAsync(new RefreshToken
         {
             UserId = user.Id,
-            Token = newRefreshToken.Token,
+            TokenHash = newTokenHash,
             ExpiresAt = newRefreshToken.ExpiresAtUtc,
             IsRevoked = false,
             CreatedAt = DateTime.UtcNow

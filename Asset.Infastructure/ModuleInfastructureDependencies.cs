@@ -83,6 +83,7 @@ namespace Asset.Infastructure
             services.AddScoped<IIdentityUnitOfWork, IdentityUnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<ITokenHasher, TokenHasher>();
             #endregion
 
             #region Caching (Redis)

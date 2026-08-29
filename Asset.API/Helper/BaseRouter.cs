@@ -41,6 +41,7 @@
         public static class AssetTypeRouter
         {
             public const string Base = Rule + "/asset-types";
+            public const string Id = Base + "/{id:int}";
         }
 
         public static class UserRouter

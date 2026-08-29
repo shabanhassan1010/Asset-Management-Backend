@@ -6,18 +6,40 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 #endregion
 
 namespace Asset.Infastructure.Repositories
 {
-    public class AssetTypeRepository(AssetManagementDbContext context) : IAssetTypeRepository
+    public class AssetTypeRepository : BaseRepository<AssetType>, IAssetTypeRepository
     {
-        public async Task<IReadOnlyList<AssetType>> GetAllAsync(CancellationToken cancellationToken) =>
-            await context.AssetTypes
-                .AsNoTracking()
-                .OrderBy(t => t.TypeName)
-                .ToListAsync(cancellationToken);
+        #region Fields
+        private readonly AssetManagementDbContext _dbContext;
+        #endregion
+
+        #region Constructor
+        public AssetTypeRepository(AssetManagementDbContext dbContext) : base(dbContext)
+        {
+            _dbContext = dbContext;
+        }
+        #endregion
+
+        public async Task<IReadOnlyList<AssetType>> GetAllAsync(CancellationToken cancellationToken)
+        {
+            return await _dbContext.AssetTypes.AsNoTracking().OrderBy(t => t.TypeName)
+                                              .ToListAsync(cancellationToken);
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<AssetType, bool>> predicate, CancellationToken cancellationToken)
+        {
+            return await _dbContext.AssetTypes.AnyAsync(predicate, cancellationToken);
+        }
+
+        public void Remove(AssetType entity)
+        {
+            entity.IsActive = false;
+        }
     }
 }

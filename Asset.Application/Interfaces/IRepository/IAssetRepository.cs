@@ -3,6 +3,7 @@ using Asset.Application.Features.Assets.DTOs;
 using Asset.Application.Features.GetAssetTransferHistory.QueryResponses;
 using Asset.Application.Interfaces.Comman;
 using Asset.Domain.Models;
+using System.Linq.Expressions;
 using AssetEntity = Asset.Domain.Models.Asset;
 namespace Asset.Application.Interfaces.Repository
 {
@@ -19,6 +20,7 @@ namespace Asset.Application.Interfaces.Repository
 
         // Check
         Task<bool> SerialNumberExistsAsync(string serial, int? exceptId, CancellationToken ct);
+        Task<bool> AnyAsync(Expression<Func<AssetEntity, bool>> predicate, CancellationToken cancellationToken);
 
         // Add
         public Task AddTransferAsync(AssetTransfer transfer, CancellationToken ct);

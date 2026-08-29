@@ -12,7 +12,8 @@ using Microsoft.Extensions.Localization;
 namespace Asset.Application.Features.AssetTypes.Queries.QueryHandlers
 {
     public class GetAssetTypeListQueryHandler : BaseResponseHandler,
-                                                IRequestHandler<GetAssetTypeListQueryModel, BaseResponse<IReadOnlyList<GetAssetTypeListQueryResponse>>>
+                                                IRequestHandler<GetAssetTypeListQueryModel, BaseResponse<IReadOnlyList<GetAssetTypeListQueryResponse>>>,
+                                                IRequestHandler<GetAssetTypeByIdQueryModel, BaseResponse<GetAssetTypeByIdQueryResponse>>
     {
         #region Fields
         private readonly IUnitOfWork _unitOfWork;
@@ -33,6 +34,17 @@ namespace Asset.Application.Features.AssetTypes.Queries.QueryHandlers
             var assetTypes = await _unitOfWork.AssetTypes.GetAllAsync(cancellationToken);
             var data = _mapper.Map<IReadOnlyList<GetAssetTypeListQueryResponse>>(assetTypes);
 
+            return Success(data);
+        }
+
+        public async Task<BaseResponse<GetAssetTypeByIdQueryResponse>> Handle(GetAssetTypeByIdQueryModel request, CancellationToken cancellationToken)
+        {
+            var assetType = await _unitOfWork.AssetTypes.GetByIdAsync(request.Id, cancellationToken);
+
+            if (assetType is null)
+                return NotFound<GetAssetTypeByIdQueryResponse>("Asset type not found");
+
+            var data = _mapper.Map<GetAssetTypeByIdQueryResponse>(assetType);
             return Success(data);
         }
         #endregion

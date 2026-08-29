@@ -7,6 +7,7 @@ using Asset.Domain.Enum;
 using Asset.Domain.Models;
 using Asset.Infastructure.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using System.Threading;
 using AssetEntity = Asset.Domain.Models.Asset;
 #endregion
@@ -204,6 +205,11 @@ namespace Asset.Infastructure.Repositories
         public Task<bool> ExistsAsync(int id, CancellationToken cancellationToken)
         {
             return _dbContext.Assets.AsNoTracking().AnyAsync(a => a.Id == id, cancellationToken);
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<AssetEntity, bool>> predicate, CancellationToken cancellationToken)
+        {
+            return await _dbContext.Assets.AnyAsync(predicate, cancellationToken);
         }
         #endregion
     }

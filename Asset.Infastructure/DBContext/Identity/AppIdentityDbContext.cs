@@ -1,5 +1,6 @@
 ﻿#region
 using Asset.Domain.Identity;
+using Asset.Infastructure.Configurations;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 #endregion
@@ -12,20 +13,8 @@ namespace Asset.Infastructure.DBContext.Identity
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            base.OnModelCreating(builder);
-
-            builder.Entity<RefreshToken>(e =>
-            {
-                e.ToTable("RefreshTokens");
-                e.HasKey(x => x.Id);
-                e.Property(x => x.Token).HasMaxLength(200).IsRequired();
-                e.Property(x => x.ReplacedByToken).HasMaxLength(200);
-                e.HasIndex(x => x.Token).IsUnique();
-                e.HasOne(x => x.User)
-                 .WithMany()
-                 .HasForeignKey(x => x.UserId)
-                 .OnDelete(DeleteBehavior.Cascade);  // when i delete user all tokens will delete by default
-            });
+            base.OnModelCreating(builder);  
+            builder.ApplyConfiguration(new RefreshTokensConfiguration());
         }
     }
 }

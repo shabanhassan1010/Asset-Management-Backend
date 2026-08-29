@@ -24,7 +24,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand>
     public async Task Handle(LogoutCommand request, CancellationToken cancellationToken)
     {
         // Get refresh Tokens from database
-        var stored = await _refreshTokens.GetByTokenAsync(request.RefreshToken, cancellationToken);
+        var stored = await _refreshTokens.GetByTokenHashAsync(request.RefreshToken, cancellationToken);
 
         // stored.IsRevoked: Mean Token is exists but he is cancelled
         if (stored is null || stored.IsRevoked || stored.UserId != _currentUser.UserId)

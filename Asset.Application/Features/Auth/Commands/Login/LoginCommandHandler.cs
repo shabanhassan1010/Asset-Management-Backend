@@ -2,6 +2,7 @@
 using Asset.Application.Common.Interfaces;
 using Asset.Application.Common.Models;
 using Asset.Application.Features.Auth.DTOs;
+using Asset.Application.Interfaces.IRepository;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Identity;
 using AutoMapper;
@@ -13,6 +14,7 @@ namespace Asset.Application.Features.Auth.Commands.Login;
 public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto>
 {
     #region Fields
+    private readonly ITokenHasher _tokenHasher;
     private readonly IUserRepository _users;
     private readonly IRefreshTokenRepository _refreshTokens;
     private readonly IJwtTokenService _tokenService;
@@ -21,9 +23,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
     #endregion
 
     #region Constructor
-    public LoginCommandHandler(IUserRepository users,IRefreshTokenRepository refreshTokens, IJwtTokenService tokenService,
+    public LoginCommandHandler(IUserRepository users,
+                               IRefreshTokenRepository refreshTokens, 
+                               IJwtTokenService tokenService,
+                               ITokenHasher tokenHasher,
                                IIdentityUnitOfWork unitOfWork, IMapper mapper)
     {
+        _tokenHasher = tokenHasher;
         _users = users;
         _refreshTokens = refreshTokens;
         _tokenService = tokenService;
@@ -55,7 +61,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
         await _refreshTokens.AddAsync(new RefreshToken
         {
             UserId = user.Id,
-            Token = refreshToken.Token,
+            TokenHash = _tokenHasher.Hash(refreshToken.Token),
             ExpiresAt = refreshToken.ExpiresAtUtc,
             IsRevoked = false,
             CreatedAt = DateTime.UtcNow

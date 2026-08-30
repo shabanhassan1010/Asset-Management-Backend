@@ -9,22 +9,12 @@ namespace Asset.Application.Mapping.AssetTransferDto
         public AssetTransferProfile()
         {
             CreateMap<AssetTransfer, GetAssetTransferHistoryResponse>()
-                // كل الأسماء دي جاية من navigation properties اختيارية:
-                // أول تحويل للأصل مالوش "from" أصلاً، والأصل ممكن يتسحب من موظف
-                // من غير ما يتدّي لحد. الشرط الصريح بيمنع أي احتمال NullReference
-                // ويخلي النية واضحة لأي حد يقرا الكود.
-                .ForMember(d => d.FromEmployeeName,
-                    o => o.MapFrom(s => s.FromEmployee == null ? null : s.FromEmployee.FullName))
-                .ForMember(d => d.ToEmployeeName,
-                    o => o.MapFrom(s => s.ToEmployee == null ? null : s.ToEmployee.FullName))
-                .ForMember(d => d.FromDepartmentName,
-                    o => o.MapFrom(s => s.FromDepartment == null ? null : s.FromDepartment.DepartmentName))
-                .ForMember(d => d.ToDepartmentName,
-                    o => o.MapFrom(s => s.ToDepartment == null ? null : s.ToDepartment.DepartmentName))
-                .ForMember(d => d.FromLocationName,
-                    o => o.MapFrom(s => s.FromLocation == null ? null : s.FromLocation.LocationName))
-                .ForMember(d => d.ToLocationName,
-                    o => o.MapFrom(s => s.ToLocation == null ? null : s.ToLocation.LocationName));
+                .ForMember(d => d.FromEmployeeName,    o => o.MapFrom(s => s.FromEmployee == null ? null : s.FromEmployee.FullName))
+                .ForMember(d => d.ToEmployeeName,      o => o.MapFrom(s => s.ToEmployee == null ? null : s.ToEmployee.FullName))
+                .ForMember(d => d.FromDepartmentName,  o => o.MapFrom(s => s.FromDepartment == null ? null : s.FromDepartment.DepartmentName))
+                .ForMember(d => d.ToDepartmentName,    o => o.MapFrom(s => s.ToDepartment == null ? null : s.ToDepartment.DepartmentName))
+                .ForMember(d => d.FromLocationName,    o => o.MapFrom(s => s.FromLocation == null ? null : s.FromLocation.LocationName))
+                .ForMember(d => d.ToLocationName,      o => o.MapFrom(s => s.ToLocation == null ? null : s.ToLocation.LocationName));
         }
     }
 }

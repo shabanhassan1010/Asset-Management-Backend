@@ -32,16 +32,18 @@ namespace Asset.Application.Features.AssetTransfers.CommandHandler
 
         public async Task<ApiResponse<TransferAssetResponseDto>> Handle(TransferAssetCommandModel request,CancellationToken cancellationToken)
         {
+            // Get Asset From Database which i went to transfer it
             var asset = await _unitOfWork.Assets.GetForUpdateAsync(request.AssetId, cancellationToken)
                         ?? throw new NotFoundException($"Asset {request.AssetId} was not found.");
 
-            // 2) Concurrency check FIRST - before any business rule can short-circuit it
+            // client must tell me which version of the asset it is editing.
             if (string.IsNullOrWhiteSpace(request.RowVersion))
                 throw new BusinessException("RowVersion is required.");
 
             byte[] clientRowVersion;
             try
             {
+                // Get RowVersion from Frontend like "AAAAAAAAB9E="  and convert it into byte[] to match with database  
                 clientRowVersion = Convert.FromBase64String(request.RowVersion);
             }
             catch (FormatException)
@@ -49,19 +51,21 @@ namespace Asset.Application.Features.AssetTransfers.CommandHandler
                 throw new BusinessException("RowVersion is not a valid base64 value.");
             }
 
+            // Compare RowVersion from Client with RowVersion which exist in Database 
+            // If return false in this case Aother Admin modify the Asset
             if (asset.RowVersion is null || !asset.RowVersion.SequenceEqual(clientRowVersion))
                 throw new ConcurrencyException("This asset was modified by another user. Reload it and try again.");
 
             // 3) Normalize incoming ids
-            var toEmployeeId = request.ToEmployeeId is null or 0 ? null : request.ToEmployeeId;
-            var toDepartmentId = request.ToDepartmentId is null or 0 ? null : request.ToDepartmentId;
-            var toLocationId = request.ToLocationId is null or 0 ? null : request.ToLocationId;
+            var toEmployeeId =   request.ToEmployeeId     is null or 0 ? null : request.ToEmployeeId;
+            var toDepartmentId = request.ToDepartmentId   is null or 0 ? null : request.ToDepartmentId;
+            var toLocationId =   request.ToLocationId     is null or 0 ? null : request.ToLocationId;
 
-
+            // check if Asset status is Retired
             if (asset.Status == (int)AssetStatus.Retired)
                 throw new BusinessException($"{asset.AssetCode} is retired and cannot be transferred.");
 
-
+            // TransferDate must in the same time not the future.
             if (request.TransferDate.Date > DateTime.UtcNow.Date)
                 throw new BusinessException("A transfer date cannot be in the future.");
         
@@ -79,18 +83,22 @@ namespace Asset.Application.Features.AssetTransfers.CommandHandler
                 if (!employee.IsActive)
                     throw new BusinessException($"{employee.FullName} is not an active employee.");
 
-                // If the caller didn't send a department, inherit the employee's own department
-                toDepartmentId ??= employee.DepartmentId;
+                // Assign the right side only if the left side is null.
+                if (toDepartmentId == null)
+                {
+                    toDepartmentId = employee.DepartmentId;
+                }
 
                 if (employee.DepartmentId != toDepartmentId)
                     throw new BusinessException("The selected employee does not belong to the target department.");
             }
 
-            // 6) No-op check AFTER the department has been resolved
+            // if User went to transfer the same employee , Location , Department => prevent it
             if (asset.AssignedEmployeeId == toEmployeeId && asset.DepartmentId == toDepartmentId && asset.LocationId == toLocationId)
                 throw new BusinessException("A transfer must change the employee, department or location.");
 
 
+            // create History Record
             var transfer = new AssetTransfer
             {
                 AssetId = asset.Id,

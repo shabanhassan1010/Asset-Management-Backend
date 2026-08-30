@@ -1,4 +1,5 @@
-﻿using Asset.Application.Bases;
+﻿#region
+using Asset.Application.Bases;
 using Asset.Application.Features.Assets.DTOs;
 using Asset.Application.Features.Assets.Queries.QueryModels;
 using Asset.Application.Features.Assets.Queries.QueryResponses;
@@ -10,6 +11,7 @@ using Asset.Domain.Exceptions;
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Localization;
+#endregion
 
 namespace Asset.Application.Features.Assets.Queries.QueryHandlers
 {
@@ -38,9 +40,7 @@ namespace Asset.Application.Features.Assets.Queries.QueryHandlers
             var asset = await _unitOfWork.Assets.GetByIdWithDetailsAsync(request.Id, cancellationToken);
 
             if (asset == null)
-            {
                 throw new NotFoundException($"Asset {request.Id} was not found.");
-            }
 
             var dto = _mapper.Map<GetByIdQueryResponse>(asset);
             return dto;

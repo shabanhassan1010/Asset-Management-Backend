@@ -9,7 +9,6 @@ namespace Asset.Application.Mapping.AssetDto
         {
             CreateMap<UpdateAssetCommandModel, AssetEntity>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.AssetCode, opt => opt.Ignore())   
                 .ForMember(dest => dest.RowVersion, opt => opt.Ignore()) 
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedByUserId, opt => opt.Ignore())
@@ -24,8 +23,7 @@ namespace Asset.Application.Mapping.AssetDto
 
             CreateMap<AssetEntity, UpdateAssetResponseDto>()
                 .ForMember(dest => dest.AssetId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.RowVersion,
-                           opt => opt.MapFrom(src => Convert.ToBase64String(src.RowVersion)));
+                .ForMember(dest => dest.RowVersion,opt => opt.MapFrom(src => Convert.ToBase64String(src.RowVersion)));
         }
     }
 }

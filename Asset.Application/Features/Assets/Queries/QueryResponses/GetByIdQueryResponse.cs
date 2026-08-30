@@ -26,12 +26,9 @@ namespace Asset.Application.Features.Assets.Queries.QueryResponses
         public string? EmployeeName { get; set; }
         public int? LocationId { get; set; }
         public string? LocationName { get; set; }
-        // Admin only.
-        // The handler sets it to null for a User, and WhenWritingNull means the key
-        // is then NOT written into the JSON at all - so it is absent, not just empty.
+
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public decimal? PurchaseCost { get; set; }
         public string RowVersion { get; set; }
-
     }
 }

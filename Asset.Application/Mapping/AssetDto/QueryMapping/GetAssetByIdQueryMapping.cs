@@ -12,6 +12,7 @@ namespace Asset.Application.Mapping.AssetDto
                 .ForMember(dest => dest.LocationName, opt => opt.MapFrom(src => src.Location.LocationName))
                 .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.DepartmentName))
                 .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.AssignedEmployee.FullName))
+                .ForMember(dest => dest.EmployeeId, opt => opt.MapFrom(src => src.AssignedEmployeeId))
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.CategoryName))
                 .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.Status))
                 .ForMember(dest => dest.RowVersion, opt => opt.MapFrom(src => Convert.ToBase64String(src.RowVersion)))

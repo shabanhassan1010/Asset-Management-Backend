@@ -16,8 +16,7 @@ namespace Asset.Application.Features.Assets.Commands.CommandValidators
 
             RuleFor(x => x.SerialNumber)
                 .MaximumLength(100)
-                .MustAsync(async (model, serial, ct) =>
-                    !await assetRepository.SerialNumberExistsAsync(serial!, model.AssetId, ct))
+                .MustAsync(async (model, serial, ct) => !await assetRepository.SerialNumberExistsAsync(serial!, model.AssetId, ct))
                 .WithMessage(x => $"Serial number '{x.SerialNumber}' is already in use.")
                 .When(x => !string.IsNullOrWhiteSpace(x.SerialNumber));
 
@@ -25,8 +24,7 @@ namespace Asset.Application.Features.Assets.Commands.CommandValidators
             RuleFor(x => x.Manufacturer).MaximumLength(100);
             RuleFor(x => x.Model).MaximumLength(100);
 
-            RuleFor(x => x.CategoryId)
-                .GreaterThan(0).WithMessage("Category is required.");
+            RuleFor(x => x.CategoryId).GreaterThan(0).WithMessage("Category is required.");
 
 
             RuleFor(x => x.Status)

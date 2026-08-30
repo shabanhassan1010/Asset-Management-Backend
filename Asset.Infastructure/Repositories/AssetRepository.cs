@@ -108,6 +108,7 @@ namespace Asset.Infastructure.Repositories
         #endregion
 
         #region Methods
+
         // Get
         public Task<AssetEntity?> GetByIdWithDetailsAsync(int id, CancellationToken ct)
         {
@@ -138,14 +139,11 @@ namespace Asset.Infastructure.Repositories
             return _dbContext.AssetTransfers
                 .AsNoTracking()
                 .Where(t => t.AssetId == assetId)
-                .OrderByDescending(t => t.TransferDate)     // الأحدث الأول
+                .OrderByDescending(t => t.TransferDate)    
                 .Select(t => new GetAssetTransferHistoryResponse
                 {
                     Id = t.Id,
                     TransferDate = t.TransferDate,
-
-                    // navigation properties — EF بيترجمها LEFT JOIN تلقائياً.
-                    // بنستخدم null-conditional لأن المواقع/الأقسام optional
                     FromLocationName = t.FromLocation.LocationName,
                     ToLocationName = t.ToLocation.LocationName,
                     FromDepartmentName = t.FromDepartment.DepartmentName,

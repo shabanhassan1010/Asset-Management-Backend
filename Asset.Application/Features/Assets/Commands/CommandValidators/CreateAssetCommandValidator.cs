@@ -1,6 +1,9 @@
-﻿using Asset.Application.Features.Assets.Commands.CommandModels;
+﻿#region
+using Asset.Application.Features.Assets.Commands.CommandModels;
 using Asset.Application.Interfaces.Repository;
 using FluentValidation;
+#endregion
+
 namespace Asset.Application.Features.Assets.Commands.CommandValidators
 {
     public class CreateAssetCommandValidator : AbstractValidator<CreateAssetCommandModel>
@@ -19,8 +22,6 @@ namespace Asset.Application.Features.Assets.Commands.CommandValidators
                 .MustAsync((name, ct) => IsUniqueAsync(assetRepository.IsNameExistsAsync, name, ct))
                 .WithMessage(x => $"Asset name '{x.AssetName}' is already in use.");
 
-            // SerialNumber is nullable + your DB index is a *filtered* unique index
-            // (unique only when NOT NULL) — so only check when a value was actually supplied.
             RuleFor(x => x.SerialNumber)
                 .MaximumLength(100)
                 .MustAsync((serial, ct) => IsUniqueAsync(assetRepository.SerialNumberExistsAsync, serial!, ct))
@@ -41,6 +42,9 @@ namespace Asset.Application.Features.Assets.Commands.CommandValidators
                 .WithMessage("An employee must be assigned when status is 'Assigned'.")
                 .When(x => x.Status == 2);
 
+            RuleFor(x => x.LocationId)
+                .NotEmpty().WithMessage("Can Not Create Asset without any Location, Asset Must set in location");
+
             RuleFor(x => x.WarrantyExpiryDate)
                 .GreaterThanOrEqualTo(x => x.PurchaseDate!.Value)
                 .WithMessage("Warranty expiry date cannot be before the purchase date.")
@@ -51,6 +55,8 @@ namespace Asset.Application.Features.Assets.Commands.CommandValidators
         // excluding no id since this is Create" shape — one helper instead of
         // repeating the same async lambda three times.
         private static Task<bool> IsUniqueAsync(Func<string, int?, CancellationToken, Task<bool>> existsCheck, string value, CancellationToken ct)
-            => existsCheck(value, null, ct).ContinueWith(t => !t.Result, ct);
+        {
+            return existsCheck(value, null, ct).ContinueWith(t => !t.Result, ct);
+        }
     }
 }

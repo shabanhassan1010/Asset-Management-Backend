@@ -86,9 +86,60 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             if (!TryParseRowVersion(request.RowVersion, out var rowVersion))
                 throw new ConflictException("The row version is missing or malformed. Please reload the asset.");
 
+            if (request.Status == (int)AssetStatus.Retired)
+                throw new BusinessException("Use the Retire action to retire an asset.");
+
+            if (!EditableStatuses.Contains(request.Status))
+                throw new BusinessException("The selected status is not valid.");
+
             var entity = await _unitOfWork.Assets.GetForUpdateAsync(request.AssetId, cancellationToken);
             if (entity is null)
                 throw new NotFoundException($"Asset {request.AssetId} was not found.");
+
+
+            // Concurrency FIRST: a stale client is the real error, so it must not be masked
+            // by a business rule below — and it saves the uniqueness round-trips.
+            if (entity.RowVersion is null || !entity.RowVersion.SequenceEqual(rowVersion))
+                throw new ConflictException("This asset was modified by another user. Reload it and try again.");
+
+            // A retired asset is history: nothing on it may change.
+            if (entity.Status == (int)AssetStatus.Retired)
+                throw new BusinessException($"{entity.AssetCode} is retired and cannot be edited.");
+
+            request.DepartmentId = request.DepartmentId is null or 0 ? null : request.DepartmentId;
+            request.AssignedEmployeeId = request.AssignedEmployeeId is null or 0 ? null : request.AssignedEmployeeId;
+            request.LocationId = request.LocationId is null or 0 ? null : request.LocationId;
+
+            // Targets must exist and be active.
+            if (request.DepartmentId.HasValue &&
+                !await _unitOfWork.Departments.ExistsActiveAsync(request.DepartmentId.Value, cancellationToken))
+                throw new BusinessException("The selected department does not exist or is inactive.");
+
+            if (request.LocationId.HasValue &&
+                !await _unitOfWork.Locations.ExistsActiveAsync(request.LocationId.Value, cancellationToken))
+                throw new BusinessException("The selected location does not exist or is inactive.");
+
+            if (request.AssignedEmployeeId.HasValue)
+            {
+                var employee = await _unitOfWork.Employees.GetByIdAsync(request.AssignedEmployeeId.Value, cancellationToken)
+                               ?? throw new BusinessException("The selected employee does not exist.");
+
+                if (!employee.IsActive)
+                    throw new BusinessException($"{employee.FullName} is not an active employee.");
+
+                // If no department was sent, inherit the employee's own.
+                request.DepartmentId ??= employee.DepartmentId;
+
+                if (employee.DepartmentId != request.DepartmentId)
+                    throw new BusinessException("The selected employee does not belong to the selected department.");
+            }
+
+            // Status and assignment must agree — otherwise the register holds contradictory data.
+            if (request.Status == (int)AssetStatus.Assigned && request.AssignedEmployeeId is null)
+                throw new BusinessException("An assigned asset must have an employee.");
+
+            if (request.Status == (int)AssetStatus.Available && request.AssignedEmployeeId is not null)
+                throw new BusinessException("An available asset cannot have an employee assigned.");
 
             // a.Id != request.AssetId matters: without it, saving an asset whose
             // code did not change would be rejected for clashing with itself.
@@ -97,19 +148,13 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             if (codeExists)
                 throw new ConflictException("An asset with this code already exists.");
 
-
+            // If SerialNumber Not Null or Space
             if (!string.IsNullOrWhiteSpace(request.SerialNumber))
             {
-                var serialExists = await _unitOfWork.Assets
-                    .AnyAsync(a => a.SerialNumber == request.SerialNumber && a.Id != request.AssetId, cancellationToken);
-
+                var serialExists = await _unitOfWork.Assets.AnyAsync(a => a.SerialNumber == request.SerialNumber && a.Id != request.AssetId, cancellationToken);
                 if (serialExists)
                     throw new ConflictException("An asset with this serial number already exists.");
             }
-
-            request.DepartmentId = request.DepartmentId is null or 0 ? null : request.DepartmentId;
-            request.AssignedEmployeeId = request.AssignedEmployeeId is null or 0 ? null : request.AssignedEmployeeId;
-            request.LocationId = request.LocationId is null or 0 ? null : request.LocationId;
 
 
             _mapper.Map(request, entity);
@@ -117,9 +162,17 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             entity.UpdatedAt = DateTime.UtcNow;
             entity.UpdatedByUserId = _currentUser.UserId;
 
+            // Tell EF this is the real rowVersion which must use it in optimistic concurrency during Update
             _unitOfWork.Assets.SetOriginalRowVersion(entity, rowVersion);
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                throw new ConflictException("This asset was modified by another user. Reload it and try again.");
+            }
             await InvalidateLookupCountsAsync(cancellationToken);
 
             return new ApiResponse<UpdateAssetResponseDto>
@@ -181,6 +234,8 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             foreach (var key in CacheKeys.ListsAffectedByAssetChanges)
                 await _cache.RemoveAsync(key, ct);
         }
+
+        // Check If RowVersion Which Client sent it valid or not, and if valid convert it from Base64 into byte[]
         private static bool TryParseRowVersion(string value, out byte[] result)
         {
             result = Array.Empty<byte>();
@@ -198,6 +253,13 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
                 return false;
             }
         }
+
+        private static readonly int[] EditableStatuses =
+        {
+            (int)AssetStatus.Available,
+            (int)AssetStatus.Assigned,
+            (int)AssetStatus.UnderMaintenance,
+        };
         #endregion
     }
 }

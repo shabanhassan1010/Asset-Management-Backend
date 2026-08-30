@@ -4,9 +4,6 @@
     {
         public int Id { get; set; }
         public DateTime TransferDate { get; set; }
-
-        // nullable صراحةً: التحويل ممكن يكون من "لا مكان" أو لـ "لا أحد"،
-        // والـ non-nullable string كان هيدي تحذيرات ويخفي النية الحقيقية.
         public string? Reason { get; set; }
         public string? TransferredByUserId { get; set; }
 

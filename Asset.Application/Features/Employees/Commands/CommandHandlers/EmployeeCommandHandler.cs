@@ -73,8 +73,8 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
 
             await _unitOfWork.Employees.AddAsync(employee, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await InvalidateAsync(employee.Id, cancellationToken);
 
-            await InvalidateAsync(cancellationToken);
             return new ApiResponse<CreateEmployeeCommandResponse>
             {
                 data = _mapper.Map<CreateEmployeeCommandResponse>(employee), 
@@ -82,17 +82,20 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
                 Message = "Employee Created Successfully"
             };
         }
-        public async Task<ApiResponse<UpdateEmployeeCommandResponse>> Handle( UpdateEmployeeCommandModel request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<UpdateEmployeeCommandResponse>> Handle(UpdateEmployeeCommandModel request, CancellationToken cancellationToken)
         {
             var email = request.Email.Trim();
 
-            var employee = await _unitOfWork.Employees.GetByIdWithDepartmentAsNoTrackingAsync(request.Id, cancellationToken);
+            var employee = await _unitOfWork.Employees.GetByIdAsync(request.Id, cancellationToken);
             if (employee is null)
                 throw new NotFoundException($"Employee {request.Id} does not exist.");
 
-            var emailExists = await _unitOfWork.Employees.IsEmailExistsAsync(email, request.Id, cancellationToken);
-            if (emailExists)
-                throw new ConflictException($"Email '{email}' is already used by another employee.");
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                var emailExists = await _unitOfWork.Employees.IsEmailExistsAsync(email, request.Id, cancellationToken);
+                if (emailExists)
+                    throw new ConflictException($"Email '{email}' is already used by another employee.");
+            }
 
             if (employee.DepartmentId != request.DepartmentId)
             {
@@ -108,11 +111,12 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
             employee.Phone = request.Phone?.Trim();
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await InvalidateAsync(employee.Id, cancellationToken);
 
-            await InvalidateAsync(cancellationToken);
+            var saved = await _unitOfWork.Employees.GetByIdWithDepartmentAsNoTrackingAsync(employee.Id, cancellationToken);
             return new ApiResponse<UpdateEmployeeCommandResponse>
             {
-                data = _mapper.Map<UpdateEmployeeCommandResponse>(employee),
+                data = _mapper.Map<UpdateEmployeeCommandResponse>(saved),
                 Success = true,
                 Message = "Employee Updated Successfully"
             };
@@ -143,7 +147,7 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
 
             employee.IsActive = request.IsActive;
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await InvalidateAsync(cancellationToken);
+            await InvalidateAsync(employee.Id, cancellationToken);
 
             return new ApiResponse<SetEmployeeStatusCommandResponse>
             {
@@ -153,9 +157,10 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
             };
         }
         #endregion
-        private async Task InvalidateAsync(CancellationToken cancellationToken)
+        private async Task InvalidateAsync(int employeeId, CancellationToken cancellationToken)
         {
             await _cache.RemoveAsync(CacheKeys.EmployeeList, cancellationToken);
+            await _cache.RemoveAsync(CacheKeys.EmployeeById(employeeId), cancellationToken);
             await _cache.RemoveAsync(CacheKeys.DepartmentList, cancellationToken);
         }
     }

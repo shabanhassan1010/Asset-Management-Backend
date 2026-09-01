@@ -1,8 +1,9 @@
-﻿using Asset.Application.Features.Employees.Queries.QueryResponses;
+﻿using Asset.Application.Common.Caching;
+using Asset.Application.Features.Employees.Queries.QueryResponses;
 using MediatR;
 namespace Asset.Application.Features.Employees.Queries.QueryModels
 {
-    public class GetAvailableEmployeesQueryModel : IRequest<IReadOnlyList<AvailableEmployeeDto>>
+    public class GetAvailableEmployeesQueryModel : IRequest<IReadOnlyList<AvailableEmployeeDto>> 
     {
         public readonly int? departmentId;
 

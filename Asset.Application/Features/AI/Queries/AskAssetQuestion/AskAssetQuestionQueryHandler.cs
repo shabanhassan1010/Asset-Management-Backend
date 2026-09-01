@@ -21,15 +21,15 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
         private readonly IAssetRepository _assetRepository;
         private readonly IAiLookupRepository _lookupRepository;
         private readonly ICurrentUserService _currentUser;
-
-        // A chat bubble is not a data grid. Twenty rows is enough to answer a
-        // question; the total count tells the person if there is more.
         private const int MaxRows = 20;
 
         #endregion
 
         #region Constructor
-        public AskAssetQuestionQueryHandler( IAssetQuestionParser parser,IAssetRepository assetRepository,IAiLookupRepository lookupRepository,ICurrentUserService currentUser)
+        public AskAssetQuestionQueryHandler(IAssetQuestionParser parser,
+                                            IAssetRepository assetRepository,
+                                            IAiLookupRepository lookupRepository,
+                                            ICurrentUserService currentUser)
         {
             _parser = parser;
             _assetRepository = assetRepository;
@@ -40,9 +40,6 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
         #endregion
 
         #region Private Methods
-
-        // The ONLY place an Asset becomes a row. Because the cost decision lives here
-        // and nowhere else, a future mapping cannot forget to apply it.
         private static AssetQuestionResultDto MapAsset(AssetEntity asset, bool includeCost)
         {
             return new AssetQuestionResultDto
@@ -59,18 +56,10 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
                 EmployeeName = asset.AssignedEmployee?.FullName,
                 DepartmentName = asset.Department?.DepartmentName,
                 LocationName = asset.Location?.LocationName,
-
-                // R4.3. Null for a non-admin, and JsonIgnore then drops the key entirely,
-                // so the browser never even learns the field exists.
                 PurchaseCost = includeCost ? asset.PurchaseCost : null
             };
         }
 
-        // Every exit goes through here, so no path can return a different shape.
-        //
-        // Success stays true even for "I couldn't find that department": the request
-        // was handled correctly and the chat renders the sentence as a normal reply.
-        // Reserving false for genuine failures keeps the frontend simple.
         private static ApiResponse<AssetQuestionResponse> Answer(string question, string answer, IReadOnlyList<AssetQuestionResultDto>? rows = null,
             int totalCount = 0 , IReadOnlyList<string>? suggestions = null)
         {

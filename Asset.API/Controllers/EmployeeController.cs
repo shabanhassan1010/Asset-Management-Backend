@@ -26,16 +26,7 @@ namespace Asset.API.Controllers
         }
         #endregion
 
-        #region GetList
-        [HttpGet(BaseRouter.EmployeeRouter.Base)]
-        public async Task<IActionResult> GetList(CancellationToken cancellationToken)
-        {
-            var employees = await _sender.Send(new GetEmployeeListQueryModel(), cancellationToken);
-            return Ok(employees);
-        }
-        #endregion
-
-        #region GetEmployees
+        #region Paginated
         [HttpGet(BaseRouter.EmployeeRouter.Paginated)]
         public async Task<IActionResult> GetEmployees([FromQuery] GetEmployeesPaginatedQuery query, CancellationToken cancellationToken)
         {

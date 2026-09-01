@@ -12,8 +12,7 @@ using MediatR;
 
 namespace Asset.Application.Features.Employees.Queries.QueryHandlers
 {
-    public class GetEmployeeListQueryHandler :  IRequestHandler<GetEmployeeListQueryModel, IReadOnlyList<GetEmployeeListQueryResponse>> ,
-                                                IRequestHandler<GetAvailableEmployeesQueryModel, IReadOnlyList<AvailableEmployeeDto>>,
+    public class GetEmployeeListQueryHandler :  IRequestHandler<GetAvailableEmployeesQueryModel, IReadOnlyList<AvailableEmployeeDto>>,
                                                 IRequestHandler<GetEmployeesPaginatedQuery, ApiResponse<PagedResult<GetEmployeeListQueryResponse>>>,
                                                 IRequestHandler<GetEmployeeByIdQueryModel, ApiResponse<GetEmployeeByIdResponse>>
 
@@ -34,12 +33,6 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
         #endregion
 
         #region Handlers
-        public async Task<IReadOnlyList<GetEmployeeListQueryResponse>> Handle(GetEmployeeListQueryModel request, CancellationToken cancellationToken)
-        {
-            var employees = await _unitOfWork.Employees.GetAllWithDepartmentAsync(cancellationToken);
-            return _mapper.Map<List<GetEmployeeListQueryResponse>>(employees);
-        }
-
         public async Task<IReadOnlyList<AvailableEmployeeDto>> Handle(GetAvailableEmployeesQueryModel request, CancellationToken cancellationToken)
         {
             var takenIds = await userRepository.GetLinkedEmployeeIdsAsync(cancellationToken);
@@ -49,8 +42,7 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
                             {
                                 Id = e.Id,
                                 FullName = e.FullName,
-                            })
-                            .ToList(); ;
+                            }).ToList(); ;
         }
 
         public async Task<ApiResponse<PagedResult<GetEmployeeListQueryResponse>>> Handle(GetEmployeesPaginatedQuery request, CancellationToken cancellationToken)

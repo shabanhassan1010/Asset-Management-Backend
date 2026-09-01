@@ -15,7 +15,6 @@ namespace Asset.Application.Mapping.EmployeeDto
         public EmployeeProfile()
         {
             GetEmployeeByIdQueryMapping();
-            GetEmployeeListQueryMapping();
             CreateEmployeeCommandMapping();
             UpdateEmployeeCommandMapping();
             SetEmployeeStatusCommandMapping();
@@ -27,12 +26,6 @@ namespace Asset.Application.Mapping.EmployeeDto
             CreateMap<Employee, GetEmployeeByIdResponse>()
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
                 .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.DepartmentName));
-        }
-        private void GetEmployeeListQueryMapping()
-        {
-            CreateMap<Employee, GetEmployeeListQueryResponse>()
-                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department == null ? null : src.Department.DepartmentName))
-                .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.FullName == null ? null : src.FullName));
         }
         private void CreateEmployeeCommandMapping()
         {

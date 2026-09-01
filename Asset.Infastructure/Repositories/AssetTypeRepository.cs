@@ -3,12 +3,7 @@ using Asset.Application.Interfaces.IRepository;
 using Asset.Domain.Models;
 using Asset.Infastructure.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 #endregion
 
 namespace Asset.Infastructure.Repositories

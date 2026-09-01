@@ -6,6 +6,5 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandModels
     {
         public string TypeName { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public bool IsActive { get; set; } = true;
     }
 }

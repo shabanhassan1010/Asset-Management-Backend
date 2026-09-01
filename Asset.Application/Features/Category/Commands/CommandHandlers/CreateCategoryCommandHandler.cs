@@ -45,6 +45,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
 
             await _unitOfWork.Categories.AddAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
             // Clearing before would let a concurrent read re-populate the cache with the old data, and a failed save would have cleared the cache for nothing.
             await cache.RemoveAsync(CacheKeys.CategoryList, cancellationToken);
             return new ApiResponse<CreateCategoryResponseDto>
@@ -66,6 +67,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
 
             await cache.RemoveAsync(CacheKeys.CategoryById(request.Id), cancellationToken);
             await cache.RemoveAsync(CacheKeys.CategoryList, cancellationToken);
+
             return new ApiResponse<UpdateCategoryResponseDto>
             {
                 data = _mapper.Map<UpdateCategoryResponseDto>(entity),
@@ -73,6 +75,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
                 Message = "Category Updated Successfully"
             };
         }
+
 
         public async Task<ApiResponse<string>> Handle(DeleteCategoryCommandModel request, CancellationToken cancellationToken)
         {

@@ -12,14 +12,18 @@
         public static string DepartmentById(int id) => $"departments:{id}";
 
         public const string EmployeeList = "employees:list";
+        public static string EmployeeById(int id) => $"employees:{id}";
 
         public const string AssetTypeList = "assettypes:list";
+        public static string AssetTypeById(int id) => $"AssetType:{id}";
 
         public static readonly string[] ListsAffectedByAssetChanges =
         {
             CategoryList,
             LocationList,
-            DepartmentList
+            DepartmentList,
+            AssetTypeList,
+            EmployeeList
         };
     }
 }

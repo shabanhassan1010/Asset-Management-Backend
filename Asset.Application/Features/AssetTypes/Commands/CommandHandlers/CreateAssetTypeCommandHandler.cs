@@ -41,6 +41,7 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 
             var assetType = _mapper.Map<AssetType>(request);
 
+            assetType.IsActive = true;
             await _unitOfWork.AssetTypes.AddAsync(assetType, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -69,7 +70,6 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 
             return Success("Updated successfully");
         }
-
         public async Task<BaseResponse<string>> Handle(DeleteAssetTypeCommandModel request, CancellationToken cancellationToken)
         {
             var assetType = await _unitOfWork.AssetTypes.GetByIdAsync(request.Id, cancellationToken);
@@ -84,7 +84,6 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 
             _unitOfWork.AssetTypes.Remove(assetType);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
             await _cacheService.RemoveAsync(CacheKeys.AssetTypeList, cancellationToken);
 
             return Deleted<string>("Deleted successfully");

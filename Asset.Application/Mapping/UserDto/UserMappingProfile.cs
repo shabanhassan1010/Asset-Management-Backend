@@ -28,6 +28,11 @@ public class UserMappingProfile : Profile
             .ForMember(d => d.UserName, o => o.MapFrom(s => s.User.UserName))
             .ForMember(d => d.Email, o => o.MapFrom(s => s.User.Email))
             .ForMember(d => d.EmployeeId, o => o.MapFrom(s => s.User.EmployeeId))
+            .ForMember(d => d.EmployeeName, o => o.MapFrom(s => s.Employee != null ? s.Employee.FullName : null))
+            .ForMember(d => d.EmployeeCode, o => o.MapFrom(s => s.Employee != null ? s.Employee.EmployeeCode : null))
+            .ForMember(d=> d.DepartmentName , o=> o.MapFrom(s => s.Employee != null ? s.Employee.DepartmentName : null))
+            .ForMember(d =>d.IsActive, o => o.MapFrom(s => s.User.IsActive))
+            .ForMember(d => d.Phone, o => o.MapFrom(s => s.Employee != null ? s.Employee.Phone : null))
             .ForMember(d => d.Role, o => o.MapFrom(s => s.Role));
     }
 }

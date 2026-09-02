@@ -1,4 +1,5 @@
-﻿using Asset.Application.Features.Employees.Queries.QueryResponses;
+﻿using Asset.Application.Features.Employees.DTos;
+using Asset.Application.Features.Employees.Queries.QueryResponses;
 using Asset.Domain.Models;
 namespace Asset.Application.Interfaces.IRepository
 {
@@ -6,6 +7,7 @@ namespace Asset.Application.Interfaces.IRepository
     {
         // Get
         Task<Employee?> GetByIdAsync(int id, CancellationToken ct);
+        Task<EmployeeInfo?> GetProjectedByIdAsync(int id, CancellationToken cancellationToken);
         Task<Employee?> GetByIdWithDepartmentAsNoTrackingAsync(int id, CancellationToken ct);
         Task<IReadOnlyList<Employee>> GetAllWithDepartmentAsync(CancellationToken cancellationToken);
         Task<IReadOnlyList<Employee>> GetAvailableAsync(IReadOnlyList<int> takenEmployeeIds, int? departmentId, CancellationToken cancellationToken);

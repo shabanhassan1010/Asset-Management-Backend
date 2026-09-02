@@ -1,4 +1,5 @@
 ﻿#region
+using Asset.Application.Features.Employees.DTos;
 using Asset.Application.Features.Employees.Queries.QueryResponses;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Domain.Models;
@@ -22,12 +23,30 @@ namespace Asset.Infastructure.Repositories
         #endregion
 
         #region Methods
+
         // Get
         public Task<Employee?> GetByIdAsync(int id, CancellationToken ct)
         {
             // AsNoTracking: the row is read to validate a rule and then thrown away.
             // Tracking it would put an entity in the change tracker that SaveChanges then has to scan for modifications that cannot exist.
             return _dbContext.Employees.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
+        }
+        public async Task<EmployeeInfo?> GetProjectedByIdAsync(int id, CancellationToken cancellationToken)
+        {
+            return await _dbContext.Employees
+                .Where(e => e.Id == id)
+                .Select(e => new EmployeeInfo
+                {
+                    Id = e.Id,
+                    EmployeeCode = e.EmployeeCode,
+                    FullName = e.FullName,
+                    Email = e.Email,
+                    Phone = e.Phone,
+                    DepartmentId = e.DepartmentId,
+                    DepartmentName = e.Department.DepartmentName,
+                    IsActive = e.IsActive
+                })
+                .FirstOrDefaultAsync(cancellationToken);
         }
         public Task<Employee?> GetByIdWithDepartmentAsNoTrackingAsync(int id, CancellationToken ct)
         {

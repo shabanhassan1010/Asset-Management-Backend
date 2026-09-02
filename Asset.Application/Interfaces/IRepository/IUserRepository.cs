@@ -3,15 +3,6 @@ using Asset.Domain.Enum;
 using Asset.Domain.Identity;
 
 namespace Asset.Application.Common.Interfaces;
-
-/// <summary>
-/// Everything the features need from the user store.
-///
-/// The implementation wraps UserManager and AppIdentityDbContext, so
-/// Microsoft.AspNetCore.Identity stays inside Infrastructure and the handlers
-/// stay readable. Roles cross this boundary as the enum; the conversion to and
-/// from Identity's string names happens on the other side of it.
-/// </summary>
 public interface IUserRepository
 {
     Task<ApplicationUser?> GetByUserNameAsync(string userName, CancellationToken cancellationToken);

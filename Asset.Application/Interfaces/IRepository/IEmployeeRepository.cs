@@ -7,6 +7,7 @@ namespace Asset.Application.Interfaces.IRepository
     {
         // Get
         Task<Employee?> GetByIdAsync(int id, CancellationToken ct);
+        Task<IReadOnlyList<Employee>> GetLookupAsync(CancellationToken cancellationToken);
         Task<EmployeeInfo?> GetProjectedByIdAsync(int id, CancellationToken cancellationToken);
         Task<Employee?> GetByIdWithDepartmentAsNoTrackingAsync(int id, CancellationToken ct);
         Task<IReadOnlyList<Employee>> GetAllWithDepartmentAsync(CancellationToken cancellationToken);

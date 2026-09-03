@@ -14,7 +14,8 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
 {
     public class GetEmployeeListQueryHandler :  IRequestHandler<GetAvailableEmployeesQueryModel, IReadOnlyList<AvailableEmployeeDto>>,
                                                 IRequestHandler<GetEmployeesPaginatedQuery, ApiResponse<PagedResult<GetEmployeeListQueryResponse>>>,
-                                                IRequestHandler<GetEmployeeByIdQueryModel, ApiResponse<GetEmployeeByIdResponse>>
+                                                IRequestHandler<GetEmployeeByIdQueryModel, ApiResponse<GetEmployeeByIdResponse>> ,
+                                                IRequestHandler<GetEmployeesLookupQueryModel, IReadOnlyList<AvailableEmployeeDto>>
 
     {
         #region Fields
@@ -41,7 +42,9 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
             return available.Select(e => new AvailableEmployeeDto
                             {
                                 Id = e.Id,
-                                FullName = e.FullName,
+                                EmployeeName = e.FullName,
+                                DepartmentId = e.DepartmentId,
+                                IsActive = e.IsActive,
                             }).ToList(); ;
         }
 
@@ -78,6 +81,19 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
                 Success = true,
                 Message = "Employee Retrieved Successfully"
             };
+        }
+
+        public async Task<IReadOnlyList<AvailableEmployeeDto>> Handle(GetEmployeesLookupQueryModel request, CancellationToken cancellationToken)
+        {
+            var employees = await _unitOfWork.Employees.GetLookupAsync(cancellationToken);
+
+            return employees.Select(e => new AvailableEmployeeDto
+            {
+                Id = e.Id,
+                EmployeeName = e.FullName,
+                DepartmentId = e.DepartmentId,
+                IsActive = e.IsActive
+            }).ToList();
         }
         #endregion
     }

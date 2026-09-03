@@ -8,27 +8,17 @@ using System.Text.RegularExpressions;
 
 namespace Asset.Application.Features.AI.ServiceImplementation
 {
-    // Deterministic stand-in for a language model.
-    // It never builds SQL and never builds a string that reaches the database -
-    // it only fills properties on a DTO. Everything it does not recognise is dropped.
     public class RuleBasedAssetQuestionParser : IAssetQuestionParser
     {
         #region Fields
-
-        // Every regex gets a timeout. Without one, a crafted input can make the
-        // engine backtrack for a very long time and pin a CPU core (ReDoS).
-        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(100);
-
+        // ReDoS (Regular expression Denial of Service. 
+        // After 100ms, regex will throw a timeout exception to avoid performance issues with complex patterns.
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(100); 
         private const RegexOptions Options = RegexOptions.IgnoreCase | RegexOptions.Compiled;
 
-        // Up to three words before "department", so "Human Resources" and
-        // "Information Technology" resolve - a single-word capture returned
-        // "Resources" and then failed the lookup.
-        // The engine tries the longest capture first and backs off, so
-        // "in the Human Resources department" yields "Human Resources", not "Human".
         private static readonly Regex DepartmentRegex = new(
             @"\b(?:the\s+)?([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*){0,2})\s+department\b"
-          + @"|\bdepartment\s+(?:of\s+)?([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*){0,2})",
+          + @"|\bdepartment\s+(?:of\s+)?([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*){0,2})", 
             Options, RegexTimeout);
 
         // "assigned to Ahmed", "assigned to Ahmed Kamal", "belongs to Sara"
@@ -37,9 +27,6 @@ namespace Asset.Application.Features.AI.ServiceImplementation
           + @"([A-Za-z]+(?:\s+[A-Za-z]+){0,2})",
             Options, RegexTimeout);
 
-        // "show me" is not a self-reference, it is a way of saying "display".
-        // These phrases are stripped before we look for me / my / mine, otherwise
-        // every "show me all laptops" would be read as a question about the caller.
         private static readonly Regex PolitePhrases = new(
             @"\b(?:show|give|tell|find|get|list|bring)\s+me\b",
             Options, RegexTimeout);
@@ -55,10 +42,6 @@ namespace Asset.Application.Features.AI.ServiceImplementation
           + @"|\bwho\s+are\s+you\b|\bwhat\s+can\s+you\s+do\b",
             Options, RegexTimeout);
 
-        // The stub's vocabulary, ordered longest-first so "Docking Station" is tried
-        // before any single word inside it. These are guesses about the question text
-        // only - the handler still resolves each one against AssetTypes.TypeName, so a
-        // value that is not in the database produces a friendly answer, not a crash.
         private static readonly string[] KnownAssetTypes =
         {
             "Docking Station", "Access Point", "Conference Phone",
@@ -74,8 +57,6 @@ namespace Asset.Application.Features.AI.ServiceImplementation
             "Sony", "LG", "Huawei", "Xiaomi", "IKEA", "Toyota", "Nissan"
         };
 
-        // Words that are never a person's or a department's name. Guards the captures
-        // against filler like "the", "all", or a status word.
         private static readonly HashSet<string> NotAName = new(StringComparer.OrdinalIgnoreCase)
         {
             "the", "a", "an", "all", "any", "our", "us", "them", "and", "or", "in", "of",
@@ -87,7 +68,6 @@ namespace Asset.Application.Features.AI.ServiceImplementation
         #endregion
 
         #region Public API
-
         public Task<ParsedAssetQuestion> ParseAsync(string question, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(question))
@@ -98,8 +78,6 @@ namespace Asset.Application.Features.AI.ServiceImplementation
                 });
             }
 
-            // Lowercase copy for the simple Contains checks. The regexes run against
-            // the original text so captured names keep their casing.
             var lower = question.ToLowerInvariant();
 
             var department = DetectDepartment(question);
@@ -112,21 +90,10 @@ namespace Asset.Application.Features.AI.ServiceImplementation
                 Status = DetectStatus(lower),
                 DepartmentName = department,
                 IsAboutSelf = isAboutSelf,
-
-                // Order matters twice over.
-                // "assigned to the Presales department" would otherwise capture "the"
-                // as a person and send us hunting for someone who does not exist, so a
-                // question naming a department is never also read as naming a person.
-                // And "assigned to me" is a self-reference, not a colleague named "me".
-                EmployeeName = department is null && !isAboutSelf
-                    ? DetectEmployee(question)
-                    : null,
-
+                EmployeeName = department is null && !isAboutSelf ? DetectEmployee(question) : null,
                 Intent = AssetQuestionIntent.Unsupported
             };
 
-            // Intent is decided last so it can fall back on whether any filter was
-            // actually recognised - see DetectIntent.
             parsed = parsed with
             {
                 Intent = DetectIntent(lower, parsed.HasAnyFilter, GreetingRegex.IsMatch(question))
@@ -137,7 +104,6 @@ namespace Asset.Application.Features.AI.ServiceImplementation
         #endregion
 
         #region Detection
-
         private static AssetQuestionIntent DetectIntent(string lower, bool hasFilter , bool isGreeting)
         {
             if (isGreeting && !hasFilter)
@@ -248,8 +214,6 @@ namespace Asset.Application.Features.AI.ServiceImplementation
             return match.Success ? CleanName(match.Groups[1].Value) : null;
         }
 
-        // A capture can pull in filler at either end ("in the Human Resources",
-        // "Ahmed and"). Trim non-name words from both sides and keep what is left.
         private static string? CleanName(string captured)
         {
             var words = captured

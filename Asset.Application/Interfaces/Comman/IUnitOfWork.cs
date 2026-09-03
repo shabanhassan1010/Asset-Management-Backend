@@ -16,6 +16,7 @@ namespace Asset.Application.Interfaces.Comman
         IEmployeeRepository Employees { get; }
         ILocationRepository Locations { get; }
         IDashboardRepository Dashboard { get; }
+        IAiLookupRepository AiLookup { get; }
         Task<int> SaveChangesAsync(CancellationToken ct);
     }
 }

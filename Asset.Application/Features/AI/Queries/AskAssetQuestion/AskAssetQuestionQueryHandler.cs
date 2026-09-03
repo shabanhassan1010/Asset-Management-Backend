@@ -6,11 +6,10 @@ using Asset.Application.Features.AI.Enums.DTos;
 using Asset.Application.Features.AI.Interfases;
 using Asset.Application.Features.AI.ServiceImplementation;
 using Asset.Application.Features.Assets.DTOs;
-using Asset.Application.Interfaces.IRepository;
-using Asset.Application.Interfaces.Repository;
 using Asset.Domain.Enum;
 using AssetEntity = Asset.Domain.Models.Asset;
 using MediatR;
+using Asset.Application.Interfaces.Comman;
 #endregion
 namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
 {
@@ -18,8 +17,7 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
     {
         #region Fields
         private readonly IAssetQuestionParser _parser;
-        private readonly IAssetRepository _assetRepository;
-        private readonly IAiLookupRepository _lookupRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUser;
         private const int MaxRows = 20;
 
@@ -27,13 +25,11 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
 
         #region Constructor
         public AskAssetQuestionQueryHandler(IAssetQuestionParser parser,
-                                            IAssetRepository assetRepository,
-                                            IAiLookupRepository lookupRepository,
+                                            IUnitOfWork unitOfWork,
                                             ICurrentUserService currentUser)
         {
             _parser = parser;
-            _assetRepository = assetRepository;
-            _lookupRepository = lookupRepository;
+            _unitOfWork = unitOfWork;
             _currentUser = currentUser;
         }
 
@@ -60,8 +56,8 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
             };
         }
 
-        private static ApiResponse<AssetQuestionResponse> Answer(string question, string answer, IReadOnlyList<AssetQuestionResultDto>? rows = null,
-            int totalCount = 0 , IReadOnlyList<string>? suggestions = null)
+        private static ApiResponse<AssetQuestionResponse> Answer(string question, string answer, 
+            IReadOnlyList<AssetQuestionResultDto>? rows = null, int totalCount = 0 , IReadOnlyList<string>? suggestions = null)
         {
             return new ApiResponse<AssetQuestionResponse>
             {
@@ -102,18 +98,13 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
                 PageSize = parsed.Intent == AssetQuestionIntent.CountAssets ? 1 : MaxRows,
                 Manufacturer = parsed.Manufacturer,
                 StatusId = parsed.Status.HasValue ? (byte)parsed.Status.Value : null,
-
-                // Retired assets stay hidden unless the question is about them.
                 IncludeRetired = parsed.Status == AssetStatus.Retired
             };
 
-            // ---- Resolve the names the user typed into real ids -------------------
-            // Each miss returns a sentence, not an exception (R4.5).
 
             if (parsed.AssetTypeName is not null)
             {
-                var assetTypeId = await _lookupRepository
-                    .GetAssetTypeIdByNameAsync(parsed.AssetTypeName, cancellationToken);
+                var assetTypeId = await _unitOfWork.AiLookup.GetAssetTypeIdByNameAsync(parsed.AssetTypeName, cancellationToken);
 
                 if (assetTypeId is null)
                     return Answer(request.Question, AssetAnswerBuilder.UnknownAssetType(parsed.AssetTypeName));
@@ -123,8 +114,7 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
 
             if (parsed.DepartmentName is not null)
             {
-                var departmentId = await _lookupRepository
-                    .GetDepartmentIdByNameAsync(parsed.DepartmentName, cancellationToken);
+                var departmentId = await _unitOfWork.AiLookup.GetDepartmentIdByNameAsync(parsed.DepartmentName, cancellationToken);
 
                 if (departmentId is null)
                     return Answer(request.Question, AssetAnswerBuilder.UnknownDepartment(parsed.DepartmentName));
@@ -133,19 +123,8 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
             }
 
             // ---- Authorization ----------------------------------------------------
-            // Runs AFTER parsing and BEFORE the query, and reads only from the token.
-            // Nothing the person typed has a vote in this block.
-            //
-            // The rule being enforced is R4.3 / R2.6: the restriction is on the COST
-            // FIELD, not on which rows exist. An asset catalogue is not confidential
-            // inside a company; its purchase prices are. So a non-admin sees the same
-            // rows an admin sees, with PurchaseCost stripped.
-
             if (parsed.IsAboutSelf)
             {
-                // "my assets" means the caller, for an admin exactly as for a user.
-                // The word "me" carried no identity across the wire - it only told us
-                // to look at the token, which is the only thing that knows who asked.
                 if (_currentUser.EmployeeId is null)
                     return Answer(request.Question, AssetAnswerBuilder.NoEmployeeLink());
 
@@ -155,8 +134,7 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
             {
                 if (_currentUser.IsAdmin)
                 {
-                    var matches = await _lookupRepository
-                        .FindEmployeesByNameAsync(parsed.EmployeeName, cancellationToken);
+                    var matches = await _unitOfWork.AiLookup.FindEmployeesByNameAsync(parsed.EmployeeName, cancellationToken);
 
                     if (matches.Count == 0)
                         return Answer(request.Question, AssetAnswerBuilder.UnknownEmployee(parsed.EmployeeName));
@@ -168,10 +146,6 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
                 }
                 else
                 {
-                    // A non-admin asking about a named colleague is narrowed to
-                    // themselves. Unconditional assignment: we never compare the typed
-                    // name to the caller's own name, because comparing would mean the
-                    // text had influenced the outcome.
                     if (_currentUser.EmployeeId is null)
                         return Answer(request.Question, AssetAnswerBuilder.NoEmployeeLink());
 
@@ -179,11 +153,7 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
                 }
             }
 
-            // ---- The single read path --------------------------------------------
-            // The same method the assets list screen calls. No AI-specific query,
-            // no raw SQL, nothing this feature can reach that the UI cannot.
-
-            var page = await _assetRepository.GetPaginationAsync(filter, cancellationToken);
+            var page = await _unitOfWork.Assets.GetPaginationAsync(filter, cancellationToken);
 
             if (parsed.Intent == AssetQuestionIntent.CountAssets)
             {

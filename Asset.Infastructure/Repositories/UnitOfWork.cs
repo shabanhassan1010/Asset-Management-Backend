@@ -22,6 +22,7 @@ namespace Asset.Infastructure.Repositories
         private IUserRepository? _users;
         private IRefreshTokenRepository? _refreshTokens;
         private IDashboardRepository? _dashboard;
+        private IAiLookupRepository? _AilookupRepository;
         #endregion
 
         #region Constrcutor
@@ -37,6 +38,7 @@ namespace Asset.Infastructure.Repositories
         public IEmployeeRepository Employees => _employees ??= new EmployeeRepository(_context);
         public ILocationRepository Locations => _locations ??= new LocationRepository(_context);
         public IDashboardRepository Dashboard=> _dashboard ??= new DashboardRepository(_context);
+        public IAiLookupRepository AiLookup => _AilookupRepository ??= new AiLookupRepository(_context);
         public Task<int> SaveChangesAsync(CancellationToken ct)
         {
             return _context.SaveChangesAsync();

@@ -1,5 +1,6 @@
 ﻿#region
 using Asset.API.Helper;
+using Asset.Application.Common.Responses;
 using Asset.Application.Features.Employees.Commands.CommandModels;
 using Asset.Application.Features.Employees.Queries.QueryModels;
 using Asset.Application.Features.Employees.Queries.QueryResponses;
@@ -32,6 +33,16 @@ namespace Asset.API.Controllers
         {
             var result = await _sender.Send(query, cancellationToken);
             return Ok(result);
+        }
+        #endregion
+
+        #region GetAll
+        [HttpGet(BaseRouter.EmployeeRouter.Base)]
+        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+        {
+            var employees = await _sender.Send(new GetEmployeesLookupQueryModel(), cancellationToken);
+
+            return Ok(employees);
         }
         #endregion
 

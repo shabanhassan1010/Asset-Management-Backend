@@ -48,6 +48,13 @@ namespace Asset.Infastructure.Repositories
                 })
                 .FirstOrDefaultAsync(cancellationToken);
         }
+        public async Task<IReadOnlyList<Employee>> GetLookupAsync(CancellationToken cancellationToken)
+        {
+            return await _dbContext.Employees.AsNoTracking()
+                                             .Where(e => e.IsActive)
+                                             .OrderBy(e => e.FullName)
+                                             .ToListAsync(cancellationToken);
+        }
         public Task<Employee?> GetByIdWithDepartmentAsNoTrackingAsync(int id, CancellationToken ct)
         {
             return _dbContext.Employees.Include(e => e.Department).FirstOrDefaultAsync(e => e.Id == id, ct);

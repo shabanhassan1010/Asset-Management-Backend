@@ -1,5 +1,5 @@
 ﻿using Asset.Application.Interfaces.IRepository;
-namespace Asset.Application.Features.AI.ServiceImplementation
+namespace Asset.Application.Features.AI.Builders
 {
     public static class AssetAnswerBuilder
     {
@@ -88,5 +88,12 @@ namespace Asset.Application.Features.AI.ServiceImplementation
             "Show me all laptops in the Presales department",
             "Which assets are assigned to me?"
         };
+        public static string CannotLookUpOthers()
+        {
+            // Silently answering with the caller's own assets would be misleading -
+            // they'd think they were looking at someone else's.
+            return "You can only look up assets assigned to you. "
+                 + "Try \"which assets are assigned to me?\".";
+        }
     }
 }

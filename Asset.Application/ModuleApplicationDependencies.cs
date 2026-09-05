@@ -1,8 +1,12 @@
-﻿using Asset.Application.Behaviors;
-using Asset.Application.Interfaces.Comman;
+﻿#region
+using Asset.Application.Behaviors;
+using Asset.Application.Features.AI.Interfases;
+using Asset.Application.Features.AI.IService;
+using Asset.Application.Features.AI.ServiceImplementation;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+#endregion
 
 namespace Asset.Application;
 public static class ModuleApplicationDependencies
@@ -26,9 +30,14 @@ public static class ModuleApplicationDependencies
         // FluentValidation
         services.AddValidatorsFromAssembly(assembly);
 
-        // Caching
+        // Validations
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+        // Caching
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CachingBehavior<,>));
+
+        // AI
+        services.AddScoped<IAssetQuestionParserService, RuleBasedAssetQuestionParser>();
         return services;
     }
 }

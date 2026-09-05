@@ -1,6 +1,7 @@
 ﻿#region
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.Assets.DTOs;
+using Asset.Application.Features.AssetTypes.DTos;
 using Asset.Application.Features.GetAssetTransferHistory.QueryResponses;
 using Asset.Application.Interfaces.Repository;
 using Asset.Domain.Enum;
@@ -154,6 +155,16 @@ namespace Asset.Infastructure.Repositories
         public Task<AssetEntity?> GetForUpdateAsync(int id, CancellationToken ct)
         {
             return _dbContext.Assets.FirstOrDefaultAsync(a => a.Id == id, ct);
+        }
+        public async Task<IReadOnlyList<AssetTypeCountResult>> GetCountsByAssetTypeAsync(CancellationToken cancellationToken)
+        {
+            return await _dbContext.Assets.AsNoTracking()
+                                          .GroupBy(a => a.AssetTypeId)
+                                          .Select(g => new AssetTypeCountResult
+                                          {
+                                                AssetTypeId = g.Key,
+                                                Count = g.Count()
+                                          }).ToListAsync(cancellationToken);
         }
 
         // Add 

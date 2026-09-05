@@ -77,8 +77,10 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
         {
             var entity = await _unitOfWork.Departments.GetByIdAsync(request.Id, cancellationToken);
 
-            if (entity is null || entity.IsActive == false)
+            if (entity is null)
                 throw new NotFoundException($"Department {request.Id} does not exist.");
+            if(!entity.IsActive)
+                throw new BusinessException($"Department {request.Id} is already deactivated.");
 
             var employeesCount = await _unitOfWork.Departments.CountEmployeesAsync(request.Id, cancellationToken);
             var assetsCount   = await _unitOfWork.Departments.CountAssetsAsync(request.Id, cancellationToken);
@@ -93,6 +95,7 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
 
             await _cache.RemoveAsync(CacheKeys.DepartmentById(request.Id), cancellationToken);
             await _cache.RemoveAsync(CacheKeys.DepartmentList, cancellationToken);
+
             return new ApiResponse<string>
             {
                 data = null,

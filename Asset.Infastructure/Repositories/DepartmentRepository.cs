@@ -1,6 +1,7 @@
 ﻿#region 
 using Asset.Application.Features.Departments.Queries.QueryResponse;
 using Asset.Application.Interfaces.IRepository;
+using Asset.Domain.Enum;
 using Asset.Domain.Models;
 using Asset.Infastructure.Models;
 using Microsoft.EntityFrameworkCore;
@@ -35,8 +36,8 @@ namespace Asset.Infastructure.Repositories
                     Id = d.Id,
                     DepartmentName = d.DepartmentName,
                     Code = d.Code,
-                    AssetsCount = d.Assets.Count(),
-                    EmployeesCount = d.Employees.Count()
+                    AssetsCount = d.Assets.Count(a => a.Status != (int)AssetStatus.Retired),
+                    EmployeesCount = d.Employees.Count(e => e.IsActive)
                 })
                 .ToListAsync(ct);
         }
@@ -46,13 +47,13 @@ namespace Asset.Infastructure.Repositories
         {
             return await _dbContext.Employees
                         .AsNoTracking()
-                        .CountAsync(e => e.DepartmentId == departmentId, ct);
+                        .CountAsync(e => e.DepartmentId == departmentId && e.IsActive, ct);
         }
         public async Task<int> CountAssetsAsync(int departmentId, CancellationToken ct)
         {
             return await _dbContext.Assets
                                    .AsNoTracking()
-                                   .CountAsync(a => a.DepartmentId == departmentId, ct);
+                                   .CountAsync(a => a.DepartmentId == departmentId && a.Status != (int)AssetStatus.Retired, ct);
         }
 
         // Check

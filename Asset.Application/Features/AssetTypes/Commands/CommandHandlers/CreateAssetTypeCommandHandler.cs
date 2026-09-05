@@ -4,6 +4,7 @@ using Asset.Application.Common.Caching;
 using Asset.Application.Features.AssetTypes.Commands.CommandModels;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Resoures;
+using Asset.Domain.Exceptions;
 using Asset.Domain.Models;
 using AutoMapper;
 using MediatR;
@@ -34,19 +35,13 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
         #endregion
         public async Task<BaseResponse<int>> Handle(CreateAssetTypeCommandModel request, CancellationToken cancellationToken)
         {
-            var exists = await _unitOfWork.AssetTypes.AnyAsync(t => t.TypeName == request.TypeName, cancellationToken);
-
-            if (exists)
-                return BadRequest<int>("Asset type name already exists");
-
             var assetType = _mapper.Map<AssetType>(request);
-
             assetType.IsActive = true;
+
             await _unitOfWork.AssetTypes.AddAsync(assetType, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             await _cacheService.RemoveAsync(CacheKeys.AssetTypeList, cancellationToken);
-
             return Created(assetType.Id);
         }
         public async Task<BaseResponse<string>> Handle(UpdateAssetTypeCommandModel request, CancellationToken cancellationToken)
@@ -54,18 +49,12 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
             var assetType = await _unitOfWork.AssetTypes.GetByIdAsync(request.Id, cancellationToken);
 
             if (assetType is null)
-                return NotFound<string>("Asset type not found");
-
-            var duplicated = await _unitOfWork.AssetTypes.AnyAsync(t => t.TypeName == request.TypeName && t.Id != request.Id, cancellationToken);
-
-            if (duplicated)
-                return BadRequest<string>("Asset type name already exists");
+                throw new NotFoundException("Asset type not found");
 
             _mapper.Map(request, assetType);
-
-            _unitOfWork.AssetTypes.UpdateAsync(assetType);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+            await _cacheService.RemoveAsync(CacheKeys.AssetTypeById(request.Id), cancellationToken);
             await _cacheService.RemoveAsync(CacheKeys.AssetTypeList, cancellationToken);
 
             return Success("Updated successfully");
@@ -73,17 +62,17 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
         public async Task<BaseResponse<string>> Handle(DeleteAssetTypeCommandModel request, CancellationToken cancellationToken)
         {
             var assetType = await _unitOfWork.AssetTypes.GetByIdAsync(request.Id, cancellationToken);
-
             if (assetType is null)
                 return NotFound<string>("Asset type not found");
 
             var isUsed = await _unitOfWork.Assets.AnyAsync(a => a.AssetTypeId == request.Id, cancellationToken);
-
             if (isUsed)
-                return BadRequest<string>("Cannot delete this asset type because it is used by ex");
+                return BadRequest<string>("This asset type is in use. Delete or reassign its assets first.");
 
             _unitOfWork.AssetTypes.Remove(assetType);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            await _cacheService.RemoveAsync(CacheKeys.AssetTypeById(request.Id), cancellationToken);
             await _cacheService.RemoveAsync(CacheKeys.AssetTypeList, cancellationToken);
 
             return Deleted<string>("Deleted successfully");

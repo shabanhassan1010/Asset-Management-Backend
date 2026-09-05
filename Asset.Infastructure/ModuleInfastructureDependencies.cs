@@ -2,6 +2,7 @@
 using Asset.Application.Common.Caching;
 using Asset.Application.Common.Interfaces;
 using Asset.Application.Features.AI.Interfases;
+using Asset.Application.Features.AI.IService;
 using Asset.Application.Features.AI.ServiceImplementation;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
@@ -104,7 +105,9 @@ namespace Asset.Infastructure
             #region AI assistant
             services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
-            services.AddScoped<IAssetQuestionParser, RuleBasedAssetQuestionParser>();
+
+            services.AddMemoryCache();
+            services.AddScoped<IConversationStoreService, InMemoryConversationStore>();
             services.AddScoped<IAiLookupRepository, AiLookupRepository>();
             #endregion
 

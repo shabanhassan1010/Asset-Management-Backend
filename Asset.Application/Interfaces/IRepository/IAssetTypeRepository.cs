@@ -9,6 +9,7 @@ namespace Asset.Application.Interfaces.IRepository
     {
         Task<IReadOnlyList<AssetType>> GetAllAsync(CancellationToken cancellationToken);
         Task<bool> AnyAsync(Expression<Func<AssetType, bool>> predicate, CancellationToken cancellationToken);
+        Task<bool> AssetTypeNameExistsAsync(string name, int? exceptId, CancellationToken cancellationToken);
         public void Remove(AssetType entity);
     }
 }

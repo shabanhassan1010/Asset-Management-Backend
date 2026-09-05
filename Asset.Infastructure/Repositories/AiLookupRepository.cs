@@ -23,7 +23,7 @@ namespace Asset.Infastructure.Repositories
         {
             var id = await _dbContext.AssetTypes.AsNoTracking()
                                                 .Where(t => t.TypeName == typeName && t.IsActive)
-         // I use cast to int? to handle the case where no matching record is found, so that FirstOrDefaultAsync returns null instead of zero 
+          // I use cast to int? to handle the case where no matching record is found, so that FirstOrDefaultAsync returns null instead of zero 
                                                 .Select(t => (int?)t.Id)  
                                                 .FirstOrDefaultAsync(ct);
 

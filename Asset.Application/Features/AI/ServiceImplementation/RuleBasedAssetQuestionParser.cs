@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace Asset.Application.Features.AI.ServiceImplementation
 {
-    public class RuleBasedAssetQuestionParser : IAssetQuestionParser
+    public class RuleBasedAssetQuestionParser : IAssetQuestionParserService
     {
         #region Fields
         // ReDoS (Regular expression Denial of Service. 
@@ -17,29 +17,42 @@ namespace Asset.Application.Features.AI.ServiceImplementation
         private const RegexOptions Options = RegexOptions.IgnoreCase | RegexOptions.Compiled;
 
         private static readonly Regex DepartmentRegex = new(
-            @"\b(?:the\s+)?([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*){0,2})\s+department\b"
-          + @"|\bdepartment\s+(?:of\s+)?([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*){0,2})", 
+            @"\b(?:the\s+)?([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*){0,2})\s+department\b"     
+                                                    +
+            @"|\bdepartment\s+(?:of\s+)?([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*){0,2})", 
             Options, RegexTimeout);
 
-        // "assigned to Ahmed", "assigned to Ahmed Kamal", "belongs to Sara"
         private static readonly Regex EmployeeRegex = new(
-            @"\b(?:assigned\s+to|belongs?\s+to|belonging\s+to|owned\s+by|held\s+by)\s+(?:the\s+)?"
+            @"\b(?:assigned\s+to|allocated\s+to|issued\s+to|given\s+to|belongs?\s+to"
+          + @"|belonging\s+to|owned\s+by|held\s+by|used\s+by|under)\s+(?:the\s+)?"
           + @"([A-Za-z]+(?:\s+[A-Za-z]+){0,2})",
             Options, RegexTimeout);
 
         private static readonly Regex PolitePhrases = new(
-            @"\b(?:show|give|tell|find|get|list|bring)\s+me\b",
+             @"\b(?:show|give|tell|find|get|list|bring)\s+me\b" ,
             Options, RegexTimeout);
 
         private static readonly Regex SelfReference = new(
-            @"\b(?:me|my|mine|i)\b",
-            Options, RegexTimeout);
+             @"\b(?:assigned|allocated|issued|given|registered)\s+to\s+me\b"
+           + @"|\b(?:for|to|with)\s+me\b"
+           + @"|\bmy\s+(?:assets?|devices?|equipment|stuff|name)\b"
+           + @"|\bunder\s+my\s+name\b"
+           + @"|\bdo\s+i\s+have\b"
+           + @"|\b(?:i|me|my|mine|myself)\b"
+           , Options, RegexTimeout);
 
         private static readonly Regex GreetingRegex = new(
-            @"^\s*(?:hi|hey|hello|yo|salam|good\s+(?:morning|afternoon|evening|day))\b"
-          + @"|\bhow\s+are\s+you\b|\bhow's\s+it\s+going\b|\bwhat's\s+up\b"
-          + @"|\b(?:thanks|thank\s+you|shukran)\b|\b(?:bye|goodbye|see\s+you)\b"
-          + @"|\bwho\s+are\s+you\b|\bwhat\s+can\s+you\s+do\b",
+             @"^\s*(?:hi|hey|hello|yo|salam|assalamu\s+alaikum|good\s+(?:morning|afternoon|evening|day))\b"
+           + @"|\bhow\s+are\s+you\b|\bhow's\s+it\s+going\b|\bwhat's\s+up\b|\bhow\s+are\s+things\b"
+           + @"|\bwhat\s+are\s+you\b|\bhow\s+do\s+you\s+(?:work|do)\b"
+           + @"|\b(?:thanks|thank\s+you|shukran)\b|\b(?:bye|goodbye|see\s+you)\b"
+           + @"|\bwho\s+are\s+you\b|\bwhat\s+can\s+you\s+do\b|\bcan\s+you\s+help\b",
+            Options, RegexTimeout);
+
+        private static readonly Regex FollowUpRegex = new(
+            @"\b(?:this|these|those|them|the)\s+assets?\b"
+          + @"|\b(?:show|list|give)\s+(?:me\s+)?(?:them|those|these)\b"
+          + @"|\bwhat\s+about\b|\band\s+the\b",
             Options, RegexTimeout);
 
         private static readonly string[] KnownAssetTypes =
@@ -47,7 +60,8 @@ namespace Asset.Application.Features.AI.ServiceImplementation
             "Docking Station", "Access Point", "Conference Phone",
             "Laptop", "Desktop", "Monitor", "Printer", "Scanner", "Server",
             "Projector", "Router", "Switch", "Tablet", "Phone", "Camera",
-            "Desk", "Chair", "Cabinet", "Van", "Car", "Vehicle"
+            "Desk", "Chair", "Cabinet", "Van", "Car", "Vehicle",
+            "PC", "Computer", "Keyboard", "Mouse", "Headset", "Screen", "UPS"
         };
 
         private static readonly string[] KnownManufacturers =
@@ -62,13 +76,15 @@ namespace Asset.Application.Features.AI.ServiceImplementation
             "the", "a", "an", "all", "any", "our", "us", "them", "and", "or", "in", "of",
             "for", "from", "to", "at", "is", "are", "was", "were", "this", "that",
             "available", "assigned", "retired", "maintenance", "anyone", "someone",
-            "no", "one", "asset", "assets", "which", "what", "who", "show", "list"
+            "no", "one", "asset", "assets", "which", "what", "who", "show", "list",
+             "me", "my", "mine", "myself", "i", "you", "your", "everyone", "nobody",
+             "department", "these", "those", "some", "many", "much"
         };
 
         #endregion
 
         #region Public API
-        public Task<ParsedAssetQuestion> ParseAsync(string question, CancellationToken cancellationToken)
+        public Task<ParsedAssetQuestion> ParseAsync(string question, ParsedAssetQuestion? previous ,CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(question))
             {
@@ -78,26 +94,53 @@ namespace Asset.Application.Features.AI.ServiceImplementation
                 });
             }
 
+            // Normalize the question to lowercase for easier matching of keywords and phrases.
             var lower = question.ToLowerInvariant();
 
-            var department = DetectDepartment(question);
-            var isAboutSelf = DetectSelfReference(question);
+            var department    = DetectDepartment(question);
+            var isAboutSelf   = DetectSelfReference(question);
+            var assetTypeName = DetectAssetType(question);
+            var manufacturer  = DetectManufacturer(question);
+            var status        = DetectStatus(lower);
+            var greeting      = GreetingRegex.IsMatch(question);
 
+            // If the question is not about a department and not about self, try to detect an employee name.
+            string? employeeName = null;
+            if (department is null && !isAboutSelf)
+            {
+                employeeName = DetectEmployee(question);
+            }
+            var hasAnyFilter = assetTypeName is not null || manufacturer is not null|| status is not null|| department is not null|| employeeName is not null || isAboutSelf;
+
+            if (!hasAnyFilter && previous is not null && FollowUpRegex.IsMatch(question))
+            {
+                return Task.FromResult(new ParsedAssetQuestion
+                {
+                    AssetTypeName = previous.AssetTypeName,
+                    Manufacturer = previous.Manufacturer,
+                    Status = previous.Status,
+                    DepartmentName = previous.DepartmentName,
+                    IsAboutSelf = previous.IsAboutSelf,
+                    EmployeeName = previous.EmployeeName,
+                    Intent = DetectIntent(lower, true, greeting)
+                });
+            }
+
+            var intent = DetectIntent(lower, hasAnyFilter, greeting);
+
+            // Now he have the shape of the parsed Question from user
+            // and he retuns it into handler to process it and return the result to the user.
             var parsed = new ParsedAssetQuestion
             {
                 AssetTypeName = DetectAssetType(question),
                 Manufacturer = DetectManufacturer(question),
                 Status = DetectStatus(lower),
                 DepartmentName = department,
-                IsAboutSelf = isAboutSelf,
-                EmployeeName = department is null && !isAboutSelf ? DetectEmployee(question) : null,
-                Intent = AssetQuestionIntent.Unsupported
+                IsAboutSelf = isAboutSelf,      // If the question is about the user himself, this will be true.
+                EmployeeName = employeeName,    // If the question is about a specific employee, this will be their name.
+                Intent = intent                 // If the questions has any filter, greeting or not
             };
 
-            parsed = parsed with
-            {
-                Intent = DetectIntent(lower, parsed.HasAnyFilter, GreetingRegex.IsMatch(question))
-            };
             return Task.FromResult(parsed);
         }
 
@@ -106,39 +149,27 @@ namespace Asset.Application.Features.AI.ServiceImplementation
         #region Detection
         private static AssetQuestionIntent DetectIntent(string lower, bool hasFilter , bool isGreeting)
         {
+            // Greeting only, no filters → Greeting
             if (isGreeting && !hasFilter)
                 return AssetQuestionIntent.Greeting;
 
-            if (lower.Contains("how many") || lower.Contains("count") || lower.Contains("number of") || lower.Contains("total number"))
+            if (lower.Contains("how many")   || lower.Contains("count")        ||
+                lower.Contains("number of")  || lower.Contains("total number") ||
+                lower.Contains("total")      || lower.Contains("how much")) 
                 return AssetQuestionIntent.CountAssets;
 
-            if (lower.Contains("how many") || lower.Contains("count") || lower.Contains("number of") || lower.Contains("total number"))
-            {
-                return AssetQuestionIntent.CountAssets;
-            }
-
-            if (lower.Contains("show")       ||
-                lower.Contains("list")       ||
-                lower.Contains("which")      ||
-                lower.Contains("what asset") ||
-                lower.Contains("give me")    ||
-                lower.Contains("tell me")    ||
-                lower.Contains("find")       ||
-                lower.Contains("display")    ||
-                lower.Contains("do we have") ||
-                lower.Contains("do i have"))
+            if (lower.Contains("show")       || lower.Contains("list") ||
+                lower.Contains("which")      || lower.Contains("what asset") ||
+                lower.Contains("give me")    || lower.Contains("tell me") ||
+                lower.Contains("find")       || lower.Contains("display") ||
+                lower.Contains("do we have") || lower.Contains("do i have") ||
+                lower.Contains("what do")    || lower.Contains("bring me") ||
+                lower.Contains("get me")     || lower.Contains("see all") ||
+                lower.Contains("view"))
             {
                 return AssetQuestionIntent.ListAssets;
             }
 
-            // Fallback: if the sentence named something concrete we can filter on -
-            // a type, a manufacturer, a status, a department, a person - then listing
-            // those assets answers it, whatever verb was used. This is what makes
-            // "Dell laptops in Presales" and "available printers" work without
-            // needing every possible phrasing in the list above.
-            //
-            // It is safe precisely because it requires a filter: a sentence with no
-            // recognised filter still falls through to Unsupported.
             if (hasFilter)
             {
                 return AssetQuestionIntent.ListAssets;
@@ -167,10 +198,11 @@ namespace Asset.Application.Features.AI.ServiceImplementation
 
         private static string? DetectAssetType(string question)
         {
-            // Matches singular and plural, and tolerates any spacing inside a
-            // multi-word type ("docking station" / "docking  stations").
+            // "Show me laptops" -> "laptops" is the asset type we want to detect.
+            // We will check if the question contains any of the known asset types, and if so, return that asset type.
             return KnownAssetTypes.FirstOrDefault(type =>
             {
+                                          // "Docking Station".Split(' ')
                 var pattern = @"\b" + string.Join(@"\s+", type.Split(' ').Select(Regex.Escape)) + @"s?\b";
                 return Regex.IsMatch(question, pattern, Options, RegexTimeout);
             });
@@ -178,18 +210,18 @@ namespace Asset.Application.Features.AI.ServiceImplementation
 
         private static string? DetectManufacturer(string question)
         {
-            // Word boundaries matter here. Without \b, "hp" would match inside other words.
             return KnownManufacturers.FirstOrDefault(maker =>
                 Regex.IsMatch(question, $@"\b{Regex.Escape(maker)}\b", Options, RegexTimeout));
         }
 
         private static bool DetectSelfReference(string question)
         {
-            // Remove "show me" and friends first, then see if a first-person word
-            // survives. "Show me all laptops" loses its only "me" and is correctly
-            // read as a general question; "show me my laptops" keeps "my".
+            // [Give me my assigned assets] -> remove "Give me" from the question because he is being PolitePhrases,
+            // leaving "my assigned assets" to be checked for self-reference.
             var stripped = PolitePhrases.Replace(question, " ");
 
+            // Check if the stripped question contains any self-reference words like "me", "my", "mine", or "I".
+            // and in this case, will return true because the Question is about the user himself (my)
             return SelfReference.IsMatch(stripped);
         }
 
@@ -199,10 +231,13 @@ namespace Asset.Application.Features.AI.ServiceImplementation
             if (!match.Success)
                 return null;
 
-            // The pattern has two alternatives, so take whichever group captured.
-            var value = match.Groups[1].Success
-                ? match.Groups[1].Value
-                : match.Groups[2].Value;
+            string value;
+            if (match.Groups[1].Success)
+                value = match.Groups[1].Value;
+            else if (match.Groups[2].Success)
+                value = match.Groups[2].Value;
+            else
+                return null;
 
             return CleanName(value);
         }
@@ -210,15 +245,16 @@ namespace Asset.Application.Features.AI.ServiceImplementation
         private static string? DetectEmployee(string question)
         {
             var match = EmployeeRegex.Match(question);
+            if (!match.Success)
+                return null;
 
-            return match.Success ? CleanName(match.Groups[1].Value) : null;
+            return CleanName(match.Groups[1].Value);
         }
 
         private static string? CleanName(string captured)
         {
-            var words = captured
-                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .ToList();
+            // split "for It" -> ["for", "It"] and remove any leading or trailing words that are in the NotAName set.
+            var words = captured.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
 
             while (words.Count > 0 && NotAName.Contains(words[0]))
                 words.RemoveAt(0);
@@ -226,6 +262,8 @@ namespace Asset.Application.Features.AI.ServiceImplementation
             while (words.Count > 0 && NotAName.Contains(words[^1]))
                 words.RemoveAt(words.Count - 1);
 
+            // If all words.count == 0 ---> return null.
+            // Otherwise, join the remaining words back into a single string. like ["Human", "Resources"] -> "Human Resources"
             return words.Count == 0 ? null : string.Join(' ', words);
         }
 

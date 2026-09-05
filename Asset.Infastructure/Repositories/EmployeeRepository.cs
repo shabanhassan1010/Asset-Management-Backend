@@ -2,6 +2,7 @@
 using Asset.Application.Features.Employees.DTos;
 using Asset.Application.Features.Employees.Queries.QueryResponses;
 using Asset.Application.Interfaces.IRepository;
+using Asset.Domain.Enum;
 using Asset.Domain.Models;
 using Asset.Infastructure.Models;
 using Microsoft.EntityFrameworkCore;
@@ -127,7 +128,7 @@ namespace Asset.Infastructure.Repositories
         }
         public Task<bool> HasAssignedAssetsAsync(int employeeId, CancellationToken ct)
         {
-            return _dbContext.Assets.AsNoTracking().AnyAsync(a => a.AssignedEmployeeId == employeeId, ct);
+            return _dbContext.Assets.AsNoTracking().AnyAsync(a => a.AssignedEmployeeId == employeeId && a.Status != (int)AssetStatus.Retired, ct);
         }
 
         // Add

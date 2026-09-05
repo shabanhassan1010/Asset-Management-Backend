@@ -12,8 +12,8 @@ namespace Asset.Application.Features.Locations.Queries.QueryModels
         {
             Id = id;
         }
-        public string CacheKey => CacheKeys.LocationList;
-        public TimeSpan Duration => TimeSpan.FromMinutes(30);
+        public string CacheKey => CacheKeys.LocationById(Id);
+        public TimeSpan Duration => CacheDurations.Lookup;
 
     }
 }

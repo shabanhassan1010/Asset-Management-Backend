@@ -1,7 +1,6 @@
 ﻿#region
 using Asset.Application.Common.Caching;
 using Asset.Application.Common.Interfaces;
-using Asset.Application.Features.AI.Interfases;
 using Asset.Application.Features.AI.IService;
 using Asset.Application.Features.AI.ServiceImplementation;
 using Asset.Application.Interfaces.Comman;
@@ -24,14 +23,17 @@ using System.Text;
 #endregion
 namespace Asset.Infastructure
 {
-    public static class ModuleInfastructureDependencies
+    public static class ModuleInfrastructureDependencies
     {
         public static IServiceCollection AddInfrastructureDependencies(this IServiceCollection services, IConfiguration configuration)
         {
+            #region Connection string
             var connectionString = configuration.GetConnectionString("DefaultConnection");
+            if(string.IsNullOrEmpty(connectionString))
+                throw new InvalidOperationException("Connection string 'DefaultConnection' is missing. Run: dotnet user-secrets set \"ConnectionStrings:DefaultConnection\" \"<value>\"");
 
-            services.AddDbContext<AssetManagementDbContext>(options => options.UseSqlServer(connectionString));
-            services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(connectionString));
+            services.AddDbContext<AssetManagementDbContext>(options => options.UseSqlServer(connectionString)); // related into entities and tables of the application
+            services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(connectionString));     // related into identity and roles of the application
             services.AddIdentityCore<ApplicationUser>(options =>
             {
                 // Password
@@ -40,7 +42,10 @@ namespace Asset.Infastructure
                 // Email
                 options.User.RequireUniqueEmail = true;
             })
-            .AddRoles<IdentityRole>().AddEntityFrameworkStores<AppIdentityDbContext>();
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<AppIdentityDbContext>()
+            .AddDefaultTokenProviders();  // for generating tokens for password reset, email confirmation, etc.
+            #endregion
 
             #region Authentication
             var signingKey = configuration["Jwt:SigningKey"]
@@ -51,16 +56,16 @@ namespace Asset.Infastructure
                     {
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
-                            ValidateIssuer = true,
-                            ValidateAudience = true,
-                            ValidateLifetime = true,
-                            ValidateIssuerSigningKey = true,
+                            ValidateIssuer = true,           // prevent my token from being used by other applications
+                            ValidateAudience = true,         // prevent my token from being used by other applications
+                            ValidateLifetime = true,         // without it, token is valid even after expiration
+                            ValidateIssuerSigningKey = true, // without it anyone can generate a valid token with a valid signature
                             ValidIssuer = configuration["Jwt:Issuer"],
                             ValidAudience = configuration["Jwt:Audience"],
                             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(signingKey)),
-                            ClockSkew = TimeSpan.Zero,
-                            RoleClaimType = ClaimTypes.Role,      
-                            NameClaimType = ClaimTypes.NameIdentifier
+                            ClockSkew = TimeSpan.Zero,                  // token expires exactly at token expiration time instead of 5 minutes later
+                            RoleClaimType = ClaimTypes.Role,            // use this to make this work with [Authorize(Roles = "Admin")] attribute     
+                            NameClaimType = ClaimTypes.NameIdentifier   // return User Id instead of UserName when calling User.Identity.Name
                         };
                     });
             #endregion
@@ -69,13 +74,13 @@ namespace Asset.Infastructure
             services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IAssetRepository, AssetRepository>();
+            services.AddScoped<IAssetTypeRepository, AssetTypeRepository>();
+            services.AddScoped<IAssetTransferRepository, AssetTransferRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<ILocationRepository, LocationRepository>();
             services.AddScoped<IDepartmentRepository, DepartmentRepository>();
-            services.AddScoped<IAssetTransferRepository, AssetTransferRepository>();
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddScoped<IDashboardRepository, DashboardRepository>();
-            services.AddScoped<IAssetTypeRepository, AssetTypeRepository>();
             #endregion
 
             #region Identity and tokens
@@ -103,9 +108,6 @@ namespace Asset.Infastructure
             #endregion
 
             #region AI assistant
-            services.AddHttpContextAccessor();
-            services.AddScoped<ICurrentUserService, CurrentUserService>();
-
             services.AddMemoryCache();
             services.AddScoped<IConversationStoreService, InMemoryConversationStore>();
             services.AddScoped<IAiLookupRepository, AiLookupRepository>();

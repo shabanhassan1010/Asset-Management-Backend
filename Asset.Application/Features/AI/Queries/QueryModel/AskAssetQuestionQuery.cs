@@ -1,6 +1,7 @@
 ﻿using Asset.Application.Common.Responses;
+using Asset.Application.Features.AI.Queries.QueryResponse;
 using MediatR;
-namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
+namespace Asset.Application.Features.AI.Queries.QueryModel
 {
     public class AskAssetQuestionQuery : IRequest<ApiResponse<AssetQuestionResponse>>
     {   

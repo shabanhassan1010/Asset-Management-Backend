@@ -9,5 +9,7 @@
 
         // Used by command handlers to invalidate a key after a write.
         Task RemoveAsync(string key, CancellationToken ct);
+        Task RemoveAsync(IEnumerable<string> keys, CancellationToken ct);
+
     }
 }

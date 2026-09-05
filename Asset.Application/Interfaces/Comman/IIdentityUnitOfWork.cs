@@ -1,4 +1,4 @@
-namespace Asset.Application.Common.Interfaces;
+namespace Asset.Application.Interfaces.Comman;
 
 /// <summary>
 /// The transaction boundary for the identity database.

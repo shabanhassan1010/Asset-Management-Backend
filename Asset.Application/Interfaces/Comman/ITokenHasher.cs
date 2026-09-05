@@ -1,4 +1,4 @@
-﻿namespace Asset.Application.Interfaces.IRepository
+﻿namespace Asset.Application.Interfaces.Comman
 {
     public interface ITokenHasher
     {

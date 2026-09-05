@@ -1,5 +1,5 @@
 #region
-using Asset.Application.Common.Interfaces;
+using Asset.Application.Interfaces.Comman;
 using MediatR;
 #endregion
 

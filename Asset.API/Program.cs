@@ -1,13 +1,8 @@
 ﻿#region
 using Asset.API.Extensions;
 using Asset.API.Middleware;
-using Asset.API.Services;
 using Asset.Application;
-using Asset.Application.Common.Interfaces;
-using Asset.Application.Features.AI.Interfases;
-using Asset.Application.Features.AI.ServiceImplementation;
 using Asset.Application.Interfaces.Comman;
-using Asset.Domain.Enum;
 using Asset.Infastructure;
 using Asset.Infastructure.DBContext.Identity;
 using Asset.Infastructure.Service;
@@ -26,8 +21,10 @@ namespace Asset.API
 
             #region Dependency Injection
             builder.Services.AddInfrastructureDependencies(builder.Configuration);
-            builder.Services.AddCoreDependencies();
-            builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+            builder.Services.AddApplicationDependencies();
+
+            builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+            builder.Services.AddHttpContextAccessor();
             builder.Services.AddAiRateLimiting();
             #endregion
 

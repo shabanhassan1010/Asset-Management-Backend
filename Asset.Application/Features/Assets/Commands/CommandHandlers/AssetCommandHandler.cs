@@ -24,14 +24,14 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
                                                             IRequestHandler<RetireAssetCommandModel, ApiResponse<RetireAssetResponseDto>>
     {
         #region Fields
-        private readonly ICurrentUser _currentUser;
+        private readonly ICurrentUserService _currentUser;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICacheService _cache;
         private readonly IMapper _mapper;
         #endregion
 
         #region Constructor
-        public AssetCommandHandler(ICurrentUser currentUser, IUnitOfWork unitOfWork, ICacheService cache,
+        public AssetCommandHandler(ICurrentUserService currentUser, IUnitOfWork unitOfWork, ICacheService cache,
                                    IMapper mapper, IStringLocalizer<SharedResources> localizer) : base(localizer)
         {
             _currentUser = currentUser;

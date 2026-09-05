@@ -1,4 +1,4 @@
-﻿using Asset.Application.Interfaces.IRepository;
+﻿using Asset.Application.Interfaces.Comman;
 using System.Security.Cryptography;
 using System.Text;
 namespace Asset.Infastructure.Security

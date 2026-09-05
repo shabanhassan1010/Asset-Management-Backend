@@ -1,6 +1,6 @@
 ﻿#region
+using Asset.Application.Features.AI.DTos;
 using Asset.Application.Features.AI.Enums;
-using Asset.Application.Features.AI.Enums.DTos;
 using Asset.Application.Features.AI.Interfases;
 using Asset.Domain.Enum;
 using System.Text.RegularExpressions;

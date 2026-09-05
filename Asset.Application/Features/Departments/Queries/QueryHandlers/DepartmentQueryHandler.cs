@@ -1,18 +1,21 @@
 ﻿#region
+using Asset.Application.Bases;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.Departments.Queries.QueryModels;
 using Asset.Application.Features.Departments.Queries.QueryResponse;
 using Asset.Application.Interfaces.Comman;
+using Asset.Application.Resoures;
 using Asset.Domain.Exceptions;
 using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Localization;
 #endregion
 
 namespace Asset.Application.Features.Departments.Queries.QueryHandlers
 {
-    public class DepartmentQueryHandler :
-                                        IRequestHandler<GetDepartmentListQueryModel, ApiResponse<IReadOnlyList<GetDepartmentListResponse>>>,
-                                        IRequestHandler<GetDepartmentByIdQueryModel, ApiResponse<GetDepartmentByIdResponse>>
+    public class DepartmentQueryHandler : BaseResponseHandler,
+                                          IRequestHandler<GetDepartmentListQueryModel, ApiResponse<IReadOnlyList<GetDepartmentListResponse>>>,
+                                          IRequestHandler<GetDepartmentByIdQueryModel, ApiResponse<GetDepartmentByIdResponse>>
     {
         #region Fields
         private readonly IUnitOfWork _unitOfWork;
@@ -20,7 +23,7 @@ namespace Asset.Application.Features.Departments.Queries.QueryHandlers
         #endregion
 
         #region Constructor
-        public DepartmentQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public DepartmentQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, IStringLocalizer<SharedResources> localizer):base(localizer)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;

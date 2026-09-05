@@ -40,9 +40,6 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
 
             await _unitOfWork.Departments.AddAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            // After the save, never before: a failed save would have cleared the
-            // cache for nothing, and a concurrent read could refill it with old data.
             await _cache.RemoveAsync(CacheKeys.DepartmentList, cancellationToken);
 
             return new ApiResponse<CreateDepartmentResponseDto>
@@ -61,10 +58,8 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
 
             _mapper.Map(request, entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _cache.RemoveAsync( new[] { CacheKeys.DepartmentById(request.Id), CacheKeys.DepartmentList },cancellationToken);
 
-            // Two keys affected: the single item and the list it appears in.
-            await _cache.RemoveAsync(CacheKeys.DepartmentById(request.Id), cancellationToken);
-            await _cache.RemoveAsync(CacheKeys.DepartmentList, cancellationToken);
             return new ApiResponse<UpdateDepartmentResponseDto>
             {
                 data = _mapper.Map<UpdateDepartmentResponseDto>(entity),
@@ -92,9 +87,7 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
 
             _unitOfWork.Departments.Remove(entity);  
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            await _cache.RemoveAsync(CacheKeys.DepartmentById(request.Id), cancellationToken);
-            await _cache.RemoveAsync(CacheKeys.DepartmentList, cancellationToken);
+            await _cache.RemoveAsync(new[] { CacheKeys.DepartmentById(request.Id), CacheKeys.DepartmentList },cancellationToken);
 
             return new ApiResponse<string>
             {

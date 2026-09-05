@@ -1,7 +1,8 @@
 ﻿#region
 using Asset.API.Helper;
 using Asset.Application.Common.Responses;
-using Asset.Application.Features.AI.Queries.AskAssetQuestion;
+using Asset.Application.Features.AI.Queries.QueryModel;
+using Asset.Application.Features.AI.Queries.QueryResponse;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace Asset.Application.Features.AI.Enums.DTos
+namespace Asset.Application.Features.AI.DTos
 {
     public class AssetQuestionResultDto
     {

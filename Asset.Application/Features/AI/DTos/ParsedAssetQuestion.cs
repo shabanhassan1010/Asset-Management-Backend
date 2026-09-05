@@ -1,6 +1,7 @@
-﻿using Asset.Domain.Enum;
+﻿using Asset.Application.Features.AI.Enums;
+using Asset.Domain.Enum;
 
-namespace Asset.Application.Features.AI.Enums.DTos
+namespace Asset.Application.Features.AI.DTos
 {
     public record ParsedAssetQuestion
     {

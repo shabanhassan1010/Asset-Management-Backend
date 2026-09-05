@@ -30,7 +30,6 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
         }
         #endregion
 
-
         #region handlers
         public async Task<ApiResponse<CreateLocationResponseDto>> Handle( CreateLocationCommandModel request, CancellationToken cancellationToken)
         {
@@ -39,8 +38,8 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
 
             await _unitOfWork.Locations.AddAsync(entity, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
             await _cache.RemoveAsync(CacheKeys.LocationList, cancellationToken);
+
             return new ApiResponse<CreateLocationResponseDto>
             {
                 data = _mapper.Map<CreateLocationResponseDto>(entity),
@@ -57,9 +56,9 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
 
             _mapper.Map(request, entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _cache.RemoveAsync(new[] { CacheKeys.LocationById(request.Id), CacheKeys.LocationList }, cancellationToken);
 
-            await _cache.RemoveAsync(CacheKeys.LocationById(request.Id), cancellationToken);
-            await _cache.RemoveAsync(CacheKeys.LocationList, cancellationToken);
+
             return new ApiResponse<UpdateLocationResponseDto>
             {
                 data = _mapper.Map<UpdateLocationResponseDto>(entity),
@@ -83,12 +82,9 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
             }
 
             _unitOfWork.Locations.Remove(entity);   // IsActive = false
-
-            // One SaveChanges call => both operations succeed or fail together.
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _cache.RemoveAsync(new[] { CacheKeys.LocationById(request.Id), CacheKeys.LocationList }, cancellationToken);
 
-            await _cache.RemoveAsync(CacheKeys.LocationById(request.Id), cancellationToken);
-            await _cache.RemoveAsync(CacheKeys.LocationList, cancellationToken);
             return new ApiResponse<string>
             {
                 data = $"{assets.Count} asset(s) unassigned.",

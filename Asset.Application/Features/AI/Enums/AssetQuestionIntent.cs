@@ -4,7 +4,6 @@
     {
         ListAssets,
         CountAssets,
-
         Greeting,
         Unsupported
     }

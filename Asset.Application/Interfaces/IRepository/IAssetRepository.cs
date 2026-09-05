@@ -1,5 +1,6 @@
 ﻿using Asset.Application.Common.Responses;
 using Asset.Application.Features.Assets.DTOs;
+using Asset.Application.Features.AssetTypes.DTos;
 using Asset.Application.Features.GetAssetTransferHistory.QueryResponses;
 using Asset.Application.Interfaces.Comman;
 using Asset.Domain.Models;
@@ -17,6 +18,7 @@ namespace Asset.Application.Interfaces.Repository
         Task<AssetEntity?> GetForUpdateAsync(int id, CancellationToken ct);     // tracked, for writes
         Task<List<GetAssetTransferHistoryResponse>> GetTransferHistoryAsync(int assetId, CancellationToken ct);
         void SetOriginalRowVersion(AssetEntity entity, byte[] rowVersion);
+        Task<IReadOnlyList<AssetTypeCountResult>> GetCountsByAssetTypeAsync(CancellationToken cancellationToken);
 
         // Check
         Task<bool> SerialNumberExistsAsync(string serial, int? exceptId, CancellationToken ct);

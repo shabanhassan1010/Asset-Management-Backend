@@ -32,8 +32,8 @@ namespace Asset.API.Controllers
         #endregion
 
         #region Create
-        [HttpPost(BaseRouter.AssetTypeRouter.Base)]
         [Authorize(Roles = nameof(Role.Admin))]
+        [HttpPost(BaseRouter.AssetTypeRouter.Base)]
         public async Task<IActionResult> Create([FromBody] CreateAssetTypeCommandModel command, CancellationToken cancellationToken)
         {
             var response = await sender.Send(command, cancellationToken);
@@ -42,8 +42,8 @@ namespace Asset.API.Controllers
         #endregion
 
         #region Update
-        [HttpPut(BaseRouter.AssetTypeRouter.Id)]
         [Authorize(Roles = nameof(Role.Admin))]
+        [HttpPut(BaseRouter.AssetTypeRouter.Id)]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateAssetTypeCommandModel command, CancellationToken cancellationToken)
         {
             command.Id = id;
@@ -53,8 +53,8 @@ namespace Asset.API.Controllers
         #endregion
 
         #region Delete
-        [HttpDelete(BaseRouter.AssetTypeRouter.Id)]
         [Authorize(Roles = nameof(Role.Admin))]
+        [HttpDelete(BaseRouter.AssetTypeRouter.Id)]
         public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
         {
             var response = await sender.Send(new DeleteAssetTypeCommandModel { Id = id }, cancellationToken);

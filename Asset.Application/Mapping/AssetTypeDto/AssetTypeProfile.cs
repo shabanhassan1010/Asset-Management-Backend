@@ -21,9 +21,11 @@ namespace Asset.Application.Mapping.AssetTypeDto
                      .ForMember(dest => dest.AssetTypeName, opt => opt.MapFrom(src => src.TypeName));
 
             // Write
-            CreateMap<CreateAssetTypeCommandModel, AssetType>();
+            CreateMap<CreateAssetTypeCommandModel, AssetType>()
+                .ForMember(dest => dest.TypeName, opt => opt.MapFrom(src => src.assetTypeName));
 
             CreateMap<UpdateAssetTypeCommandModel, AssetType>()
+                .ForMember(dest => dest.TypeName, opt => opt.MapFrom(src => src.assetTypeName))
                    .ForMember(dest => dest.Assets, opt => opt.Ignore());
         }
     }

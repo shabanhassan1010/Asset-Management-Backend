@@ -4,38 +4,44 @@ using Asset.Application.Common.Responses;
 using Asset.Application.Features.AI.Enums;
 using Asset.Application.Features.AI.Enums.DTos;
 using Asset.Application.Features.AI.Interfases;
-using Asset.Application.Features.AI.ServiceImplementation;
 using Asset.Application.Features.Assets.DTOs;
 using Asset.Domain.Enum;
 using AssetEntity = Asset.Domain.Models.Asset;
 using MediatR;
 using Asset.Application.Interfaces.Comman;
+using Asset.Application.Features.AI.Builders;
+using Asset.Application.Features.AI.IService;
 #endregion
 namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
 {
     public class AskAssetQuestionQueryHandler : IRequestHandler<AskAssetQuestionQuery, ApiResponse<AssetQuestionResponse>>
     {
         #region Fields
-        private readonly IAssetQuestionParser _parser;
+        private readonly IAssetQuestionParserService _parser;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUser;
+        private readonly IConversationStoreService _conversationStore;
         private const int MaxRows = 20;
 
         #endregion
 
         #region Constructor
-        public AskAssetQuestionQueryHandler(IAssetQuestionParser parser,
+        public AskAssetQuestionQueryHandler(IAssetQuestionParserService parser,
                                             IUnitOfWork unitOfWork,
-                                            ICurrentUserService currentUser)
+                                            ICurrentUserService currentUser ,
+                                            IConversationStoreService conversationStore)
         {
             _parser = parser;
             _unitOfWork = unitOfWork;
             _currentUser = currentUser;
+            _conversationStore = conversationStore;
         }
 
         #endregion
 
         #region Private Methods
+
+        // Maps an AssetEntity to an AssetQuestionResultDto, optionally including the purchase cost.
         private static AssetQuestionResultDto MapAsset(AssetEntity asset, bool includeCost)
         {
             return new AssetQuestionResultDto
@@ -46,13 +52,13 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
                 SerialNumber = asset.SerialNumber,
                 Manufacturer = asset.Manufacturer,
                 Model = asset.Model,
-                AssetType = asset.AssetType?.TypeName,
-                Category = asset.Category?.CategoryName,
-                Status = ((AssetStatus)asset.Status).ToString(),
-                EmployeeName = asset.AssignedEmployee?.FullName,
+                AssetType = asset.AssetType?.TypeName,                // If AssetType is not null return its TypeName and if it is null return null
+                Category = asset.Category?.CategoryName,             //  If Category is not null return its CategoryName and if it is null return null
+                Status = ((AssetStatus)asset.Status).ToString(),     // Cast the Status byte to AssetStatus enum and convert it to string
+                EmployeeName = asset.AssignedEmployee?.FullName, 
                 DepartmentName = asset.Department?.DepartmentName,
                 LocationName = asset.Location?.LocationName,
-                PurchaseCost = includeCost ? asset.PurchaseCost : null
+                PurchaseCost = includeCost ? asset.PurchaseCost : null  // If includeCost is true return PurchaseCost and if it is false return null 
             };
         }
 
@@ -77,19 +83,39 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
         #endregion
 
         #region Methods
-        public async Task<ApiResponse<AssetQuestionResponse>> Handle( AskAssetQuestionQuery request,CancellationToken cancellationToken)
+        public async Task<ApiResponse<AssetQuestionResponse>> Handle(AskAssetQuestionQuery request,CancellationToken cancellationToken)
         {
-            var parsed = await _parser.ParseAsync(request.Question, cancellationToken);
+            // Load the last question that ran a query, so follow-ups can reuse it.
+            var previous = _conversationStore.GetLast(request.SessionId);
+
+            var parsed = await _parser.ParseAsync(request.Question, previous, cancellationToken);
 
             if (parsed.Intent == AssetQuestionIntent.Greeting)
             {
                 return Answer(request.Question,AssetAnswerBuilder.Greeting(request.Question.ToLowerInvariant()), suggestions: AssetAnswerBuilder.StarterQuestions());
             }
-            // Out of scope, including every write request - the intent enum has no
-            // member that could represent one.
-            if (parsed.Intent == AssetQuestionIntent.Unsupported || !parsed.HasAnyFilter)
+
+            if (parsed.Intent == AssetQuestionIntent.Unsupported)
             {
                 return Answer(request.Question, AssetAnswerBuilder.OutOfScope(), suggestions: AssetAnswerBuilder.StarterQuestions());
+            }
+
+            // "How many assets do we have?" with no filter is a fair question.
+            // An admin gets the org-wide total; anyone else gets their own count.
+            if (!parsed.HasAnyFilter)
+            {
+                if (parsed.Intent != AssetQuestionIntent.CountAssets)
+                {
+                    return Answer(request.Question, AssetAnswerBuilder.OutOfScope(),suggestions: AssetAnswerBuilder.StarterQuestions());
+                }
+
+                if (!_currentUser.IsAdmin)
+                {
+                    if (_currentUser.EmployeeId is null)
+                        return Answer(request.Question, AssetAnswerBuilder.NoEmployeeLink());
+
+                    parsed = parsed with { IsAboutSelf = true };
+                }
             }
 
             var filter = new AssetFilter
@@ -125,9 +151,10 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
             // ---- Authorization ----------------------------------------------------
             if (parsed.IsAboutSelf)
             {
+                // in this case User is Authenticated but not linked to an Employee, so we cannot answer the question about their own assets.
                 if (_currentUser.EmployeeId is null)
                     return Answer(request.Question, AssetAnswerBuilder.NoEmployeeLink());
-
+                // in this case User is Authenticated and linked to an Employee, so we can answer the question about their own assets.
                 filter.EmployeeId = _currentUser.EmployeeId;
             }
             else if (parsed.EmployeeName is not null)
@@ -139,39 +166,34 @@ namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
                     if (matches.Count == 0)
                         return Answer(request.Question, AssetAnswerBuilder.UnknownEmployee(parsed.EmployeeName));
 
-                    if (matches.Count > 1)
+                    // in this case, we have multiple employees with the same name, so we cannot answer the question about their assets.
+                    if (matches.Count > 1) 
                         return Answer(request.Question, AssetAnswerBuilder.AmbiguousEmployee(parsed.EmployeeName, matches));
 
                     filter.EmployeeId = matches[0].Id;
-                }
-                else
-                {
-                    if (_currentUser.EmployeeId is null)
-                        return Answer(request.Question, AssetAnswerBuilder.NoEmployeeLink());
+                } 
+                //else // User not Admin
+                //{
+                //    if (_currentUser.EmployeeId is null)
+                //        return Answer(request.Question, AssetAnswerBuilder.NoEmployeeLink());
 
-                    filter.EmployeeId = _currentUser.EmployeeId;
-                }
+                //    filter.EmployeeId = _currentUser.EmployeeId;
+                //}
             }
 
             var page = await _unitOfWork.Assets.GetPaginationAsync(filter, cancellationToken);
+            // Save only questions that actually ran a query, so a follow-up has
+            // real filters to fall back on.
+            _conversationStore.SaveLast(request.SessionId, parsed);
 
             if (parsed.Intent == AssetQuestionIntent.CountAssets)
             {
-                return Answer(
-                    request.Question,
-                    AssetAnswerBuilder.ForCount(page.TotalCount),
-                    totalCount: page.TotalCount);
+                return Answer(request.Question, AssetAnswerBuilder.ForCount(page.TotalCount),totalCount: page.TotalCount);
             }
 
-            var rows = page.Items
-                .Select(asset => MapAsset(asset, includeCost: _currentUser.IsAdmin))
-                .ToList();
+            var rows = page.Items.Select(asset => MapAsset(asset, includeCost: _currentUser.IsAdmin)).ToList();
 
-            return Answer(
-                request.Question,
-                AssetAnswerBuilder.ForList(rows.Count, page.TotalCount),
-                rows,
-                page.TotalCount);
+            return Answer(request.Question,AssetAnswerBuilder.ForList(rows.Count, page.TotalCount),rows,page.TotalCount);
         }
         #endregion
     }

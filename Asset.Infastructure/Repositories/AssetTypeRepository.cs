@@ -23,15 +23,25 @@ namespace Asset.Infastructure.Repositories
 
         public async Task<IReadOnlyList<AssetType>> GetAllAsync(CancellationToken cancellationToken)
         {
-            return await _dbContext.AssetTypes.AsNoTracking().OrderBy(t => t.TypeName)
+            return await _dbContext.AssetTypes.AsNoTracking()
+                                              .Where(s=>s.IsActive)
+                                              .OrderBy(t => t.TypeName)
                                               .ToListAsync(cancellationToken);
         }
-
         public async Task<bool> AnyAsync(Expression<Func<AssetType, bool>> predicate, CancellationToken cancellationToken)
         {
             return await _dbContext.AssetTypes.AnyAsync(predicate, cancellationToken);
         }
+        public async Task<bool> AssetTypeNameExistsAsync(string name, int? exceptId, CancellationToken cancellationToken)
+        {
+            var query = _dbContext.AssetTypes.AsQueryable();
 
+            if (exceptId.HasValue)
+            {
+                query = query.Where(t => t.Id != exceptId.Value);
+            }
+            return await query.AnyAsync(t => t.TypeName == name, cancellationToken);
+        }
         public void Remove(AssetType entity)
         {
             entity.IsActive = false;

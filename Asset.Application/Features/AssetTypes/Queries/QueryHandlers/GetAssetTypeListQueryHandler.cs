@@ -8,6 +8,7 @@ using Asset.Application.Resoures;
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Localization;
+using System.Diagnostics.Metrics;
 #endregion
 namespace Asset.Application.Features.AssetTypes.Queries.QueryHandlers
 {
@@ -33,7 +34,12 @@ namespace Asset.Application.Features.AssetTypes.Queries.QueryHandlers
         {
             var assetTypes = await _unitOfWork.AssetTypes.GetAllAsync(cancellationToken);
             var data = _mapper.Map<IReadOnlyList<GetAssetTypeListQueryResponse>>(assetTypes);
-
+            var AssetsCount = await _unitOfWork.Assets.GetCountsByAssetTypeAsync(cancellationToken);
+            foreach (var assetType in data)
+            {
+                var match = AssetsCount.FirstOrDefault(c => c.AssetTypeId == assetType.Id);
+                assetType.AssetsCount = match?.Count ?? 0;  
+            }
             return Success(data);
         }
 

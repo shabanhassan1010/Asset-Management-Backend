@@ -34,17 +34,14 @@ namespace Asset.API
             #region CORS 
             builder.Services.AddCors(options =>
             {
-
                 options.AddPolicy(AngularCorsPolicy, policy =>
                 {
-                    // origin الأنجولار بييجي من appsettings، مش هارد كودد —
-                    // مختلف بين Development و Production.
                     var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 
                     policy.WithOrigins(allowedOrigins)
                           .AllowAnyHeader()
                           .AllowAnyMethod()
-                          .AllowCredentials();   // لو الـ JWT بيتبعت كـ header عادي مش محتاجها، لكن سيبها لو فيه refresh cookie
+                          .AllowCredentials();   
                 });
             });
             #endregion
@@ -79,7 +76,6 @@ namespace Asset.API
                 SupportedCultures = supportedCultures,
                 SupportedUICultures = supportedCultures
             };
-
             #endregion
 
             #region Middleware
@@ -102,7 +98,9 @@ namespace Asset.API
 
             app.UseAuthentication();
             app.UseAuthorization();
+
             app.UseRateLimiter();
+
             app.MapControllers();
 
             app.Run();

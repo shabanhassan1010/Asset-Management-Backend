@@ -3,6 +3,7 @@ using Asset.Application.Common.Interfaces;
 using MediatR;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Enum;
+using Asset.Application.Interfaces.Comman;
 #endregion
 
 namespace Asset.Application.Features.Users.Commands.ChangeUserRole;

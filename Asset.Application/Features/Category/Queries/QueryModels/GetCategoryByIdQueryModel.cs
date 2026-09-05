@@ -11,7 +11,7 @@ namespace Asset.Application.Features.Category.Queries.QueryModels
         {
             Id = id;
         }
-        public string CacheKey => CacheKeys.CategoryList;
-        public TimeSpan Duration => TimeSpan.FromMinutes(30);
+        public string CacheKey => CacheKeys.CategoryById(Id);
+        public TimeSpan Duration => CacheDurations.Lookup;
     }
 }

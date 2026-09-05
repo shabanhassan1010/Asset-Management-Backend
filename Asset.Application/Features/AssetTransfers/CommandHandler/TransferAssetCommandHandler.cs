@@ -1,5 +1,4 @@
 ﻿#region
-using Asset.Application.Common.Interfaces;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.AssetTransfers.CommandModel;
 using Asset.Application.Features.AssetTransfers.CommandResponse;

@@ -1,5 +1,5 @@
 using Asset.Domain.Identity;
-namespace Asset.Application.Common.Interfaces;
+namespace Asset.Application.Interfaces.Comman;
 
 public interface IRefreshTokenRepository
 {

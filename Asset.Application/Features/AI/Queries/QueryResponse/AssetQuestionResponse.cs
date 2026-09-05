@@ -1,5 +1,6 @@
-﻿using Asset.Application.Features.AI.Enums.DTos;
-namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
+﻿using Asset.Application.Features.AI.DTos;
+
+namespace Asset.Application.Features.AI.Queries.QueryResponse
 {
     public class AssetQuestionResponse
     {

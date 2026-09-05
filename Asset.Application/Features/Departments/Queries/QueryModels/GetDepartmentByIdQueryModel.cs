@@ -1,7 +1,9 @@
-﻿using Asset.Application.Common.Caching;
+﻿#region
+using Asset.Application.Common.Caching;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.Departments.Queries.QueryResponse;
 using MediatR;
+#endregion
 namespace Asset.Application.Features.Departments.Queries.QueryModels
 {
     public class GetDepartmentByIdQueryModel : IRequest<ApiResponse<GetDepartmentByIdResponse>> , ICachedQuery
@@ -12,7 +14,7 @@ namespace Asset.Application.Features.Departments.Queries.QueryModels
         {
             Id = id;
         }
-        public string CacheKey => CacheKeys.DepartmentList;
-        public TimeSpan Duration => TimeSpan.FromMinutes(30);
+        public string CacheKey => CacheKeys.DepartmentById(Id);
+        public TimeSpan Duration => CacheDurations.Lookup;
     }
 }

@@ -1,10 +1,10 @@
 #region
 using Asset.Application.Common.Constants;
-using Asset.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
 using System.Security.Claims;
 using Asset.Domain.Enum;
+using Asset.Application.Interfaces.Comman;
 namespace Asset.Infastructure.Service;
 #endregion
 public class CurrentUserService : ICurrentUserService

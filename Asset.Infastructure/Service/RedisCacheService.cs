@@ -39,6 +39,10 @@ namespace Asset.Infastructure.Service
 
                 return JsonSerializer.Deserialize<T>(json, _jsonOptions);
             }
+            catch (OperationCanceledException)
+            {           
+                throw; // The caller cancelled. This is not a cache failure — do not  swallow it, or the handler would run for a dead request.
+            } 
             catch (Exception ex)
             {
                 // The cache is an optimisation, not a source of truth.
@@ -64,6 +68,10 @@ namespace Asset.Infastructure.Service
 
                 await _cache.SetStringAsync(key, json, options, ct);
             }
+            catch (OperationCanceledException)
+             {
+                throw;
+             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Cache write failed for key {Key}", key);
@@ -82,6 +90,12 @@ namespace Asset.Infastructure.Service
                 // means clients keep reading stale data until the key expires.
                 _logger.LogWarning(ex, "Cache invalidation failed for key {Key}", key);
             }
+        }
+
+        public async Task RemoveAsync(IEnumerable<string> keys, CancellationToken ct)
+        {
+            foreach (var key in keys)
+                await RemoveAsync(key, ct);
         }
         #endregion
     }

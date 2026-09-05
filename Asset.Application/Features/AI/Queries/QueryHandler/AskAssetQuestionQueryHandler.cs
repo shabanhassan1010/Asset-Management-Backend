@@ -1,8 +1,6 @@
 ﻿#region
-using Asset.Application.Common.Interfaces;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.AI.Enums;
-using Asset.Application.Features.AI.Enums.DTos;
 using Asset.Application.Features.AI.Interfases;
 using Asset.Application.Features.Assets.DTOs;
 using Asset.Domain.Enum;
@@ -11,8 +9,12 @@ using MediatR;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Features.AI.Builders;
 using Asset.Application.Features.AI.IService;
+using Asset.Application.Features.AI.Queries.QueryResponse;
+using Asset.Application.Features.AI.Queries.QueryModel;
+using Asset.Application.Features.AI.DTos;
+
 #endregion
-namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
+namespace Asset.Application.Features.AI.Queries.QueryHandler
 {
     public class AskAssetQuestionQueryHandler : IRequestHandler<AskAssetQuestionQuery, ApiResponse<AssetQuestionResponse>>
     {

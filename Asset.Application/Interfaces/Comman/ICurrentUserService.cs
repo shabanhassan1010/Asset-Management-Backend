@@ -1,4 +1,4 @@
-namespace Asset.Application.Common.Interfaces;
+namespace Asset.Application.Interfaces.Comman;
 public interface ICurrentUserService
 {
     string? UserId { get; }

@@ -1,5 +1,6 @@
-﻿using FluentValidation;
-namespace Asset.Application.Features.AI.Queries.AskAssetQuestion
+﻿using Asset.Application.Features.AI.Queries.QueryModel;
+using FluentValidation;
+namespace Asset.Application.Features.AI.Queries.QueryValidators
 {
     public class AskAssetQuestionQueryValidator : AbstractValidator<AskAssetQuestionQuery>
     {

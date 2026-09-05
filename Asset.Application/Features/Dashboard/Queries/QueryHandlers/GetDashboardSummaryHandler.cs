@@ -14,11 +14,11 @@ namespace Asset.Application.Features.Dashboard.Queries.QueryHandlers
         private const int WarrantyWindowInDays = 180;
         private const int MaxExpiringRows = 6;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ICurrentUser currentUser;
+        private readonly ICurrentUserService currentUser;
         #endregion
 
         #region Constructor
-        public GetDashboardSummaryHandler(IUnitOfWork unitOfWork, ICurrentUser currentUser)
+        public GetDashboardSummaryHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUser)
         {
             _unitOfWork = unitOfWork;
             this.currentUser = currentUser;

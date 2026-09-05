@@ -2,7 +2,7 @@
 using Asset.Application.Common.Interfaces;
 using Asset.Application.Common.Models;
 using Asset.Application.Features.Auth.DTOs;
-using Asset.Application.Interfaces.IRepository;
+using Asset.Application.Interfaces.Comman;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Identity;
 using AutoMapper;

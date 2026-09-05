@@ -20,13 +20,13 @@ namespace Asset.Application.Features.Assets.Queries.QueryHandlers
                                                         , IRequestHandler<GetAssetPaginatedListQueryModel, PaginatedResponse<GetAssetPaginatedListQueryResponse>>
     {
         #region Fields
-        private readonly ICurrentUser _currentUser;
+        private readonly ICurrentUserService _currentUser;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         #endregion
 
         #region Constructor
-        public AssetQueryHandler(ICurrentUser currentUser, IUnitOfWork unitOfWork, IMapper mapper, IStringLocalizer<SharedResources> localizer) : base(localizer)
+        public AssetQueryHandler(ICurrentUserService currentUser, IUnitOfWork unitOfWork, IMapper mapper, IStringLocalizer<SharedResources> localizer) : base(localizer)
         {
             _currentUser = currentUser;
             _unitOfWork = unitOfWork;

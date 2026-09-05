@@ -1,4 +1,4 @@
-﻿using Asset.Application.Features.AI.Enums.DTos;
+﻿using Asset.Application.Features.AI.DTos;
 
 namespace Asset.Application.Features.AI.IService
 {

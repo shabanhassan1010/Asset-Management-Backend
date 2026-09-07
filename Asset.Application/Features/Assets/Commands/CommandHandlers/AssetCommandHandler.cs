@@ -68,7 +68,7 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             entity.CreatedAt = DateTime.UtcNow;
             entity.CreatedByUserId = _currentUser.UserId;
 
-            await _unitOfWork.Assets.AddAsync(entity, cancellationToken);
+            _unitOfWork.Assets.Add(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             await InvalidateLookupCountsAsync(cancellationToken);

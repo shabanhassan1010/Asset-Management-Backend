@@ -38,7 +38,7 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
             var assetType = _mapper.Map<AssetType>(request);
             assetType.IsActive = true;
 
-            await _unitOfWork.AssetTypes.AddAsync(assetType, cancellationToken);
+            _unitOfWork.AssetTypes.Add(assetType);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _cacheService.RemoveAsync(CacheKeys.AssetTypeList, cancellationToken);
 

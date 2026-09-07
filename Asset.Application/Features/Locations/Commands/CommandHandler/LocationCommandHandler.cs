@@ -36,7 +36,7 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
             var entity = _mapper.Map<Location>(request);
             entity.IsActive = true;
 
-            await _unitOfWork.Locations.AddAsync(entity, cancellationToken);
+            _unitOfWork.Locations.Add(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _cache.RemoveAsync(CacheKeys.LocationList, cancellationToken);
 

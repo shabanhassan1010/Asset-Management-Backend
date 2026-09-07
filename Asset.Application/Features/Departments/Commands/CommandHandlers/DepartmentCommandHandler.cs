@@ -38,7 +38,7 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
             var entity = _mapper.Map<Department>(request);
             entity.IsActive = true;
 
-            await _unitOfWork.Departments.AddAsync(entity, cancellationToken);
+            _unitOfWork.Departments.Add(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _cache.RemoveAsync(CacheKeys.DepartmentList, cancellationToken);
 

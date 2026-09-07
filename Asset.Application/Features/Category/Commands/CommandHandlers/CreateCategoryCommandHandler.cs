@@ -43,7 +43,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
             var entity = _mapper.Map<cateogryEntity>(request);
             entity.IsActive = true;
 
-            await _unitOfWork.Categories.AddAsync(entity, cancellationToken);
+            _unitOfWork.Categories.Add(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await cache.RemoveAsync(CacheKeys.CategoryList, cancellationToken);
 

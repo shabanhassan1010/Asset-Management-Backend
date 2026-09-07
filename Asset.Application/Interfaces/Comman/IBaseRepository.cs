@@ -4,7 +4,7 @@
     {
         Task<T?> GetByIdAsync(int id, CancellationToken ct);
         Task<IReadOnlyList<T>> ListAllAsync(CancellationToken ct);
-        Task AddAsync(T entity, CancellationToken ct);
-        void UpdateAsync(T entity);
+        void Add(T entity);
+        void Update(T entity);
     }
 }

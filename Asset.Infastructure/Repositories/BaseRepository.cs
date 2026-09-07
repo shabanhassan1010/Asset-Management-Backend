@@ -19,9 +19,9 @@ namespace Asset.Infastructure.Repositories
             _dbSet = dbContext.Set<T>();
         }
         #endregion
-        public async Task AddAsync(T entity, CancellationToken ct)
+        public void Add(T entity)
         {
-            await _dbSet.AddAsync(entity, ct);
+            _dbSet.AddAsync(entity);
         }
         public async Task<T?> GetByIdAsync(int id, CancellationToken ct)
         {
@@ -31,7 +31,7 @@ namespace Asset.Infastructure.Repositories
         {
             return await _dbSet.AsNoTracking().ToListAsync(ct);
         }
-        public void UpdateAsync(T entity)
+        public void Update(T entity)
         {
             _dbSet.Entry(entity).State = EntityState.Modified;
         }

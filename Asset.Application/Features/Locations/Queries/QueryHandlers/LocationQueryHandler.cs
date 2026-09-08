@@ -1,6 +1,7 @@
 ﻿using Asset.Application.Common.Responses;
 using Asset.Application.Features.Locations.Queries.QueryModels;
 using Asset.Application.Features.Locations.Queries.QueryResponse;
+using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Models;
@@ -14,21 +15,21 @@ namespace Asset.Application.Features.Locations.Queries.QueryHandlers
                                         IRequestHandler<GetLocationByIdQueryModel, ApiResponse<GetLocationByIdResponse>>
     {
         #region Fields
-        private readonly ILocationRepository _locationRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         #endregion
 
         #region Constructor
-        public LocationQueryHandler(ILocationRepository locationRepository, IMapper mapper)
+        public LocationQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _locationRepository = locationRepository;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
         #endregion
 
         public async Task<ApiResponse<IReadOnlyList<GetLocationListResponse>>> Handle(GetLocationListQueryModel request, CancellationToken cancellationToken)
         {
-            var list = await _locationRepository.GetAllProjectedAsync(cancellationToken);
+            var list = await _unitOfWork.Locations.GetAllProjectedAsync(cancellationToken);
 
             return new ApiResponse<IReadOnlyList<GetLocationListResponse>>
             {
@@ -40,7 +41,7 @@ namespace Asset.Application.Features.Locations.Queries.QueryHandlers
 
         public async Task<ApiResponse<GetLocationByIdResponse>> Handle(GetLocationByIdQueryModel request, CancellationToken cancellationToken)
         {
-            var entity = await _locationRepository.GetByIdAsync(request.Id, cancellationToken);
+            var entity = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
 
             if (entity == null || entity.IsActive == false)
                 throw new NotFoundException($"Location {request.Id} was not found.");

@@ -1,13 +1,14 @@
-﻿using Asset.Application.Common.Caching;
+﻿#region
+using Asset.Application.Common.Caching;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.Locations.Commands.CommandModels;
 using Asset.Application.Features.Locations.Commands.CommandResponse;
 using Asset.Application.Interfaces.Comman;
-using Asset.Application.Interfaces.IRepository;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Models;
 using AutoMapper;
 using MediatR;
+#endregion
 namespace Asset.Application.Features.Locations.Commands.CommandHandler
 {
     public class LocationCommandHandler :

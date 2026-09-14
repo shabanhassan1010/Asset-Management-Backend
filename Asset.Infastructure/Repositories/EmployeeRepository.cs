@@ -136,6 +136,12 @@ namespace Asset.Infastructure.Repositories
         {
             await _dbContext.Employees.AddAsync(employee, ct);
         }
+
+        // Count 
+        public async Task<int> CountEmployeesAsync(int departmentId, CancellationToken ct)
+        {
+            return await _dbContext.Employees.AsNoTracking().CountAsync(e => e.DepartmentId == departmentId && e.IsActive, ct);
+        }
         #endregion
     }
 }

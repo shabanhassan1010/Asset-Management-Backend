@@ -77,8 +77,8 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
             if(!entity.IsActive)
                 throw new BusinessException($"Department {request.Id} is already deactivated.");
 
-            var employeesCount = await _unitOfWork.Departments.CountEmployeesAsync(request.Id, cancellationToken);
-            var assetsCount   = await _unitOfWork.Departments.CountAssetsAsync(request.Id, cancellationToken);
+            var employeesCount = await _unitOfWork.Employees.CountEmployeesAsync(request.Id, cancellationToken);
+            var assetsCount   = await _unitOfWork.Assets.CountAssetsAsync(request.Id, cancellationToken);
 
             if (employeesCount > 0 || assetsCount > 0)
             {

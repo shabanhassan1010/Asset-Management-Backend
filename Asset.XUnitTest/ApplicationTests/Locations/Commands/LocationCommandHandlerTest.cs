@@ -73,9 +73,7 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
             Assert.True(result.Success);
             Assert.NotNull(result.data);
 
-            Assert.Equal(1, result.data.Id);
-            Assert.Equal("Alexandria", result.data.LocationName);
-            Assert.Equal("Alexandria Address", result.data.Address);
+            result.data.Should().BeSameAs(response);
             Assert.True(result.data.IsActive);
             Assert.True(location.IsActive);
 

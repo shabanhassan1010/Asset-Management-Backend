@@ -27,5 +27,8 @@ namespace Asset.Application.Interfaces.Repository
         // Add
         public Task AddTransferAsync(AssetTransfer transfer, CancellationToken ct);
         Task<bool> ExistsAsync(int id, CancellationToken cancellationToken);
+
+        //Count 
+        Task<int> CountAssetsAsync(int departmentId, CancellationToken ct);
     }
 }

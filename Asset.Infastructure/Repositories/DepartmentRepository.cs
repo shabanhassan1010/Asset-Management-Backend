@@ -27,33 +27,15 @@ namespace Asset.Infastructure.Repositories
         // Get 
         public async Task<IReadOnlyList<GetDepartmentListResponse>> GetAllProjectedAsync(CancellationToken ct)
         {
-            return await _dbContext.Departments
-                .AsNoTracking()
-                .Where(d => d.IsActive)
-                .OrderBy(d => d.DepartmentName)
-                .Select(d => new GetDepartmentListResponse
-                {
-                    Id = d.Id,
-                    DepartmentName = d.DepartmentName,
-                    Code = d.Code,
-                    AssetsCount = d.Assets.Count(a => a.Status != (int)AssetStatus.Retired),
-                    EmployeesCount = d.Employees.Count(e => e.IsActive)
-                })
-                .ToListAsync(ct);
-        }
-
-        // Count
-        public async Task<int> CountEmployeesAsync(int departmentId, CancellationToken ct)
-        {
-            return await _dbContext.Employees
-                        .AsNoTracking()
-                        .CountAsync(e => e.DepartmentId == departmentId && e.IsActive, ct);
-        }
-        public async Task<int> CountAssetsAsync(int departmentId, CancellationToken ct)
-        {
-            return await _dbContext.Assets
-                                   .AsNoTracking()
-                                   .CountAsync(a => a.DepartmentId == departmentId && a.Status != (int)AssetStatus.Retired, ct);
+            return await _dbContext.Departments.AsNoTracking().Where(d => d.IsActive).OrderBy(d => d.DepartmentName)
+                                                .Select(d => new GetDepartmentListResponse
+                                                {
+                                                    Id = d.Id,
+                                                    DepartmentName = d.DepartmentName,
+                                                    Code = d.Code,
+                                                    AssetsCount = d.Assets.Count(a => a.Status != (int)AssetStatus.Retired),
+                                                    EmployeesCount = d.Employees.Count(e => e.IsActive)
+                                                }).ToListAsync(ct);
         }
 
         // Check

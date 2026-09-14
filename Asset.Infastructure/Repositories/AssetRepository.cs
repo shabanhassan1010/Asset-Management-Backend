@@ -220,6 +220,13 @@ namespace Asset.Infastructure.Repositories
         {
             return await _dbContext.Assets.AnyAsync(predicate, cancellationToken);
         }
+
+        // Count
+        public async Task<int> CountAssetsAsync(int departmentId, CancellationToken ct)
+        {
+            return await _dbContext.Assets.AsNoTracking().CountAsync(a => a.DepartmentId == departmentId && a.Status != (int)AssetStatus.Retired, ct);
+        }
+
         #endregion
     }
 }

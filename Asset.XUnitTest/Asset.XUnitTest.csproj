@@ -27,7 +27,6 @@
     <Folder Include="ApplicationTests\Assets\Queries\" />
     <Folder Include="ApplicationTests\Categories\Commands\" />
     <Folder Include="ApplicationTests\Categories\Queries\" />
-    <Folder Include="ApplicationTests\Departments\Commands\" />
   </ItemGroup>
 
   <ItemGroup>

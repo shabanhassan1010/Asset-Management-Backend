@@ -1,33 +1,39 @@
-﻿using Asset.Application.Features.Departments.Queries.QueryHandlers;
+﻿#region
+using Asset.Application.Features.Departments.Queries.QueryHandlers;
 using Asset.Application.Features.Departments.Queries.QueryModels;
 using Asset.Application.Features.Departments.Queries.QueryResponse;
 using Asset.Application.Interfaces.Comman;
+using Asset.Application.Interfaces.IRepository;
+using Asset.Application.Resoures;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Models;
 using AutoMapper;
 using Microsoft.Extensions.Localization;
 using Moq;
+#endregion
 
 namespace Asset.XUnitTest.ApplicationTests.Departments.Queries
 {
     public class DepartmentQueryHandlerTest
     {
         #region Fields
-        private readonly Mock<IUnitOfWork> _unitOfWork;
-        private readonly Mock<IMapper> _mapper;
-        private readonly Mock<IStringLocalizer> localizeMock;
-        private readonly DepartmentQueryHandler _handler;
-        private readonly CancellationToken _ct;
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IDepartmentRepository> _DepartmentRepositoryMock;
+        private readonly Mock<IMapper> _mapperMock;
+        private readonly Mock<IStringLocalizer<SharedResources>> localizeMock;
+        private readonly DepartmentQueryHandler _handlerMock;
         #endregion
 
         #region Constructor
         public DepartmentQueryHandlerTest()
         {
-            _unitOfWork = new();
-            _mapper = new();
+            _unitOfWorkMock = new();
+            _DepartmentRepositoryMock = new();
+            _mapperMock = new();
             localizeMock = new ();
-            _handler = new DepartmentQueryHandler(_unitOfWork.Object, _mapper.Object , localizeMock.Object);
-            _ct = CancellationToken.None;
+            // IMPORTANT: Make UnitOfWork.Departments return our mock repository
+            _unitOfWorkMock.Setup(x => x.Departments).Returns(_DepartmentRepositoryMock.Object);
+            _handlerMock = new DepartmentQueryHandler(_unitOfWorkMock.Object, _mapperMock.Object , localizeMock.Object);         
         }
         #endregion
 
@@ -36,7 +42,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Queries
         [Fact]
         public async Task GetDepartmentList_Should_Return_Successful_Response_With_Departments()
         {
-            // Arrange
+            // Arrange : Create Fake list and do not go into Databse
             var departments = new List<GetDepartmentListResponse>
             {
                 new GetDepartmentListResponse
@@ -50,14 +56,15 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Queries
                 }
             };
 
-            // بنقول للـ mock: لو الـ handler نادى GetAllProjectedAsync رجّعله الليستة دي ومتروحش الداتابيز
-            _unitOfWork.Setup(x => x.Departments.GetAllProjectedAsync(It.IsAny<CancellationToken>()))
-                       .ReturnsAsync(departments);
+            // When the handler asks the repository for departments, return my fake list.
+            // and in this line he will call    >>>>>    [var list = await _unitOfWork.Departments.GetAllProjectedAsync(cancellationToken);]  and it will excute in fake list not database
+            _unitOfWorkMock.Setup(x => x.Departments.GetAllProjectedAsync(It.IsAny<CancellationToken>()))
+                                 .ReturnsAsync(departments);
+            // Create Request
+            var request = new GetDepartmentListQueryModel();
 
-            var query = new GetDepartmentListQueryModel();
-
-            // Act
-            var result = await _handler.Handle(query, _ct);
+            // Act : Call or go to handler
+            var result = await _handlerMock.Handle(request, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
@@ -68,48 +75,45 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Queries
             Assert.Equal(2, result.data.Count);
 
             Assert.Equal(1, result.data[0].Id);
-            Assert.Equal("IT", result.data[0].DepartmentName);
+            Assert.Equal("IT Department", result.data[0].DepartmentName);
             Assert.Equal(5, result.data[0].AssetsCount);
+            Assert.Equal(2, result.data[0].EmployeesCount);
 
             Assert.Equal(2, result.data[1].Id);
-            Assert.Equal("HR", result.data[1].DepartmentName);
+            Assert.Equal("HR Department", result.data[1].DepartmentName);
             Assert.Equal(10, result.data[1].AssetsCount);
-
-            _unitOfWork.Verify(x => x.Departments.GetAllProjectedAsync(It.IsAny<CancellationToken>()), Times.Once);
+            Assert.Equal(4, result.data[1].EmployeesCount);
+            Assert.Equal("Departments Retrieved Successfully",result.Message);
         }
 
         [Fact]
         public async Task GetDepartmentList_Should_Return_Empty_List_When_No_Departments_Exist()
         {
             // Arrange
-            // حالة مهمة: لازم يرجّع Success مع ليستة فاضية، مش null ولا exception
-            _unitOfWork.Setup(x => x.Departments.GetAllProjectedAsync(It.IsAny<CancellationToken>()))
-                       .ReturnsAsync(new List<GetDepartmentListResponse>());
+            _unitOfWorkMock.Setup(x => x.Departments.GetAllProjectedAsync(It.IsAny<CancellationToken>()))
+                                 .ReturnsAsync(new List<GetDepartmentListResponse>());
+            // Create Request
+            var request = new GetDepartmentListQueryModel();
 
-            var query = new GetDepartmentListQueryModel();
-
-            // Act
-            var result = await _handler.Handle(query, _ct);
+            // Act : Call or go to handler
+            var result = await _handlerMock.Handle(request, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
             Assert.True(result.Success);
             Assert.NotNull(result.data);
             Assert.Empty(result.data);
-
-            _unitOfWork.Verify(x => x.Departments.GetAllProjectedAsync(It.IsAny<CancellationToken>()), Times.Once);
         }
 
         #endregion
 
         #region GetById
-
         [Fact]
         public async Task GetDepartmentById_Should_Return_Department_When_Department_Exists_And_Active()
         {
             // Arrange
             var id = 1;
-
+            // Create Fake Department entity
             var department = new Department
             {
                 Id = id,
@@ -117,7 +121,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Queries
                 Code = "IT",
                 IsActive = true
             };
-
+            // Create the expected DTO returned by AutoMapper
             var response = new GetDepartmentByIdResponse
             {
                 Id = id,
@@ -125,27 +129,28 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Queries
                 Code = "IT",
             };
 
-            _unitOfWork.Setup(x => x.Departments.GetByIdAsync(id, It.IsAny<CancellationToken>()))
-                       .ReturnsAsync(department);
+            // Tell the mock repository:  When GetByIdAsync(1, ...) is called, >>> return our fake department instead of going to the database.
+            // It.IsAny<CancellationToken>()): Mean Accept any CancellationToken
+            _unitOfWorkMock.Setup(x => x.Departments.GetByIdAsync(id, It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(department);
 
-            _mapper.Setup(x => x.Map<GetDepartmentByIdResponse>(department)).Returns(response);
+            // Tell the mock mapper: When this department is mapped, return our fake response.
+            _mapperMock.Setup(x => x.Map<GetDepartmentByIdResponse>(department)).Returns(response);
 
-            var query = new GetDepartmentByIdQueryModel(id);
+            // Create Request
+            var request = new GetDepartmentByIdQueryModel(id);
 
-            // Act
-            var result = await _handler.Handle(query, _ct);
+            // Act: Call the real handler
+            var result = await _handlerMock.Handle(request, CancellationToken.None);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.True(result.Success);
-            Assert.NotNull(result.data);
+            Assert.NotNull(result);                    // The response should not be null
+            Assert.True(result.Success);               // The operation should be successful
+            Assert.NotNull(result.data);               // Data should exist
 
             Assert.Equal(id, result.data.Id);
             Assert.Equal("IT Department", result.data.DepartmentName);
             Assert.Equal("IT", result.data.Code);
-
-            _unitOfWork.Verify(x => x.Departments.GetByIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
-            _mapper.Verify(x => x.Map<GetDepartmentByIdResponse>(department), Times.Once);
         }
 
         [Fact]
@@ -153,8 +158,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Queries
         {
             // Arrange
             var id = 1;
-
-            // موجود في الداتابيز بس متعطّل (soft deleted) → المفروض يتعامل معاه كأنه مش موجود
+            // He is Exit but not active
             var department = new Department
             {
                 Id = id,
@@ -163,17 +167,15 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Queries
                 IsActive = false
             };
 
-            _unitOfWork.Setup(x => x.Departments.GetByIdAsync(id, It.IsAny<CancellationToken>()))
+            _unitOfWorkMock.Setup(x => x.Departments.GetByIdAsync(id, It.IsAny<CancellationToken>()))
                        .ReturnsAsync(department);
 
-            var query = new GetDepartmentByIdQueryModel(id);
+            var request = new GetDepartmentByIdQueryModel(id);
 
-            // Act & Assert
-            await Assert.ThrowsAsync<NotFoundException>(() => _handler.Handle(query, _ct));
-
-            _unitOfWork.Verify(x => x.Departments.GetByIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
-
-            _mapper.Verify(x => x.Map<GetDepartmentByIdResponse>(It.IsAny<Department>()), Times.Never);
+            // Act 
+            var action = async () => await _handlerMock.Handle(request, CancellationToken.None);
+            // Assert
+            await Assert.ThrowsAsync<NotFoundException>(action);
         }
 
         [Fact]
@@ -182,16 +184,17 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Queries
             // Arrange
             var id = 999;
 
-            _unitOfWork.Setup(x => x.Departments.GetByIdAsync(id, It.IsAny<CancellationToken>()))
+            _unitOfWorkMock.Setup(x => x.Departments.GetByIdAsync(id, It.IsAny<CancellationToken>()))
                        .ReturnsAsync((Department?)null);
 
-            var query = new GetDepartmentByIdQueryModel(id);
+            var request = new GetDepartmentByIdQueryModel(id);
 
-            // Act & Assert
-            await Assert.ThrowsAsync<NotFoundException>(() => _handler.Handle(query, _ct));
+            // Act
 
-            _unitOfWork.Verify(x => x.Departments.GetByIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
-            _mapper.Verify(x => x.Map<GetDepartmentByIdResponse>(It.IsAny<Department>()), Times.Never);
+            var action = async () => await _handlerMock.Handle(request,CancellationToken.None);
+
+            // Assert
+            await Assert.ThrowsAsync<NotFoundException>(action);
         }
 
         #endregion

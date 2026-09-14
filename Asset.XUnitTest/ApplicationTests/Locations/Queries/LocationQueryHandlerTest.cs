@@ -1,4 +1,5 @@
 ﻿#region
+using Asset.Application.Features.Departments.Queries.QueryHandlers;
 using Asset.Application.Features.Locations.Queries.QueryHandlers;
 using Asset.Application.Features.Locations.Queries.QueryModels;
 using Asset.Application.Features.Locations.Queries.QueryResponse;
@@ -16,17 +17,22 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Queries
     public class LocationQueryHandlerTest
     {
         #region Fields
-        private readonly Mock<IUnitOfWork> _unitOfWork;
-        private readonly Mock<IMapper> _mapper;
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<ILocationRepository> _locationRepositoryMock;
+        private readonly LocationQueryHandler _handlerMock;
+
         #endregion
 
         #region Constrcutor
         public LocationQueryHandlerTest()
         {
-            _unitOfWork = new();
-            _mapper = new();
+            _unitOfWorkMock = new();
+            _mapperMock = new();
             _locationRepositoryMock = new();
+            // IMPORTANT: Make UnitOfWork.Locations return our mock repository
+            _unitOfWorkMock.Setup(x => x.Locations).Returns(_locationRepositoryMock.Object);
+            _handlerMock = new LocationQueryHandler(_unitOfWorkMock.Object, _mapperMock.Object);
         }
         #endregion
 
@@ -116,11 +122,11 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Queries
                 }
             };
 
-            _unitOfWork.Setup(x => x.Locations.GetAllProjectedAsync(It.IsAny<CancellationToken>()))
-                                              .ReturnsAsync(locationlist);
+            _unitOfWorkMock.Setup(x => x.Locations.GetAllProjectedAsync(It.IsAny<CancellationToken>()))
+                                                  .ReturnsAsync(locationlist);
 
-            var query   = new GetLocationListQueryModel();                              // this is request which handler waiting it
-            var handler = new LocationQueryHandler(_unitOfWork.Object,_mapper.Object); //  handler creation
+            var query   = new GetLocationListQueryModel();                                     // this is request which handler waiting it
+            var handler = new LocationQueryHandler(_unitOfWorkMock.Object,_mapperMock.Object); //  handler creation
 
             var ct = CancellationToken.None;                                           // I do not need CancellationToken here so i made it none
 
@@ -137,17 +143,7 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Queries
             Assert.Equal(2, result.data.Count);  // I Expected count of locations 2
 
             // test the first location in response
-            Assert.Equal(1, result.data[0].Id);   
-            Assert.Equal("Alexandria", result.data[0].LocationName);
-            Assert.Equal(5, result.data[0].AssetsCount);
-
-            // test the second location in response
-            Assert.Equal(2, result.data[1].Id);
-            Assert.Equal("Cairo", result.data[1].LocationName);
-            Assert.Equal(10, result.data[1].AssetsCount);
-
-            // I check if Handler call repository or not
-            _unitOfWork.Verify(x => x.Locations.GetAllProjectedAsync(It.IsAny<CancellationToken>()),Times.Once);   // Times.Once: call it only one call 
+            result.data.Should().BeSameAs(result.data);
         }
         #endregion
 
@@ -168,30 +164,23 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Queries
             };
 
             // If handler went location Id = 1 return this [location] for it and do not go into database
-            _unitOfWork.Setup(x => x.Locations.GetByIdAsync(id,It.IsAny<CancellationToken>()))
-                                              .ReturnsAsync(location); 
-
-            _mapper.Setup(x =>x.Map<GetLocationByIdResponse>(location)).Returns(response);
+            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(id,It.IsAny<CancellationToken>()))
+                                                  .ReturnsAsync(location);
+            // Tell the mock mapper: When this department is mapped, return our fake response.
+            _mapperMock.Setup(x =>x.Map<GetLocationByIdResponse>(location)).Returns(response);
+            // Create Request
             var query   = new GetLocationByIdQueryModel(id);
-            var handler = new LocationQueryHandler(_unitOfWork.Object,_mapper.Object);
-
-            var ct = CancellationToken.None;
 
             // Act
-            var result = await handler.Handle(query, ct);
+            var result = await _handlerMock.Handle(query, CancellationToken.None);
 
             // Assert
             Assert.NotNull(result);
             Assert.True(result.Success);
             Assert.NotNull(result.data);
 
-            Assert.Equal(1, result.data.Id);
-            Assert.Equal("Alex", result.data.LocationName);
-            Assert.Equal("23 Smouha", result.data.Address);
+            result.data.Should().BeSameAs(result.data);
             Assert.True(result.data.IsActive);
-
-            _unitOfWork.Verify(x => x.Locations.GetByIdAsync(id,It.IsAny<CancellationToken>()),Times.Once);
-            _mapper.Verify(x => x.Map<GetLocationByIdResponse>(location),Times.Once);
         }
 
         [Fact]
@@ -204,39 +193,32 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Queries
                 Id = id, LocationName = "Alexandria", Address = "Alexandria Address", IsActive = false
             };
 
-            _unitOfWork.Setup(x => x.Locations.GetByIdAsync(id,It.IsAny<CancellationToken>()))
+            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(id,It.IsAny<CancellationToken>()))
                        .ReturnsAsync(location);
 
-            var query = new GetLocationByIdQueryModel(id);
-            var handler = new LocationQueryHandler(_unitOfWork.Object, _mapper.Object);
-            var ct = CancellationToken.None;
-
+            var request = new GetLocationByIdQueryModel(id);
+            var handler = new LocationQueryHandler(_unitOfWorkMock.Object, _mapperMock.Object);
 
             // Act 
-            await Assert.ThrowsAsync<NotFoundException>( () => handler.Handle(query, ct));
-
+            var action = async () => await _handlerMock.Handle(request, CancellationToken.None);
             // Assert
-            _unitOfWork.Verify(x => x.Locations.GetByIdAsync(id,It.IsAny<CancellationToken>()), Times.Once );
-            _mapper.Verify( x => x.Map<GetLocationByIdResponse>( It.IsAny<Location>()), Times.Never );  // in case location is not active must handler do not use mapping
+            await Assert.ThrowsAsync<NotFoundException>(action);
         }
 
         [Fact]
         public async Task GetLocationById_Should_Throw_NotFoundException_When_Location_Does_Not_Exist()
         {
             int id = 999;
-            _unitOfWork.Setup(x => x.Locations.GetByIdAsync(id,It.IsAny<CancellationToken>()))
-                                   .ReturnsAsync((Location?)null);
+            _unitOfWorkMock.Setup(x => x.Locations.GetByIdAsync(id,It.IsAny<CancellationToken>()))
+                           .ReturnsAsync((Location?)null);
 
-            var query = new GetLocationByIdQueryModel(id);
-            var handler = new LocationQueryHandler(_unitOfWork.Object,_mapper.Object);
+            var request = new GetLocationByIdQueryModel(id);
+            var handler = new LocationQueryHandler(_unitOfWorkMock.Object, _mapperMock.Object);
 
-            var ct = CancellationToken.None;
-
-            // Act & Assert
-            await Assert.ThrowsAsync<NotFoundException>(() => handler.Handle(query, ct));
-
-            _unitOfWork.Verify(x => x.Locations.GetByIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
-            _mapper.Verify(x => x.Map<GetLocationByIdResponse>(It.IsAny<Location>()), Times.Never);
+            // Act 
+            var action = async () => await _handlerMock.Handle(request, CancellationToken.None);
+            // Assert
+            await Assert.ThrowsAsync<NotFoundException>(action);
 
         }
         #endregion

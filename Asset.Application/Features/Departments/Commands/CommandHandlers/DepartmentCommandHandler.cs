@@ -12,8 +12,7 @@ using MediatR;
 
 namespace Asset.Application.Features.Departments.Commands.CommandHandlers
 {
-    public class DepartmentCommandHandler :
-                                            IRequestHandler<CreateDepartmentCommandModel, ApiResponse<CreateDepartmentResponseDto>>,
+    public class DepartmentCommandHandler : IRequestHandler<CreateDepartmentCommandModel, ApiResponse<CreateDepartmentResponseDto>>,
                                             IRequestHandler<UpdateDepartmentCommandModel, ApiResponse<UpdateDepartmentResponseDto>>,
                                             IRequestHandler<DeleteDepartmentCommandModel, ApiResponse<string>>
     {

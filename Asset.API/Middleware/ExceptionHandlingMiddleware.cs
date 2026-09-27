@@ -1,10 +1,12 @@
-﻿using Asset.Domain.Exceptions;
+﻿#region
+using Asset.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Text.Json;
 using FluentValidationException = FluentValidation.ValidationException;
+#endregion
 
 namespace Asset.API.Middleware
 {
@@ -29,10 +31,17 @@ namespace Asset.API.Middleware
             {
                 await _next(context);
             }
+            catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+            {
+                _logger.LogInformation("Request {Path} was cancelled by the client.", context.Request.Path);
+            }
+
             catch (FluentValidationException ex)
             {
                 var errors = ex.Errors.GroupBy(e => e.PropertyName)
                                       .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
+
+                _logger.LogWarning("Validation failed on {Path}: {@Errors}", context.Request.Path, errors);   
 
                 await WriteAsync(context, new ValidationProblemDetails(errors)
                 {
@@ -43,52 +52,46 @@ namespace Asset.API.Middleware
             catch (AuthenticationFailedException ex)
             {
                 _logger.LogInformation("Authentication failed on {Path}.", context.Request.Path);
-
                 await WriteAsync(context, Problem( StatusCodes.Status401Unauthorized, "Authentication failed.", ex.Message));
             }
             catch (NotFoundException ex)
             {
-                await WriteAsync(context, Problem(
-                    StatusCodes.Status404NotFound, "Not found.", ex.Message));
+                _logger.LogWarning("Not found on {Path}: {Message}", context.Request.Path, ex.Message);   
+                await WriteAsync(context, Problem(StatusCodes.Status404NotFound, "Not found.", ex.Message));
             }
             catch (BusinessException ex)
             {
-                await WriteAsync(context, Problem(
-                    StatusCodes.Status422UnprocessableEntity, "The request could not be completed.", ex.Message));
+                _logger.LogWarning("Business rule violated on {Path}: {Message}", context.Request.Path, ex.Message);   
+                await WriteAsync(context, Problem(StatusCodes.Status422UnprocessableEntity, "The request could not be completed.", ex.Message));
             }
             catch (ConflictException ex)
             {
-                await WriteAsync(context, Problem(
-                    StatusCodes.Status409Conflict, "Conflict.", ex.Message));
-            }
-            catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 547 })
-            {
-                _logger.LogWarning(ex, "Foreign key constraint violation.");
-
-                await WriteAsync(context, Problem(StatusCodes.Status400BadRequest,"Invalid reference.","The data violates a business rule. Check the assigned employee, department, location, and status values."));
-            }
-            catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 })
-            {
-                _logger.LogWarning(ex, "Unique constraint violation while saving data");
-
-                await WriteAsync(context, Problem(StatusCodes.Status409Conflict, "Duplicate value.", "The value you entered already exists. Please use a different value."));
+                _logger.LogWarning("Conflict on {Path}: {Message}", context.Request.Path, ex.Message);   
+                await WriteAsync(context, Problem(StatusCodes.Status409Conflict, "Conflict.", ex.Message));
             }
             catch (DbUpdateConcurrencyException ex)
             {
                 _logger.LogWarning(ex, "Concurrency conflict.");
-
-                await WriteAsync(context, Problem(StatusCodes.Status409Conflict,"Concurrency conflict.","This record was modified by another user. Please reload and try again."));
+                await WriteAsync(context, Problem(StatusCodes.Status409Conflict, "Concurrency conflict.", "This record was modified by another user. Please reload and try again."));
             }
+            catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 547 })
+            {
+                _logger.LogWarning(ex, "Foreign key constraint violation.");
+                await WriteAsync(context, Problem(StatusCodes.Status400BadRequest,"Invalid reference.","The data violates a business rule. Check the assigned employee, department, location, and status values."));
+            }        
+            catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 })
+            {
+                _logger.LogWarning(ex, "Unique constraint violation while saving data");
+                await WriteAsync(context, Problem(StatusCodes.Status409Conflict, "Duplicate value.", "The value you entered already exists. Please use a different value."));
+            }         
             catch (ConcurrencyException ex)
             {
                 _logger.LogWarning("Concurrency conflict on {Path}.", context.Request.Path);
-
                 await WriteAsync(context, Problem(StatusCodes.Status409Conflict,"Concurrency conflict.",ex.Message));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unhandled exception on {Path}.", context.Request.Path);
-
                 await WriteAsync(context, Problem(StatusCodes.Status500InternalServerError,"An unexpected error occurred.", "Please try again. If the problem continues, quote the traceId below when reporting it."));
             }
         }

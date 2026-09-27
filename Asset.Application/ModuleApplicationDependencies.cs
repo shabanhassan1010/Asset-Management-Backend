@@ -21,6 +21,8 @@ public static class ModuleApplicationDependencies
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(assembly);
+
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
             // Validations : Only Use it in the Application Layer.
             // responsible for executing the validation, and it will be executed before the handler is executed.
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
@@ -47,9 +49,11 @@ public static class ModuleApplicationDependencies
 #region Execution Flow of a Request in the Application Layer
 //               Request
 //                  ↓
-//           ValidationBehavior      
+//           LoggingBehavior             ->  logs start/end + elapsed time
 //                  ↓
-//            CachingBehavior         
+//           ValidationBehavior          ->  throws ValidationException if invalid
+//                  ↓
+//            CachingBehavior            ->  returns cached response if available
 //                  ↓
 //               Handler                 
 //                  ↓

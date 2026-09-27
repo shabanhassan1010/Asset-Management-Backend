@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using MediatR;
+
 namespace Asset.Application.Behaviors
 {
     public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
@@ -12,13 +13,11 @@ namespace Asset.Application.Behaviors
         public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators)
         {
             _validators = validators;
-            Console.WriteLine($"[Behavior] created for {typeof(TRequest).Name}, validators = {validators.Count()}");
         }
         #endregion
+
         public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
-            Console.WriteLine($"[Behavior] running for {typeof(TRequest).Name}");
-
             if (_validators.Any())
             {
                 var context = new ValidationContext<TRequest>(request);

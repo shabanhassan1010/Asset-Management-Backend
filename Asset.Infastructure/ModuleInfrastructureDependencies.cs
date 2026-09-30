@@ -18,8 +18,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Channels;
 #endregion
 namespace Asset.Infastructure
 {
@@ -94,10 +96,25 @@ namespace Asset.Infastructure
 
             #region Caching (Redis)
 
+            var redisConnectionString = configuration.GetConnectionString("Redis");
+            if (string.IsNullOrEmpty(redisConnectionString))
+                throw new InvalidOperationException("Connection string 'Redis' is missing in appsettings.json.");
+
             // Registers IDistributedCache backed by Redis.
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = configuration.GetConnectionString("Redis");
+                // Read "127.0.0.1:6379" into an object so we can change a few settings.
+                var redisOptions = ConfigurationOptions.Parse(redisConnectionString);
+
+                // R5.6 — Redis down when the app starts: keep starting and reconnect in the background.
+                redisOptions.AbortOnConnectFail = false;
+
+                // R5.6 — Redis down while the app runs: fail each cache call at once instead of
+                // waiting for the timeout. RedisCacheService catches the error and SQL answers.
+                redisOptions.BacklogPolicy = BacklogPolicy.FailFast;
+
+                options.ConfigurationOptions = redisOptions;
+
                 // Prefix on every key, so this app's keys are distinguishable
                 // from any other app sharing the same Redis instance.
                 options.InstanceName = "asset:";

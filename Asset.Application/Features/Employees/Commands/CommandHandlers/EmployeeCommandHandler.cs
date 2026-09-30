@@ -157,11 +157,12 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
             };
         }
         #endregion
+
+        #region Private Methods
         private async Task InvalidateAsync(int employeeId, CancellationToken cancellationToken)
         {
-            await _cache.RemoveAsync(CacheKeys.EmployeeList, cancellationToken);
-            await _cache.RemoveAsync(CacheKeys.EmployeeById(employeeId), cancellationToken);
-            await _cache.RemoveAsync(CacheKeys.DepartmentList, cancellationToken);
+            await _cache.RemoveAsync(new[] { CacheKeys.EmployeeList, CacheKeys.DepartmentList }, cancellationToken);
         }
+        #endregion
     }
 }

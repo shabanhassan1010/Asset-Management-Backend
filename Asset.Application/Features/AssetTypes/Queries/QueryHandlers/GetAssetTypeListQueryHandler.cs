@@ -5,6 +5,7 @@ using Asset.Application.Features.AssetTypes.Queries.QueryResponses;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Application.Resoures;
+using Asset.Domain.Exceptions;
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Localization;
@@ -47,8 +48,10 @@ namespace Asset.Application.Features.AssetTypes.Queries.QueryHandlers
         {
             var assetType = await _unitOfWork.AssetTypes.GetByIdAsync(request.Id, cancellationToken);
 
+            // Throw, don't return: this query is cached, and a returned "not found"
+            // would be saved in Redis. An exception is never saved.
             if (assetType is null)
-                return NotFound<GetAssetTypeByIdQueryResponse>("Asset type not found");
+                throw new NotFoundException($"Asset type {request.Id} was not found.");
 
             var data = _mapper.Map<GetAssetTypeByIdQueryResponse>(assetType);
             return Success(data);

@@ -54,11 +54,27 @@ namespace Asset.API
                 #endregion
 
                 #region Localization
+                // (1) Registers IStringLocalizer<T> (needed by BaseResponseHandler)
+                //     and says where the .resx files are.
                 builder.Services.AddLocalization(options =>
                 {
                     options.ResourcesPath = "Resources";
                 });
 
+                // (2) Which languages a request may use.
+                //     English only: cached responses include their Message text, so with a
+                //     second language the first caller's language would be cached for everyone.
+                var supportedCultures = new[]
+                {
+                    new CultureInfo("en")
+                };
+
+                var localizationOptions = new RequestLocalizationOptions
+                {
+                    DefaultRequestCulture = new RequestCulture("en"),
+                    SupportedCultures = supportedCultures,
+                    SupportedUICultures = supportedCultures
+                };
                 #endregion
 
                 builder.Services.AddControllers();
@@ -71,18 +87,18 @@ namespace Asset.API
                 await IdentitySeeder.SeedAsync(app.Services);
 
                 #region Localization Configuration
-                var supportedCultures = new[]
-                {
-                new CultureInfo("en"),
-                new CultureInfo("ar")
-                };
+                //var supportedCultures = new[]
+                //{
+                //new CultureInfo("en"),
+                //new CultureInfo("ar")
+                //};
 
-                var localizationOptions = new RequestLocalizationOptions
-                {
-                    DefaultRequestCulture = new RequestCulture("en"),
-                    SupportedCultures = supportedCultures,
-                    SupportedUICultures = supportedCultures
-                };
+                //var localizationOptions = new RequestLocalizationOptions
+                //{
+                //    DefaultRequestCulture = new RequestCulture("en"),
+                //    SupportedCultures = supportedCultures,
+                //    SupportedUICultures = supportedCultures
+                //};
                 #endregion
 
                 #region Middleware

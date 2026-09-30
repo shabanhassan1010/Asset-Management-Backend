@@ -2,8 +2,8 @@
 using Asset.API.Helper;
 using Asset.Application.Features.Assets.Commands.CommandModels;
 using Asset.Application.Features.Assets.Queries.QueryModels;
-using Asset.Application.Features.AssetTransfers.CommandModel;
-using Asset.Application.Features.GetAssetTransferHistory.QueryModels;
+using Asset.Application.Features.AssetTransfers.Commands.CommandModel;
+using Asset.Application.Features.AssetTransfers.Queries.QueryModels;
 using Asset.Domain.Enum;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -100,6 +100,16 @@ namespace Asset.API.Controllers
         {
             command.AssetId = id;  
             return Ok(await _Sender.Send(command, ct));
+        }
+        #endregion
+
+        #region Get Transfer Details
+        [HttpGet(BaseRouter.AssetRouter.TransferDetails)]
+        [Authorize(Roles = nameof(Role.Admin))]
+        public async Task<IActionResult> GetTransferDetails([FromRoute]int id,[FromRoute] int transferId, CancellationToken cancellationToken)
+        {
+            var result = await _Sender.Send(new GetTransferDetailsQueryModel(id, transferId), cancellationToken);
+            return Ok(result);
         }
         #endregion
     }

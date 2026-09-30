@@ -1,8 +1,8 @@
 ﻿using Asset.Application.Common.Responses;
-using Asset.Application.Features.AssetTransfers.CommandResponse;
+using Asset.Application.Features.AssetTransfers.Commands.CommandResponse;
 using MediatR;
 using System.Text.Json.Serialization;
-namespace Asset.Application.Features.AssetTransfers.CommandModel
+namespace Asset.Application.Features.AssetTransfers.Commands.CommandModel
 {
     public class TransferAssetCommandModel : IRequest<ApiResponse<TransferAssetResponseDto>>
     {

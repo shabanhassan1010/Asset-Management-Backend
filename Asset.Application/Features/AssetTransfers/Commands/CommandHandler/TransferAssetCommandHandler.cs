@@ -1,7 +1,7 @@
 ﻿#region
 using Asset.Application.Common.Responses;
-using Asset.Application.Features.AssetTransfers.CommandModel;
-using Asset.Application.Features.AssetTransfers.CommandResponse;
+using Asset.Application.Features.AssetTransfers.Commands.CommandModel;
+using Asset.Application.Features.AssetTransfers.Commands.CommandResponse;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Application.Interfaces.Repository;
@@ -12,7 +12,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 #endregion
 
-namespace Asset.Application.Features.AssetTransfers.CommandHandler
+namespace Asset.Application.Features.AssetTransfers.Commands.CommandHandler
 {
     public class TransferAssetCommandHandler: IRequestHandler<TransferAssetCommandModel, ApiResponse<TransferAssetResponseDto>>
     {

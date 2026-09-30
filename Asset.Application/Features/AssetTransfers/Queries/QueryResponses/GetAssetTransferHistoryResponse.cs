@@ -1,4 +1,4 @@
-﻿namespace Asset.Application.Features.GetAssetTransferHistory.QueryResponses
+﻿namespace Asset.Application.Features.AssetTransfers.Queries.QueryResponses
 {
     public class GetAssetTransferHistoryResponse
     {

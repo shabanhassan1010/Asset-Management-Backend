@@ -15,7 +15,7 @@
         public static string EmployeeById(int id) => $"employees:{id}";
 
         public const string AssetTypeList = "assettypes:list";
-        public static string AssetTypeById(int id) => $"AssetType:{id}";
+        public static string AssetTypeById(int id) => $"assettypes:{id}";
 
         public static readonly string[] ListsAffectedByAssetChanges =
         {

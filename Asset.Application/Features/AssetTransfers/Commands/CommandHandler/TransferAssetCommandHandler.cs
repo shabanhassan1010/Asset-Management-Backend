@@ -1,4 +1,5 @@
 ﻿#region
+using Asset.Application.Common.Caching;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.AssetTransfers.Commands.CommandModel;
 using Asset.Application.Features.AssetTransfers.Commands.CommandResponse;
@@ -19,13 +20,15 @@ namespace Asset.Application.Features.AssetTransfers.Commands.CommandHandler
         #region Fields
         private readonly ICurrentUserService _currentUser;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICacheService _cache;
         #endregion
 
         #region Constructor
-        public TransferAssetCommandHandler(ICurrentUserService currentUser,IUnitOfWork unitOfWork)
+        public TransferAssetCommandHandler(ICurrentUserService currentUser,IUnitOfWork unitOfWork, ICacheService cache)
         {
             _currentUser = currentUser;
             _unitOfWork = unitOfWork;
+            _cache = cache;
         }
         #endregion
 
@@ -138,6 +141,8 @@ namespace Asset.Application.Features.AssetTransfers.Commands.CommandHandler
             {
                 throw new ConcurrencyException("This asset was modified by another user. Reload it and try again.");
             }
+
+            await _cache.RemoveAsync(new[] { CacheKeys.DepartmentList, CacheKeys.LocationList }, cancellationToken);
 
             return new ApiResponse<TransferAssetResponseDto>
             {

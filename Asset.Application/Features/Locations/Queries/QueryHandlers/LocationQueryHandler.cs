@@ -1,4 +1,5 @@
-﻿using Asset.Application.Common.Responses;
+﻿#region
+using Asset.Application.Common.Responses;
 using Asset.Application.Features.Locations.Queries.QueryModels;
 using Asset.Application.Features.Locations.Queries.QueryResponse;
 using Asset.Application.Interfaces.Comman;
@@ -7,6 +8,7 @@ using Asset.Domain.Exceptions;
 using Asset.Domain.Models;
 using AutoMapper;
 using MediatR;
+#endregion
 
 namespace Asset.Application.Features.Locations.Queries.QueryHandlers
 {

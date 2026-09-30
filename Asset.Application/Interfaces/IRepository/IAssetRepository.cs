@@ -1,7 +1,7 @@
 ﻿using Asset.Application.Common.Responses;
 using Asset.Application.Features.Assets.DTOs;
+using Asset.Application.Features.AssetTransfers.Queries.QueryResponses;
 using Asset.Application.Features.AssetTypes.DTos;
-using Asset.Application.Features.GetAssetTransferHistory.QueryResponses;
 using Asset.Application.Interfaces.Comman;
 using Asset.Domain.Models;
 using System.Linq.Expressions;

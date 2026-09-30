@@ -1,8 +1,8 @@
 ﻿#region
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.Assets.DTOs;
+using Asset.Application.Features.AssetTransfers.Queries.QueryResponses;
 using Asset.Application.Features.AssetTypes.DTos;
-using Asset.Application.Features.GetAssetTransferHistory.QueryResponses;
 using Asset.Application.Interfaces.Repository;
 using Asset.Domain.Enum;
 using Asset.Domain.Models;

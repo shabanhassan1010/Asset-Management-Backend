@@ -1,4 +1,4 @@
-﻿namespace Asset.Application.Features.AssetTransfers.CommandResponse
+﻿namespace Asset.Application.Features.AssetTransfers.Commands.CommandResponse
 {
     /// RowVersion is returned because EF refreshes it during SaveChanges. Without it the client would hold a stale stamp and its very next transfer or edit
     /// would fail with a spurious 409, forcing a full re-fetch.

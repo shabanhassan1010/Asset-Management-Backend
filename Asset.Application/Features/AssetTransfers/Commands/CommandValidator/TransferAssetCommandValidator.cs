@@ -1,6 +1,6 @@
-﻿using Asset.Application.Features.AssetTransfers.CommandModel;
+﻿using Asset.Application.Features.AssetTransfers.Commands.CommandModel;
 using FluentValidation;
-namespace Asset.Application.Features.AssetTransfers.CommandValidator
+namespace Asset.Application.Features.AssetTransfers.Commands.CommandValidator
 {
     public class TransferAssetCommandValidator : AbstractValidator<TransferAssetCommandModel>
     {

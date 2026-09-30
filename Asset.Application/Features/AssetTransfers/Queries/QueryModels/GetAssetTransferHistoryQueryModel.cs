@@ -1,8 +1,8 @@
 ﻿using Asset.Application.Bases;
 using Asset.Application.Common.Responses;
-using Asset.Application.Features.GetAssetTransferHistory.QueryResponses;
+using Asset.Application.Features.AssetTransfers.Queries.QueryResponses;
 using MediatR;
-namespace Asset.Application.Features.GetAssetTransferHistory.QueryModels
+namespace Asset.Application.Features.AssetTransfers.Queries.QueryModels
 {
     public class GetAssetTransferHistoryQueryModel: IRequest<BaseResponse<IReadOnlyList<GetAssetTransferHistoryResponse>>>
     {

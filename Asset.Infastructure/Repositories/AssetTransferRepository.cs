@@ -35,6 +35,19 @@ namespace Asset.Infastructure.Repositories
                 .ThenBy(t => t.Id)
                 .ToListAsync(cancellationToken);
         }
+
+        public async Task<AssetTransfer?> GetDetailsAsync(int assetId, int transferId, CancellationToken cancellationToken)
+        {
+            return await _context.AssetTransfers.AsNoTracking()
+                .Include(t => t.Asset)
+                .Include(t => t.FromEmployee)
+                .Include(t => t.ToEmployee)
+                .Include(t => t.FromDepartment)
+                .Include(t => t.ToDepartment)
+                .Include(t => t.FromLocation)
+                .Include(t => t.ToLocation)
+                .FirstOrDefaultAsync(t => t.Id == transferId && t.AssetId == assetId, cancellationToken);
+        }
         #endregion
     }
 }

@@ -5,6 +5,6 @@ namespace Asset.Application.Interfaces.IRepository
     public interface IAssetTransferRepository
     {
         Task<IReadOnlyList<AssetTransfer>> GetByAssetIdAsync(int assetId, CancellationToken cancellationToken);
-
+        Task<AssetTransfer?> GetDetailsAsync(int assetId, int transferId, CancellationToken cancellationToken);
     }
 }

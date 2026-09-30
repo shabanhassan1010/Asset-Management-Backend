@@ -13,6 +13,7 @@
             public const string Retire = Id + "/retire";
             public const string Paginated = Base + "/paginated";
             public const string Transfers = Id + "/transfers";
+            public const string TransferDetails = Transfers + "/{transferId}";
         }
         public static class CategoryRouter
         {

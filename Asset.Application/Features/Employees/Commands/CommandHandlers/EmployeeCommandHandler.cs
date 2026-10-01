@@ -161,7 +161,7 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
         #region Private Methods
         private async Task InvalidateAsync(int employeeId, CancellationToken cancellationToken)
         {
-            await _cache.RemoveAsync(new[] { CacheKeys.EmployeeList, CacheKeys.DepartmentList }, cancellationToken);
+            await _cache.RemoveAsync(new[] { CacheKeys.EmployeeList, CacheKeys.DepartmentList });
         }
         #endregion
     }

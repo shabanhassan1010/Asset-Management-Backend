@@ -1,11 +1,8 @@
 ﻿namespace Asset.Application.Common.Caching
 {
-    public static class CacheDurations
+    public enum CacheDuration
     {
-        // Lookup data: changes rarely, safe to hold for a while.
-        public static readonly TimeSpan Lookup = TimeSpan.FromMinutes(20);
-
-        // Anything that reflects live operational state should be shorter.
-        public static readonly TimeSpan Volatile = TimeSpan.FromMinutes(2);
+        Lookup,     // reference data: long TTL
+        Volatile    // live data: short TTL
     }
 }

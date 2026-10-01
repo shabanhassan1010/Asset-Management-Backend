@@ -6,6 +6,6 @@
 
         // Per-query, because a lookup list can live for an hour while a
         // dashboard summary should not.
-        TimeSpan Duration { get; }
+        CacheDuration Duration { get; }
     }
 }

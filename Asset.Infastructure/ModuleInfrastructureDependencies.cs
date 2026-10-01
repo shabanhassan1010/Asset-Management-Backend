@@ -96,6 +96,11 @@ namespace Asset.Infastructure
 
             #region Caching (Redis)
 
+            // R5.5 — TTLs and the key prefix come from the "Cache" section of appsettings.json.
+            var cacheSection = configuration.GetSection(CacheSettings.SectionName);   // ← new
+            services.Configure<CacheSettings>(cacheSection);                           // ← new: lets CachingBehavior get IOptions<CacheSettings>
+            var cacheSettings = cacheSection.Get<CacheSettings>() ?? new CacheSettings();
+
             var redisConnectionString = configuration.GetConnectionString("Redis");
             if (string.IsNullOrEmpty(redisConnectionString))
                 throw new InvalidOperationException("Connection string 'Redis' is missing in appsettings.json.");
@@ -103,21 +108,15 @@ namespace Asset.Infastructure
             // Registers IDistributedCache backed by Redis.
             services.AddStackExchangeRedisCache(options =>
             {
-                // Read "127.0.0.1:6379" into an object so we can change a few settings.
-                var redisOptions = ConfigurationOptions.Parse(redisConnectionString);
-
-                // R5.6 — Redis down when the app starts: keep starting and reconnect in the background.
-                redisOptions.AbortOnConnectFail = false;
+                
+                var redisOptions = ConfigurationOptions.Parse(redisConnectionString);    // Read "127.0.0.1:6379" into an object so we can change a few settings.
+                redisOptions.AbortOnConnectFail = false; // R5.6 — Redis down when the app starts: keep starting and reconnect in the background.
 
                 // R5.6 — Redis down while the app runs: fail each cache call at once instead of
                 // waiting for the timeout. RedisCacheService catches the error and SQL answers.
                 redisOptions.BacklogPolicy = BacklogPolicy.FailFast;
-
                 options.ConfigurationOptions = redisOptions;
-
-                // Prefix on every key, so this app's keys are distinguishable
-                // from any other app sharing the same Redis instance.
-                options.InstanceName = "asset:";
+                options.InstanceName = cacheSettings.KeyPrefix;
             });
             // The Application layer depends on ICacheService, never on IDistributedCache.
             services.AddScoped<ICacheService, RedisCacheService>();

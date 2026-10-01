@@ -8,8 +8,8 @@
         Task SetAsync<T>(string key, T value, TimeSpan duration, CancellationToken ct);
 
         // Used by command handlers to invalidate a key after a write.
-        Task RemoveAsync(string key, CancellationToken ct);
-        Task RemoveAsync(IEnumerable<string> keys, CancellationToken ct);
+        Task RemoveAsync(string key);
+        Task RemoveAsync(IEnumerable<string> keys);
 
     }
 }

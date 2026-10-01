@@ -45,7 +45,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
 
             _unitOfWork.Categories.Add(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await cache.RemoveAsync(CacheKeys.CategoryList, cancellationToken);
+            await cache.RemoveAsync(CacheKeys.CategoryList);
 
             return new ApiResponse<CreateCategoryResponseDto>
             {
@@ -63,7 +63,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
 
             _mapper.Map(request, entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await cache.RemoveAsync(new[] { CacheKeys.CategoryById(request.Id), CacheKeys.CategoryList }, cancellationToken);
+            await cache.RemoveAsync(new[] { CacheKeys.CategoryById(request.Id), CacheKeys.CategoryList });
 
 
             return new ApiResponse<UpdateCategoryResponseDto>
@@ -95,7 +95,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
 
             _unitOfWork.Categories.Remove(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await cache.RemoveAsync(new[] { CacheKeys.CategoryById(request.Id), CacheKeys.CategoryList }, cancellationToken);
+            await cache.RemoveAsync(new[] { CacheKeys.CategoryById(request.Id), CacheKeys.CategoryList });
 
 
             return new ApiResponse<string>

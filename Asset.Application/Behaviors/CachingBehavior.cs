@@ -1,6 +1,7 @@
 ﻿using Asset.Application.Common.Caching;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace Asset.Application.Behaviors
@@ -9,11 +10,12 @@ namespace Asset.Application.Behaviors
     {
         #region Fields
         private readonly ICacheService _cache;
+        private readonly CacheSettings _settings; 
         private readonly ILogger<CachingBehavior<TRequest, TResponse>> _logger;
         #endregion
 
         #region Constructor
-        public CachingBehavior(ICacheService cache, ILogger<CachingBehavior<TRequest, TResponse>> logger)
+        public CachingBehavior(ICacheService cache, ILogger<CachingBehavior<TRequest, TResponse>> logger, IOptions<CacheSettings> settings)
         {
             _cache = cache;
             _logger = logger;
@@ -38,8 +40,9 @@ namespace Asset.Application.Behaviors
             var response = await next();
 
             // 3. Store the result for the next request.
-            if (response is not null && request.Duration > TimeSpan.Zero)
-                await _cache.SetAsync(request.CacheKey, response, request.Duration, cancellationToken);
+            var duration = _settings.GetDuration(request.Duration);
+            if (response is not null && duration > TimeSpan.Zero)                  
+                await _cache.SetAsync(request.CacheKey, response, duration, cancellationToken);
 
             return response;
         }

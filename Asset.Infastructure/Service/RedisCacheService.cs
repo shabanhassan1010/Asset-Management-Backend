@@ -78,11 +78,11 @@ namespace Asset.Infastructure.Service
             }
         }
 
-        public async Task RemoveAsync(string key, CancellationToken ct)
+        public async Task RemoveAsync(string key)
         {
             try
             {
-                await _cache.RemoveAsync(key, ct);
+                await _cache.RemoveAsync(key);
             }
             catch (Exception ex)
             {
@@ -92,10 +92,10 @@ namespace Asset.Infastructure.Service
             }
         }
 
-        public async Task RemoveAsync(IEnumerable<string> keys, CancellationToken ct)
+        public async Task RemoveAsync(IEnumerable<string> keys)
         {
             foreach (var key in keys)
-                await RemoveAsync(key, ct);
+                await RemoveAsync(key);
         }
         #endregion
     }

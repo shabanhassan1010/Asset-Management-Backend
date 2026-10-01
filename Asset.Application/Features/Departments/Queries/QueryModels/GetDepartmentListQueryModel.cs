@@ -9,6 +9,6 @@ namespace Asset.Application.Features.Departments.Queries.QueryModels
     public class GetDepartmentListQueryModel : IRequest<ApiResponse<IReadOnlyList<GetDepartmentListResponse>>>, ICachedQuery
     {
         public string CacheKey => CacheKeys.DepartmentList;
-        public TimeSpan Duration => CacheDurations.Lookup;
+        public CacheDuration Duration => CacheDuration.Lookup;
     }
 }

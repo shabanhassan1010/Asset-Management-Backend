@@ -71,7 +71,7 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             _unitOfWork.Assets.Add(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await InvalidateLookupCountsAsync(cancellationToken);
+            await InvalidateLookupCountsAsync();
             return new ApiResponse<CreateAssetResponseDto>
             {
                 data = _mapper.Map<CreateAssetResponseDto>(entity),
@@ -173,7 +173,7 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             {
                 throw new ConflictException("This asset was modified by another user. Reload it and try again.");
             }
-            await InvalidateLookupCountsAsync(cancellationToken);
+            await InvalidateLookupCountsAsync();
 
             return new ApiResponse<UpdateAssetResponseDto>
             {
@@ -206,7 +206,7 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             try
             {
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
-                await InvalidateLookupCountsAsync(cancellationToken);
+                await InvalidateLookupCountsAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -229,10 +229,10 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
         #endregion
 
         #region Private 
-        private async Task InvalidateLookupCountsAsync(CancellationToken ct)
+        private async Task InvalidateLookupCountsAsync()
         {
             foreach (var key in CacheKeys.ListsAffectedByAssetChanges)
-                await _cache.RemoveAsync(key, ct);
+                await _cache.RemoveAsync(key);
         }
 
         // Check If RowVersion Which Client sent it valid or not, and if valid convert it from Base64 into byte[]

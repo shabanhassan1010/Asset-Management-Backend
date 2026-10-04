@@ -142,6 +142,7 @@ namespace Asset.Application.Features.AssetTransfers.Commands.CommandHandler
                 throw new ConcurrencyException("This asset was modified by another user. Reload it and try again.");
             }
 
+            // must remove the cache list for department and location because the asset has been transferred to another department or location
             await _cache.RemoveAsync(new[] { CacheKeys.DepartmentList, CacheKeys.LocationList });
 
             return new ApiResponse<TransferAssetResponseDto>

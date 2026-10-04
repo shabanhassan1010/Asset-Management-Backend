@@ -15,6 +15,6 @@ namespace Asset.Application.Features.Departments.Queries.QueryModels
             Id = id;
         }
         public string CacheKey => CacheKeys.DepartmentById(Id);
-        public TimeSpan Duration => CacheDurations.Lookup;
+        public CacheDuration Duration => CacheDuration.Lookup;
     }
 }

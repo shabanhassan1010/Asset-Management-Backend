@@ -39,7 +39,7 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
 
             _unitOfWork.Locations.Add(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cache.RemoveAsync(CacheKeys.LocationList, cancellationToken);
+            await _cache.RemoveAsync(CacheKeys.LocationList);
 
             return new ApiResponse<CreateLocationResponseDto>
             {
@@ -57,8 +57,8 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
 
             _mapper.Map(request, entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cache.RemoveAsync(new[] { CacheKeys.LocationById(request.Id), CacheKeys.LocationList }, cancellationToken);
-
+            await _cache.RemoveAsync(new[] { CacheKeys.LocationById(request.Id), CacheKeys.LocationList });
+            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
 
             return new ApiResponse<UpdateLocationResponseDto>
             {
@@ -84,7 +84,8 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
 
             _unitOfWork.Locations.Remove(entity);   // IsActive = false
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cache.RemoveAsync(new[] { CacheKeys.LocationById(request.Id), CacheKeys.LocationList }, cancellationToken);
+            await _cache.RemoveAsync(new[] { CacheKeys.LocationById(request.Id), CacheKeys.LocationList });
+            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
 
             return new ApiResponse<string>
             {

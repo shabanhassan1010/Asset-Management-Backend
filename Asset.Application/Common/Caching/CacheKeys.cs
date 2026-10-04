@@ -17,6 +17,11 @@
         public const string AssetTypeList = "assettypes:list";
         public static string AssetTypeById(int id) => $"assettypes:{id}";
 
+        // Hold the current version for all assets cache entries
+        // Asset keys include this version, so changing it makes every old asset key unreachable.
+        public const string AssetsVersion = "assets:version";
+        public static string AssetById(int id) => $"assets:{id}";           
+
         public static readonly string[] ListsAffectedByAssetChanges =
         {
             CategoryList,

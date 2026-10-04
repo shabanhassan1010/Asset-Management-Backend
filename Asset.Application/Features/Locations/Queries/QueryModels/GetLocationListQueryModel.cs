@@ -7,6 +7,6 @@ namespace Asset.Application.Features.Locations.Queries.QueryModels
     public class GetLocationListQueryModel : IRequest<ApiResponse<IReadOnlyList<GetLocationListResponse>>>, ICachedQuery
     {
         public string CacheKey => CacheKeys.LocationList;
-        public TimeSpan Duration => CacheDurations.Lookup;
+        public CacheDuration Duration => CacheDuration.Lookup;
     }
 }

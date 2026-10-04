@@ -6,6 +6,6 @@ namespace Asset.Application.Features.Employees.Queries.QueryModels
     public class GetEmployeesLookupQueryModel : IRequest<IReadOnlyList<AvailableEmployeeDto>>
     {
         public string CacheKey => CacheKeys.EmployeeList;      // ← add: "employees:list"
-        public TimeSpan Duration => CacheDurations.Lookup;     // ← add: same TTL as the other lookups
+        public CacheDuration Duration => CacheDuration.Lookup;     // ← add: same TTL as the other lookups
     }
 }

@@ -85,7 +85,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
             _mapperMock.Verify(x => x.Map<Department>(request), Times.Once);
             _unitOfWorkMock.Verify(x => x.Departments.Add(entity), Times.Once);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(CancellationToken.None), Times.Once);
-            _cacheMock.Verify(x => x.RemoveAsync(CacheKeys.DepartmentList, CancellationToken.None), Times.Once);
+            _cacheMock.Verify(x => x.RemoveAsync(CacheKeys.DepartmentList), Times.Once);
         }
         #endregion
 
@@ -126,8 +126,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
 
             _cacheMock.Verify(x => x.RemoveAsync(It.Is<string[]>(keys =>  keys.Length == 2 && 
                                                                  keys.Contains(CacheKeys.DepartmentById(request.Id)) && 
-                                                                 keys.Contains(CacheKeys.DepartmentList)),
-                                                                 CancellationToken.None),Times.Once);
+                                                                 keys.Contains(CacheKeys.DepartmentList))),Times.Once);
         }
 
         [Fact]
@@ -149,7 +148,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
                      .WithMessage("Department 99 does not exist.");
 
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-            _cacheMock.Verify(x => x.RemoveAsync(It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+            _cacheMock.Verify(x => x.RemoveAsync(It.IsAny<string[]>()), Times.Never);
         }
 
         [Fact]
@@ -210,8 +209,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
                 It.Is<string[]>(keys =>
                     keys.Length == 2 &&
                     keys.Contains(CacheKeys.DepartmentById(request.Id)) &&
-                    keys.Contains(CacheKeys.DepartmentList)),
-                CancellationToken.None),
+                    keys.Contains(CacheKeys.DepartmentList))),
                 Times.Once);
         }
 

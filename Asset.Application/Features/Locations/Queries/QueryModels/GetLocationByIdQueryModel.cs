@@ -13,7 +13,7 @@ namespace Asset.Application.Features.Locations.Queries.QueryModels
             Id = id;
         }
         public string CacheKey => CacheKeys.LocationById(Id);
-        public TimeSpan Duration => CacheDurations.Lookup;
+        public CacheDuration Duration => CacheDuration.Lookup;
 
     }
 }

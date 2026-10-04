@@ -40,7 +40,7 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 
             _unitOfWork.AssetTypes.Add(assetType);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cacheService.RemoveAsync(CacheKeys.AssetTypeList, cancellationToken);
+            await _cacheService.RemoveAsync(CacheKeys.AssetTypeList);
 
             return Created(assetType.Id);
         }
@@ -53,7 +53,8 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 
             _mapper.Map(request, assetType);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cacheService.RemoveAsync(new[] { CacheKeys.AssetTypeById(request.Id), CacheKeys.AssetTypeList }, cancellationToken);
+            await _cacheService.RemoveAsync(new[] { CacheKeys.AssetTypeById(request.Id), CacheKeys.AssetTypeList });
+            await _cacheService.BumpVersionAsync(CacheKeys.AssetsVersion);   // assets show AssetTypeName
 
             return Success("Updated successfully");
         }
@@ -69,7 +70,7 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 
             _unitOfWork.AssetTypes.Remove(assetType);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cacheService.RemoveAsync(new[] { CacheKeys.AssetTypeById(request.Id), CacheKeys.AssetTypeList }, cancellationToken);
+            await _cacheService.RemoveAsync(new[] { CacheKeys.AssetTypeById(request.Id), CacheKeys.AssetTypeList });
 
             return Deleted<string>("Deleted successfully");
         }

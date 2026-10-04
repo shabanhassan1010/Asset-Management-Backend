@@ -73,7 +73,7 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
 
             await _unitOfWork.Employees.AddAsync(employee, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await InvalidateAsync(employee.Id, cancellationToken);
+            await InvalidateAsync();
 
             return new ApiResponse<CreateEmployeeCommandResponse>
             {
@@ -111,7 +111,8 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
             employee.Phone = request.Phone?.Trim();
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await InvalidateAsync(employee.Id, cancellationToken);
+            await InvalidateAsync();
+            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
 
             var saved = await _unitOfWork.Employees.GetByIdWithDepartmentAsNoTrackingAsync(employee.Id, cancellationToken);
             return new ApiResponse<UpdateEmployeeCommandResponse>
@@ -147,7 +148,7 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
 
             employee.IsActive = request.IsActive;
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await InvalidateAsync(employee.Id, cancellationToken);
+            await InvalidateAsync();
 
             return new ApiResponse<SetEmployeeStatusCommandResponse>
             {
@@ -159,9 +160,9 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
         #endregion
 
         #region Private Methods
-        private async Task InvalidateAsync(int employeeId, CancellationToken cancellationToken)
+        private async Task InvalidateAsync()
         {
-            await _cache.RemoveAsync(new[] { CacheKeys.EmployeeList, CacheKeys.DepartmentList }, cancellationToken);
+            await _cache.RemoveAsync(new[] { CacheKeys.EmployeeList, CacheKeys.DepartmentList });
         }
         #endregion
     }

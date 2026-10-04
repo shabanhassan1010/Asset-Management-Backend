@@ -231,8 +231,11 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
         #region Private 
         private async Task InvalidateLookupCountsAsync(CancellationToken ct)
         {
-            foreach (var key in CacheKeys.ListsAffectedByAssetChanges)
-                await _cache.RemoveAsync(key, ct);
+            // Lookup lists show AssetsCount per category / location / department / type.
+            await _cache.RemoveAsync(CacheKeys.ListsAffectedByAssetChanges);
+
+            // Every cached asset detail (and later the asset list) is now possibly wrong.
+            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
         }
 
         // Check If RowVersion Which Client sent it valid or not, and if valid convert it from Base64 into byte[]

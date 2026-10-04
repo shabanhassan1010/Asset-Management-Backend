@@ -80,7 +80,7 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
             _mapperMock.Verify( x => x.Map<Location>(request),Times.Once);                            // Verify Mapper
             _locationRepositoryMock.Verify( x => x.Add(location), Times.Once);                        // Verify Repository
             _unitOfWorkMock.Verify( x => x.SaveChangesAsync(_ct), Times.Once);                        // Verify Save
-            _cacheServiceMock.Verify( x => x.RemoveAsync(CacheKeys.LocationList, _ct), Times.Once);   // Verify Cache
+            _cacheServiceMock.Verify( x => x.RemoveAsync(CacheKeys.LocationList), Times.Once);        // Verify Cache
             _mapperMock.Verify( x => x.Map<CreateLocationResponseDto>(location), Times.Once );        // Verify Entity -> DTO
         }
         #endregion
@@ -133,7 +133,7 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
                 x => x.RemoveAsync(
                         It.Is<string[]>(keys => keys.Length == 2
                                              && keys.Contains(CacheKeys.LocationById(id))
-                                             && keys.Contains(CacheKeys.LocationList)), _ct), Times.Once);
+                                             && keys.Contains(CacheKeys.LocationList))), Times.Once);
         }
 
         [Fact]
@@ -158,7 +158,7 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
             _locationRepositoryMock.Verify(x => x.GetByIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
             _mapperMock.Verify(x => x.Map(It.IsAny<UpdateLocationCommandModel>(), It.IsAny<Location>()), Times.Never);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-            _cacheServiceMock.Verify(x => x.RemoveAsync(It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+            _cacheServiceMock.Verify(x => x.RemoveAsync(It.IsAny<string[]>()), Times.Never);
         }
         #endregion
 
@@ -211,8 +211,7 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
                 x => x.RemoveAsync(
                         It.Is<string[]>(keys => keys.Length == 2
                                              && keys.Contains(CacheKeys.LocationById(id))
-                                             && keys.Contains(CacheKeys.LocationList)),
-                        _ct),Times.Once);
+                                             && keys.Contains(CacheKeys.LocationList))),Times.Once);
         }
 
         [Fact]
@@ -267,7 +266,7 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
             _locationRepositoryMock.Verify(x => x.GetTrackedAssetsByLocationAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
             _locationRepositoryMock.Verify(x => x.Remove(It.IsAny<Location>()), Times.Never);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-            _cacheServiceMock.Verify(x => x.RemoveAsync(It.IsAny<string[]>(), It.IsAny<CancellationToken>()), Times.Never);
+            _cacheServiceMock.Verify(x => x.RemoveAsync(It.IsAny<string[]>()), Times.Never);
         }
 
         #endregion

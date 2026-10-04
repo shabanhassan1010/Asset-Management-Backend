@@ -78,11 +78,11 @@ namespace Asset.Infastructure.Service
             }
         }
 
-        public async Task RemoveAsync(string key, CancellationToken ct)
+        public async Task RemoveAsync(string key)
         {
             try
             {
-                await _cache.RemoveAsync(key, ct);
+                await _cache.RemoveAsync(key,CancellationToken.None);
             }
             catch (Exception ex)
             {
@@ -92,10 +92,49 @@ namespace Asset.Infastructure.Service
             }
         }
 
-        public async Task RemoveAsync(IEnumerable<string> keys, CancellationToken ct)
+        public async Task RemoveAsync(IEnumerable<string> keys)
         {
             foreach (var key in keys)
-                await RemoveAsync(key, ct);
+                await RemoveAsync(key);
+        }
+
+        public async Task<string> GetVersionAsync(string versionKey, CancellationToken ct)
+        {
+            try
+            {
+                var version = await _cache.GetStringAsync(versionKey, ct);
+
+                // No version yet (first run, or Redis was restarted) → start from "0".
+                return string.IsNullOrEmpty(version) ? "0" : version;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;   // the caller cancelled — same rule as GetAsync
+            }
+            catch (Exception ex)
+            {
+                // Redis down: report "0". The cache read right after will fail too,
+                // so the request simply goes to the database (R5.6).
+                _logger.LogWarning(ex, "Cache version read failed for key {Key}", versionKey);
+                return "0";
+            }
+        }
+
+        public async Task BumpVersionAsync(string versionKey)
+        {
+            try
+            {
+                // A new unique value: the current time in ticks (changes every 100 nanoseconds).
+                var newVersion = DateTime.UtcNow.Ticks.ToString();
+
+                // new DistributedCacheEntryOptions() = no expiration: the version must not disappear.
+                // CancellationToken.None: the database is already updated, so this must finish.
+                await _cache.SetStringAsync(versionKey, newVersion, new DistributedCacheEntryOptions(), CancellationToken.None);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Cache version bump failed for key {Key}", versionKey);
+            }
         }
         #endregion
     }

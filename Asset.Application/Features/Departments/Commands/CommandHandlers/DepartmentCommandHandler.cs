@@ -39,7 +39,7 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
 
             _unitOfWork.Departments.Add(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cache.RemoveAsync(CacheKeys.DepartmentList, cancellationToken);
+            await _cache.RemoveAsync(CacheKeys.DepartmentList);
 
             return new ApiResponse<CreateDepartmentResponseDto>
             {
@@ -57,7 +57,8 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
 
             _mapper.Map(request, entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cache.RemoveAsync( new[] { CacheKeys.DepartmentById(request.Id), CacheKeys.DepartmentList },cancellationToken);
+            await _cache.RemoveAsync( new[] { CacheKeys.DepartmentById(request.Id), CacheKeys.DepartmentList });
+            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
 
             return new ApiResponse<UpdateDepartmentResponseDto>
             {
@@ -86,7 +87,7 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
 
             _unitOfWork.Departments.Remove(entity);  
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cache.RemoveAsync(new[] { CacheKeys.DepartmentById(request.Id), CacheKeys.DepartmentList },cancellationToken);
+            await _cache.RemoveAsync(new[] { CacheKeys.DepartmentById(request.Id), CacheKeys.DepartmentList });
 
             return new ApiResponse<string>
             {

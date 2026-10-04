@@ -7,6 +7,6 @@ namespace Asset.Application.Features.AssetTypes.Queries.QueryModels
     public class GetAssetTypeListQueryModel: IRequest<BaseResponse<IReadOnlyList<GetAssetTypeListQueryResponse>>> , ICachedQuery
     {
         public string CacheKey => CacheKeys.AssetTypeList;
-        public TimeSpan Duration => CacheDurations.Lookup;
+        public CacheDuration Duration => CacheDuration.Lookup;
     }
 }

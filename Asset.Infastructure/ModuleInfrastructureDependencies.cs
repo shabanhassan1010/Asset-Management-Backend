@@ -95,6 +95,9 @@ namespace Asset.Infastructure
             #endregion
 
             #region Caching (Redis)
+            var cacheSection = configuration.GetSection(CacheSettings.SectionName);   
+            services.Configure<CacheSettings>(cacheSection);                           
+            var cacheSettings = cacheSection.Get<CacheSettings>() ?? new CacheSettings();
 
             var redisConnectionString = configuration.GetConnectionString("Redis");
             if (string.IsNullOrEmpty(redisConnectionString))
@@ -117,7 +120,7 @@ namespace Asset.Infastructure
 
                 // Prefix on every key, so this app's keys are distinguishable
                 // from any other app sharing the same Redis instance.
-                options.InstanceName = "asset:";
+                options.InstanceName = cacheSettings.KeyPrefix;
             });
             // The Application layer depends on ICacheService, never on IDistributedCache.
             services.AddScoped<ICacheService, RedisCacheService>();

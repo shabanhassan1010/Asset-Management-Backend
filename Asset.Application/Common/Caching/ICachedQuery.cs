@@ -4,8 +4,8 @@
     {
         string CacheKey { get; }
 
-        // Per-query, because a lookup list can live for an hour while a
-        // dashboard summary should not.
-        TimeSpan Duration { get; }
+        // The group, not the minutes: the query can't read appsettings.json,
+        // so CachingBehavior turns the group into minutes using CacheSettings.
+        CacheDuration Duration { get; }
     }
 }

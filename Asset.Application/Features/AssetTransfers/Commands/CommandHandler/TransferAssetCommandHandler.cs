@@ -142,7 +142,7 @@ namespace Asset.Application.Features.AssetTransfers.Commands.CommandHandler
                 throw new ConcurrencyException("This asset was modified by another user. Reload it and try again.");
             }
 
-            await _cache.RemoveAsync(new[] { CacheKeys.DepartmentList, CacheKeys.LocationList }, cancellationToken);
+            await _cache.RemoveAsync(new[] { CacheKeys.DepartmentList, CacheKeys.LocationList });
 
             return new ApiResponse<TransferAssetResponseDto>
             {

@@ -43,6 +43,9 @@ namespace Asset.Application.Features.Assets.Queries.QueryHandlers
                 throw new NotFoundException($"Asset {request.Id} was not found.");
 
             var dto = _mapper.Map<GetByIdQueryResponse>(asset);
+            // reads the role claim inside the JWT
+            if (!_currentUser.IsAdmin)
+                dto.PurchaseCost = null;
             return dto;
         }
 

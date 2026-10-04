@@ -9,6 +9,6 @@ namespace Asset.Application.Features.AssetTypes.Queries.QueryModels
     {
         public int Id { get; set; }
         public string CacheKey => CacheKeys.AssetTypeById(Id);
-        public TimeSpan Duration => CacheDurations.Lookup;
+        public CacheDuration Duration => CacheDuration.Lookup;
     }
 }

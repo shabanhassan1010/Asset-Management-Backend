@@ -21,7 +21,7 @@ namespace Asset.Application.Behaviors
         {
             var requestName = typeof(TRequest).Name;  // Get the name of class like [GetAllAssetsQuery - CreateAssetCommand]
 
-            _logger.LogInformation("Handling {RequestName}", requestName);
+            _logger.LogInformation("Start Handle For {RequestName}", requestName);
 
             var stopwatch = Stopwatch.StartNew();
             // he will go to the next behavior or handler,
@@ -30,7 +30,7 @@ namespace Asset.Application.Behaviors
             var response = await next();      
             stopwatch.Stop();   // see how handler take time?
 
-            _logger.LogInformation("Handled {RequestName} in {ElapsedMs} ms", requestName, stopwatch.ElapsedMilliseconds);
+            _logger.LogInformation("End Handle For {RequestName} in {ElapsedMs} ms", requestName, stopwatch.ElapsedMilliseconds);
 
             return response;
         }

@@ -109,11 +109,11 @@ namespace Asset.Infastructure
                 // Read "127.0.0.1:6379" into an object so we can change a few settings.
                 var redisOptions = ConfigurationOptions.Parse(redisConnectionString);
 
-                // R5.6 — Redis down when the app starts: keep starting and reconnect in the background.
+                // Redis down when the app starts: keep starting and reconnect in the background.
                 redisOptions.AbortOnConnectFail = false;
 
-                // R5.6 — Redis down while the app runs: fail each cache call at once instead of
-                // waiting for the timeout. RedisCacheService catches the error and SQL answers.
+                // Redis down while the app runs: fail each cache call at once instead of waiting for the timeout.
+                // RedisCacheService catches the error and SQL answers.
                 redisOptions.BacklogPolicy = BacklogPolicy.FailFast;
 
                 options.ConfigurationOptions = redisOptions;

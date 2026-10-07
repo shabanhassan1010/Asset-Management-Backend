@@ -12,8 +12,8 @@ namespace Asset.Application.Features.Departments.Commands.CommandValidators
             RuleFor(x => x.DepartmentName)
                 .NotEmpty().WithMessage("Department name is required.")
                 .MaximumLength(150)
-                .MustAsync(async (name, ct) =>
-                !await departmentRepository.IsNameExistsAsync(name, null, ct))
+                .MustAsync(async (model,name, ct) =>
+                !await departmentRepository.IsNameExistsAsync(name, model.Id, ct))
             .WithMessage(x => $"Department name '{x.DepartmentName}' is already in use.");
 
             RuleFor(x => x.Code)

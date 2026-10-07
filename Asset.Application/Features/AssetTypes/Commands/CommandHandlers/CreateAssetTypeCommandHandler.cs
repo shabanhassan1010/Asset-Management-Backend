@@ -66,7 +66,7 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 
             var isUsed = await _unitOfWork.Assets.AnyAsync(a => a.AssetTypeId == request.Id, cancellationToken);
             if (isUsed)
-                return BadRequest<string>("This asset type is in use. Delete or reassign its assets first.");
+                 throw new BusinessException("This asset type is in use. Delete or reassign its assets first.");
 
             _unitOfWork.AssetTypes.Remove(assetType);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

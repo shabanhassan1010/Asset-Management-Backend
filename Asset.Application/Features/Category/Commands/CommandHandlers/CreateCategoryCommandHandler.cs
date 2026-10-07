@@ -84,14 +84,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
             // Check if this category Has Any Assets
             var hasAssets = await _unitOfWork.Categories.HasAssetsAsync(request.Id, cancellationToken);
             if (hasAssets)
-            {
-                return new ApiResponse<string>
-                {
-                    data = $"Category {request.Id} has linked assets. Please remove or reassign them before deleting this category.",
-                    Success = false,
-                    Message = "Category Has Linked Assets"
-                };
-            }
+                throw new BusinessException($"This Category has linked assets. Please remove or reassign them before deleting this category.");
 
             _unitOfWork.Categories.Remove(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

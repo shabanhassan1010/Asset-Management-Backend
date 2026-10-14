@@ -5,7 +5,7 @@
    "FilterSchemas": false,
    "IncludeConnectionString": false,
    "IrregularWords": null,
-   "MinimumProductVersion": "2.6.1604",
+   "MinimumProductVersion": "2.6.1706",
    "ModelNamespace": null,
    "OutputContextPath": null,
    "OutputPath": "Models",
@@ -45,10 +45,6 @@
       {
          "Name": "[dbo].[Locations]",
          "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[vw_AssetSearch]",
-         "ObjectType": 3
       }
    ],
    "UiHint": null,

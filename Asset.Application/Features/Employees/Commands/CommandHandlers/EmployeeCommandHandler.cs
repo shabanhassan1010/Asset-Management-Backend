@@ -114,7 +114,7 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
             await InvalidateAsync();
             await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
 
-            var saved = await _unitOfWork.Employees.GetByIdWithDepartmentAsNoTrackingAsync(employee.Id, cancellationToken);
+            var saved = await _unitOfWork.Employees.GetByIdWithDepartmentAsync(employee.Id, cancellationToken);
             return new ApiResponse<UpdateEmployeeCommandResponse>
             {
                 data = _mapper.Map<UpdateEmployeeCommandResponse>(saved),
@@ -124,7 +124,7 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
         }
         public async Task<ApiResponse<SetEmployeeStatusCommandResponse>> Handle(SetEmployeeStatusCommandModel request, CancellationToken cancellationToken)
         {
-            var employee = await _unitOfWork.Employees.GetByIdWithDepartmentAsNoTrackingAsync(request.Id, cancellationToken);
+            var employee = await _unitOfWork.Employees.GetByIdWithDepartmentAsync(request.Id, cancellationToken);
             if (employee is null)
                 throw new NotFoundException($"Employee {request.Id} does not exist.");
 

@@ -56,7 +56,7 @@ namespace Asset.Infastructure.Repositories
                                              .OrderBy(e => e.FullName)
                                              .ToListAsync(cancellationToken);
         }
-        public Task<Employee?> GetByIdWithDepartmentAsNoTrackingAsync(int id, CancellationToken ct)
+        public Task<Employee?> GetByIdWithDepartmentAsync(int id, CancellationToken ct)
         {
             return _dbContext.Employees.Include(e => e.Department).FirstOrDefaultAsync(e => e.Id == id, ct);
         }

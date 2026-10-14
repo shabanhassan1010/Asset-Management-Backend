@@ -46,9 +46,9 @@ namespace Asset.API
                         var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 
                         policy.WithOrigins(allowedOrigins)
-                              .AllowAnyHeader()
-                              .AllowAnyMethod()
-                              .AllowCredentials();
+                              .AllowAnyHeader()     // allow for amgular client to send any headers (like Authorization)
+                              .AllowAnyMethod()     // allow for angular client to send any HTTP method (GET, POST, PUT, DELETE, etc.)
+                              .AllowCredentials();  // allow for angular client to send cookies (like .AspNetCore.Identity.Application)
                     });
                 });
                 #endregion

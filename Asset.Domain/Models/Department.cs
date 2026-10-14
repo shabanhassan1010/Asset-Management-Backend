@@ -24,6 +24,9 @@ public partial class Department
 
     public bool IsActive { get; set; }
 
+    [StringLength(500)]
+    public string notes { get; set; }
+
     [InverseProperty("FromDepartment")]
     public virtual ICollection<AssetTransfer> AssetTransferFromDepartments { get; set; } = new List<AssetTransfer>();
 

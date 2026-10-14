@@ -1,7 +1,7 @@
 ﻿using Asset.Domain.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-namespace Asset.Infastructure.Configurations
+namespace Asset.Infastructure.Configurations.Identity
 {
     public class RefreshTokensConfiguration : IEntityTypeConfiguration<RefreshToken>
     {

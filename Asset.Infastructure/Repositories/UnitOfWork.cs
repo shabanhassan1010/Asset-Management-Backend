@@ -41,7 +41,7 @@ namespace Asset.Infastructure.Repositories
         public IAiLookupRepository AiLookup => _AilookupRepository ??= new AiLookupRepository(_context);
         public Task<int> SaveChangesAsync(CancellationToken ct)
         {
-            return _context.SaveChangesAsync();
+            return _context.SaveChangesAsync(ct);
         }
         #endregion
     }

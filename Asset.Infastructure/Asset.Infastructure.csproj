@@ -30,4 +30,8 @@
     <ProjectReference Include="..\Asset.Domain\Asset.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Database\Scripts\" />
+  </ItemGroup>
+
 </Project>

@@ -71,7 +71,7 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
 
         public async Task<ApiResponse<GetEmployeeByIdResponse>> Handle(GetEmployeeByIdQueryModel request, CancellationToken cancellationToken)
         {
-            var employee = await _unitOfWork.Employees.GetByIdWithDepartmentAsNoTrackingAsync(request.Id, cancellationToken);
+            var employee = await _unitOfWork.Employees.GetByIdWithDepartmentAsync(request.Id, cancellationToken);
             if (employee is null)
                 throw new NotFoundException($"Employee {request.Id} does not exist.");
 

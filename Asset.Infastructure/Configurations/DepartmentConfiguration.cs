@@ -21,6 +21,8 @@ namespace Asset.Infastructure.Configurations
             entity.Property(e => e.DepartmentName)
                 .IsRequired()
                 .HasMaxLength(150);
+            entity.Property(e => e.notes)
+                  .HasMaxLength(500);
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasAnnotation("Relational:DefaultConstraintName", "DF_Departments_IsActive");

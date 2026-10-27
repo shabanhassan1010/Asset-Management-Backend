@@ -11,7 +11,7 @@ namespace Asset.Application.Features.Dashboard.Queries.QueryHandlers
     public class GetDashboardSummaryHandler : IRequestHandler<GetDashboardSummaryQuery, DashboardSummaryDto>
     {
         #region Fields
-        private const int WarrantyWindowInDays = 180;
+        private const int WarrantyWindowInDays = 90;
         private const int MaxExpiringRows = 6;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService currentUser;
@@ -31,13 +31,13 @@ namespace Asset.Application.Features.Dashboard.Queries.QueryHandlers
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
             var counts = await _unitOfWork.Dashboard.GetStatusCountsAsync(cancellationToken);
-            var Category = await _unitOfWork.Dashboard.GetCountsByCategoryAsync(cancellationToken);
-            var expiring = await _unitOfWork.Dashboard.GetExpiringWarrantiesAsync(today, today.AddDays(WarrantyWindowInDays), MaxExpiringRows, cancellationToken);
             var byCategory = await _unitOfWork.Dashboard.GetCountsByCategoryAsync(cancellationToken);
             var byDepartment = await _unitOfWork.Dashboard.GetCountsByDepartmentAsync(cancellationToken);
             var warrantyWindows = await _unitOfWork.Dashboard.GetWarrantyWindowCountsAsync(today, cancellationToken);
+            var expiring = await _unitOfWork.Dashboard.GetExpiringWarrantiesAsync(today, today.AddDays(WarrantyWindowInDays), MaxExpiringRows, cancellationToken);
 
-            // If User NOt Admin PurchaseCost will not read
+
+            // If User Not Admin PurchaseCost will not read
             decimal? portfolioValue = currentUser.IsAdmin ? await _unitOfWork.Dashboard.GetTotalPurchaseCostAsync(cancellationToken): null;
 
             return new DashboardSummaryDto

@@ -107,7 +107,8 @@ namespace Asset.Infastructure.Repositories
             if (filter.WarrantyWithinDays.HasValue) // Check if the user asked for assets whose warranty ends soon.
             {
                 var today = DateOnly.FromDateTime(DateTime.UtcNow); // Get the current date in UTC.
-                query = query.WarrantyExpiringBetween(today, today.AddDays(filter.WarrantyWithinDays.Value)); // Same rule the dashboard uses.
+                var until = today.AddDays(filter.WarrantyWithinDays.Value);
+                query = query.WarrantyExpiringBetween(today, until); // Same rule the dashboard uses.
             }
 
             return query; // Return the query after applying all requested filters.

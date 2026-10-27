@@ -71,8 +71,10 @@ namespace Asset.Application.Features.Assets.Queries.QueryHandlers
                 DepartmentId = request.DepartmentId,
                 LocationId = request.LocationId,
                 EmployeeId = request.EmployeeId,
+                WarrantyWithinDays = request.WarrantyWithinDays,
+                IncludeRetired = request.IncludeRetired,
                 SortBy = request.SortBy,
-                SortDesc = request.SortDesc
+                SortDesc = request.SortDesc,
             };
 
             var result = await _unitOfWork.Assets.GetPaginationAsync(filter, cancellationToken);

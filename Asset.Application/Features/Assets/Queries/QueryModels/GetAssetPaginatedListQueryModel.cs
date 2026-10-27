@@ -33,6 +33,7 @@ namespace Asset.Application.Features.Assets.Queries.QueryModels
         public string? SortBy { get; set; }
 
         public bool SortDesc { get; set; } = false;
+        public int? WarrantyWithinDays { get; set; }
         // the key contains the FULL query shape: every filter, the sort and the page.
         // Two requests share a key only if they would return exactly the same rows.
         // Search is LAST: whatever the user types can't be confused with the other parts.
@@ -41,6 +42,7 @@ namespace Asset.Application.Features.Assets.Queries.QueryModels
             $":p{PageNumber}:s{PageSize}" +
             $":c{CategoryId}:t{AssetTypeId}:st{StatusId}" +
             $":d{DepartmentId}:l{LocationId}:e{EmployeeId}" +
+            $":w{WarrantyWithinDays}"+
             $":r{(IncludeRetired ? 1 : 0)}" +
             $":o{(SortBy ?? "assetcode").ToLowerInvariant()}:{(SortDesc ? "desc" : "asc")}" +
             $":q{Search?.Trim().ToLowerInvariant()}";

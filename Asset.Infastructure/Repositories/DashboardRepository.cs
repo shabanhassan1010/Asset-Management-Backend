@@ -2,6 +2,7 @@
 using Asset.Application.Features.Dashboard.DTos;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Domain.Enum;
+using Asset.Infastructure.Extensions;
 using Asset.Infastructure.Models;
 using Microsoft.EntityFrameworkCore;
 using AssetEntity = Asset.Domain.Models.Asset;
@@ -32,12 +33,12 @@ namespace Asset.Infastructure.Repositories
         // Get
         public async Task<IReadOnlyList<CategoryCountDto>> GetCountsByCategoryAsync(CancellationToken cancellationToken)
         {
-          var rows = await ActiveAssets.GroupBy(a => a.Category!.CategoryName)
-                                    .Select(g => new { CategoryName = g.Key, Count = g.Count() })
-                                    .OrderByDescending(x => x.Count)
-                                    .ToListAsync(cancellationToken);
+          var rows = await ActiveAssets.GroupBy(a => new {a.CategoryId,a.Category!.CategoryName})
+                                       .Select(g => new { g.Key.CategoryId, g.Key.CategoryName, Count = g.Count() })
+                                       .OrderByDescending(x => x.Count)
+                                       .ToListAsync(cancellationToken);
 
-            return rows.Select(r => new CategoryCountDto(r.CategoryName, r.Count)).ToList();
+            return rows.Select(r => new CategoryCountDto(r.CategoryId,r.CategoryName, r.Count)).ToList();
         }
         public async Task<IReadOnlyList<ExpiringWarrantyDto>> GetExpiringWarrantiesAsync(DateOnly from, DateOnly to, int take, CancellationToken cancellationToken)
         {
@@ -86,6 +87,43 @@ namespace Asset.Infastructure.Repositories
         public Task<decimal> GetTotalPurchaseCostAsync(CancellationToken cancellationToken)
         {
            return ActiveAssets.SumAsync(a => a.PurchaseCost ?? 0m, cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<DepartmentCountDto>> GetCountsByDepartmentAsync(CancellationToken cancellationToken)
+        {
+            var rows = await ActiveAssets.GroupBy(a => new { a.DepartmentId, a.Department!.DepartmentName })
+                                         .Select(g => new { g.Key.DepartmentId, g.Key.DepartmentName, Count = g.Count() })
+                                         .OrderByDescending(x => x.Count)
+                                         .ToListAsync(cancellationToken);
+
+            // DepartmentId is nullable → those assets come back with a null name → give them a readable label
+            return rows.Select(r => new DepartmentCountDto(r.DepartmentId, r.DepartmentName ?? "No department", r.Count)).ToList();
+        }
+
+        public async Task<IReadOnlyList<WarrantyWindowDto>> GetWarrantyWindowCountsAsync(DateOnly today, CancellationToken cancellationToken)
+        {
+            var in30Days = today.AddDays(30);
+            var in60Days = today.AddDays(60);
+            var in90Days = today.AddDays(90);
+
+            // One SQL query: keep only rows inside the widest window, then count each window with COUNT(CASE WHEN ...)
+            var counts = await ActiveAssets.WarrantyExpiringBetween(today, in90Days)
+                                           .GroupBy(a => 1)
+                                           .Select(g => new
+                                           {
+                                               Within30 = g.Count(a => a.WarrantyExpiryDate <= in30Days),
+                                               Within60 = g.Count(a => a.WarrantyExpiryDate <= in60Days),
+                                               Within90 = g.Count()
+                                           })
+                                           .FirstOrDefaultAsync(cancellationToken);
+
+            // No matching rows → null → return zeros instead of throwing
+            return
+            [
+                new WarrantyWindowDto(30, counts?.Within30 ?? 0),
+                new WarrantyWindowDto(60, counts?.Within60 ?? 0),
+                new WarrantyWindowDto(90, counts?.Within90 ?? 0),
+            ];
         }
         #endregion
     }

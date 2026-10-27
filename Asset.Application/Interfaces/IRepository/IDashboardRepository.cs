@@ -13,6 +13,7 @@ namespace Asset.Application.Interfaces.IRepository
         // Admin Call 
         Task<decimal> GetTotalPurchaseCostAsync(CancellationToken cancellationToken);
         Task<IReadOnlyList<CategoryCountDto>> GetCountsByCategoryAsync(CancellationToken cancellationToken);
+
         Task<IReadOnlyList<DepartmentCountDto>> GetCountsByDepartmentAsync(CancellationToken cancellationToken);
 
         Task<IReadOnlyList<ExpiringWarrantyDto>> GetExpiringWarrantiesAsync( DateOnly from, DateOnly to, int take, CancellationToken cancellationToken);

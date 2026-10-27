@@ -10,8 +10,6 @@ namespace Asset.Application.Features.Dashboard.DTos
         public int AssignedAssets { get; init; }
         public int UnderMaintenanceAssets { get; init; }
 
-        // R2.6: التكلفة لازم تبقى **غايبة** من الـ response لليوزر مش null.
-        // WhenWritingNull بيشيل المفتاح نفسه من الـ JSON.
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public decimal? PortfolioValue { get; init; }
 

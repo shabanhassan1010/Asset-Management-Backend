@@ -6,6 +6,7 @@ using Asset.Application.Features.AssetTypes.DTos;
 using Asset.Application.Interfaces.Repository;
 using Asset.Domain.Enum;
 using Asset.Domain.Models;
+using Asset.Infastructure.Extensions;
 using Asset.Infastructure.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -102,6 +103,11 @@ namespace Asset.Infastructure.Repositories
             if (filter.EmployeeId.HasValue) // Check if the user selected an Employee.
             {
                 query = query.Where(a =>  a.AssignedEmployeeId == filter.EmployeeId.Value); // Keep assets assigned to the selected Employee.
+            }
+            if (filter.WarrantyWithinDays.HasValue) // Check if the user asked for assets whose warranty ends soon.
+            {
+                var today = DateOnly.FromDateTime(DateTime.UtcNow); // Get the current date in UTC.
+                query = query.WarrantyExpiringBetween(today, today.AddDays(filter.WarrantyWithinDays.Value)); // Same rule the dashboard uses.
             }
 
             return query; // Return the query after applying all requested filters.

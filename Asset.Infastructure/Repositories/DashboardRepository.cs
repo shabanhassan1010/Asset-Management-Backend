@@ -40,55 +40,6 @@ namespace Asset.Infastructure.Repositories
 
             return rows.Select(r => new CategoryCountDto(r.CategoryId,r.CategoryName, r.Count)).ToList();
         }
-        public async Task<IReadOnlyList<ExpiringWarrantyDto>> GetExpiringWarrantiesAsync(DateOnly from, DateOnly to, int take, CancellationToken cancellationToken)
-        {
-            var rows = await ActiveAssets.Where(a => a.WarrantyExpiryDate != null && a.WarrantyExpiryDate >= from && a.WarrantyExpiryDate <= to)
-                                         .OrderBy(a => a.WarrantyExpiryDate)
-                                         .Take(take)                      
-                                         .Select(a => new   // execute query now
-                                         {
-                                                a.Id,
-                                                a.AssetCode,
-                                                a.AssetName,
-                                                a.Status,
-                                                Expiry = a.WarrantyExpiryDate!.Value
-                                         })
-                                         .ToListAsync(cancellationToken);
-            return rows
-                .Select(r => new ExpiringWarrantyDto(
-                    r.Id, 
-                    r.AssetCode, 
-                    r.AssetName, 
-                    r.Status, 
-                    ((AssetStatus)r.Status).ToString(),
-                    r.Expiry))
-                .ToList();
-        }
-        public async Task<AssetStatusCounts> GetStatusCountsAsync(CancellationToken cancellationToken)
-        {
-            var counts = await Assets.GroupBy(a => 1)
-                                     .Select(g => new
-                                     {
-                                         Active = g.Count(a => a.Status != RetiredStatus),
-                                         Retired = g.Count(a => a.Status == RetiredStatus),
-                                         Available = g.Count(a => a.Status == (int)AssetStatus.Available),
-                                         Assigned = g.Count(a => a.Status == (int)AssetStatus.Assigned),
-                                         UnderMaintenance = g.Count(a => a.Status == (int)AssetStatus.UnderMaintenance)
-                                     })
-                                    .FirstOrDefaultAsync(cancellationToken);
-
-            // If He do not find any Status return 0 instead of throw Exception
-            return counts is null
-            ? new AssetStatusCounts(0, 0, 0, 0, 0)
-            : new AssetStatusCounts(counts.Active, counts.Retired, counts.Available,
-                                    counts.Assigned, counts.UnderMaintenance);
-
-        }
-        public Task<decimal> GetTotalPurchaseCostAsync(CancellationToken cancellationToken)
-        {
-           return ActiveAssets.SumAsync(a => a.PurchaseCost ?? 0m, cancellationToken);
-        }
-
         public async Task<IReadOnlyList<DepartmentCountDto>> GetCountsByDepartmentAsync(CancellationToken cancellationToken)
         {
             var rows = await ActiveAssets.GroupBy(a => new { a.DepartmentId, a.Department!.DepartmentName })
@@ -100,6 +51,30 @@ namespace Asset.Infastructure.Repositories
             return rows.Select(r => new DepartmentCountDto(r.DepartmentId, r.DepartmentName ?? "No department", r.Count)).ToList();
         }
 
+        public async Task<IReadOnlyList<ExpiringWarrantyDto>> GetExpiringWarrantiesAsync(DateOnly from, DateOnly to, int take, CancellationToken cancellationToken)
+        {
+            var rows = await ActiveAssets.WarrantyExpiringBetween(from, to)
+                                 .OrderBy(a => a.WarrantyExpiryDate)
+                                 .Take(take)
+                                 .Select(a => new
+                                 {
+                                     a.Id,
+                                     a.AssetCode,
+                                     a.AssetName,
+                                     a.Status,
+                                     Expiry = a.WarrantyExpiryDate!.Value
+                                 })
+                                 .ToListAsync(cancellationToken);
+            return rows
+                .Select(r => new ExpiringWarrantyDto(
+                    r.Id, 
+                    r.AssetCode, 
+                    r.AssetName, 
+                    r.Status, 
+                    ((AssetStatus)r.Status).ToString(),
+                    r.Expiry))
+                .ToList();
+        }
         public async Task<IReadOnlyList<WarrantyWindowDto>> GetWarrantyWindowCountsAsync(DateOnly today, CancellationToken cancellationToken)
         {
             var in30Days = today.AddDays(30);
@@ -124,6 +99,31 @@ namespace Asset.Infastructure.Repositories
                 new WarrantyWindowDto(60, counts?.Within60 ?? 0),
                 new WarrantyWindowDto(90, counts?.Within90 ?? 0),
             ];
+        }
+ 
+        public async Task<AssetStatusCounts> GetStatusCountsAsync(CancellationToken cancellationToken)
+        {
+            var counts = await Assets.GroupBy(a => 1)
+                                     .Select(g => new
+                                     {
+                                         Active = g.Count(a => a.Status != RetiredStatus),
+                                         Retired = g.Count(a => a.Status == RetiredStatus),
+                                         Available = g.Count(a => a.Status == (int)AssetStatus.Available),
+                                         Assigned = g.Count(a => a.Status == (int)AssetStatus.Assigned),
+                                         UnderMaintenance = g.Count(a => a.Status == (int)AssetStatus.UnderMaintenance)
+                                     })
+                                    .FirstOrDefaultAsync(cancellationToken);
+
+            // If He do not find any Status return 0 instead of throw Exception
+            return counts is null
+            ? new AssetStatusCounts(0, 0, 0, 0, 0)
+            : new AssetStatusCounts(counts.Active, counts.Retired, counts.Available,
+                                    counts.Assigned, counts.UnderMaintenance);
+
+        }
+        public Task<decimal> GetTotalPurchaseCostAsync(CancellationToken cancellationToken)
+        {
+           return ActiveAssets.SumAsync(a => a.PurchaseCost ?? 0m, cancellationToken);
         }
         #endregion
     }

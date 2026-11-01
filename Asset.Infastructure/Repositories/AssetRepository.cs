@@ -216,7 +216,7 @@ namespace Asset.Infastructure.Repositories
         }
         public async Task<bool> ExistsActiveAsync(int id, CancellationToken ct)
         {
-            return await _dbContext.Assets.AnyAsync(a => a.Id == id , ct);
+            return await _dbContext.Assets.AnyAsync(a => a.Id == id && a.Status != (int)AssetStatus.Retired, ct);
         }
         public Task<bool> ExistsAsync(int id, CancellationToken cancellationToken)
         {

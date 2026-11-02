@@ -18,7 +18,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
     private readonly IUserRepository _users;
     private readonly IRefreshTokenRepository _refreshTokens;
     private readonly IJwtTokenService _tokenService;
-    private readonly IIdentityUnitOfWork _unitOfWork;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     #endregion
 
@@ -27,7 +27,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
                                IRefreshTokenRepository refreshTokens, 
                                IJwtTokenService tokenService,
                                ITokenHasher tokenHasher,
-                               IIdentityUnitOfWork unitOfWork, IMapper mapper)
+                               IUnitOfWork unitOfWork, IMapper mapper)
     {
         _tokenHasher = tokenHasher;
         _users = users;

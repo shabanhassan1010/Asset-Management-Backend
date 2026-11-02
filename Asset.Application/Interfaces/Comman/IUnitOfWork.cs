@@ -17,6 +17,7 @@ namespace Asset.Application.Interfaces.Comman
         ILocationRepository Locations { get; }
         IDashboardRepository Dashboard { get; }
         IAiLookupRepository AiLookup { get; }
+        Task ExecuteInTransactionAsync(Func<Task> action, CancellationToken cancellationToken);
         Task<int> SaveChangesAsync(CancellationToken ct);
     }
 }

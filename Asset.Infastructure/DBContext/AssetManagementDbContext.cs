@@ -10,13 +10,9 @@ using AssetEntity = Asset.Domain.Models.Asset;
 
 namespace Asset.Infastructure.Models;
 
-public partial class AssetManagementDbContext : DbContext
+public class AssetManagementDbContext : IdentityDbContext<ApplicationUser>
 {
     #region Constructor
-    public AssetManagementDbContext()
-    {
-    }
-
     public AssetManagementDbContext(DbContextOptions<AssetManagementDbContext> options)
         : base(options)
     {
@@ -35,10 +31,10 @@ public partial class AssetManagementDbContext : DbContext
     public virtual DbSet<Employee> Employees { get; set; }
 
     public virtual DbSet<Location> Locations { get; set; }
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        OnModelCreatingPartial(modelBuilder);
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AssetManagementDbContext).Assembly);
     }
-
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

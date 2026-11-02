@@ -14,7 +14,7 @@ namespace Asset.XUnitTest.ApplicationTests.Logout.Commands
         #region Setup
         private readonly Mock<IRefreshTokenRepository> _refreshTokensMock = new();
         private readonly Mock<ICurrentUserService> _currentUserMock = new();
-        private readonly Mock<IIdentityUnitOfWork> _unitOfWorkMock = new();
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
 
         private readonly LogoutCommandHandler _handler;
         private readonly CancellationToken _ct = CancellationToken.None;
@@ -53,7 +53,7 @@ namespace Asset.XUnitTest.ApplicationTests.Logout.Commands
             // Act
             await _handler.Handle(request, _ct);
 
-            // Assert — أهم سطر في التست كله
+            // Assert 
             stored.IsRevoked.Should().BeTrue();
 
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(_ct), Times.Once);
@@ -98,7 +98,6 @@ namespace Asset.XUnitTest.ApplicationTests.Logout.Commands
         public async Task Logout_Should_DoNothing_When_Token_BelongsToAnotherUser()
         {
             // Arrange
-            // توكن حقيقي وصالح، بس بتاع يوزر تاني غير اللي بعت الريكوست
             var request = new LogoutCommand("hashed-refresh-token");
             var stored = StoredToken(userId: "some-other-user-id");
 
@@ -109,7 +108,7 @@ namespace Asset.XUnitTest.ApplicationTests.Logout.Commands
             // Act
             await _handler.Handle(request, _ct);
 
-            // Assert — التوكن ده يفضل زي ما هو، مايتلمسش
+            // Assert 
             stored.IsRevoked.Should().BeFalse();
 
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);

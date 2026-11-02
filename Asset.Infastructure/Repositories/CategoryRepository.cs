@@ -2,6 +2,7 @@
 using Asset.Application.Features.Category.Queries.QueryResponse;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Application.Interfaces.Repository;
+using Asset.Domain.Enum;
 using Asset.Domain.Models;
 using Asset.Infastructure.Models;
 using Azure.Core;
@@ -39,13 +40,13 @@ namespace Asset.Infastructure.Repositories
                     CategoryName = c.CategoryName,
                     Description = c.Description,
                     IsActive = c.IsActive,
-                    AssetsCount = c.Assets.Count()
+                    AssetsCount = c.Assets.Count(a => a.Status != (int)AssetStatus.Retired)
                 })
                 .ToListAsync(ct);
         }
         public async Task<bool> HasAssetsAsync(int id, CancellationToken ct)
         {
-            return await _dbContext.Assets.AsNoTracking().AnyAsync(a => a.CategoryId == id, ct);
+            return await _dbContext.Assets.AsNoTracking().AnyAsync(a => a.CategoryId == id && a.Status != (int)AssetStatus.Retired, ct);
         }
 
         // Check

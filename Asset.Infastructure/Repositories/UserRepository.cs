@@ -4,7 +4,7 @@ using Asset.Application.Common.Interfaces;
 using Asset.Application.Common.Models;
 using Asset.Domain.Enum;
 using Asset.Domain.Identity;
-using Asset.Infastructure.DBContext.Identity;
+using Asset.Infastructure.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 #endregion
@@ -14,11 +14,11 @@ public class UserRepository : IUserRepository
 {
     #region Fields
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly AppIdentityDbContext _context;
+    private readonly AssetManagementDbContext _context;
     #endregion
 
     #region Constrcutor
-    public UserRepository(UserManager<ApplicationUser> userManager, AppIdentityDbContext context)
+    public UserRepository(UserManager<ApplicationUser> userManager, AssetManagementDbContext context)
     {
         _userManager = userManager;
         _context = context;

@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 #endregion
 
-namespace Asset.Infastructure.DBContext.Identity;
+namespace Asset.Infastructure.DBContext;
 public static class IdentitySeeder
 {
     public static async Task SeedAsync(IServiceProvider services)

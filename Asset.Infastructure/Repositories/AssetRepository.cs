@@ -166,6 +166,7 @@ namespace Asset.Infastructure.Repositories
         public async Task<IReadOnlyList<AssetTypeCountResult>> GetCountsByAssetTypeAsync(CancellationToken cancellationToken)
         {
             return await _dbContext.Assets.AsNoTracking()
+                                          .Where(a => a.Status != (int)AssetStatus.Retired)   // add this line
                                           .GroupBy(a => a.AssetTypeId)
                                           .Select(g => new AssetTypeCountResult
                                           {

@@ -17,7 +17,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
     private readonly ITokenHasher _tokenHasher;
     private readonly IUserRepository _users;
     private readonly IJwtTokenService _tokenService;
-    private readonly IIdentityUnitOfWork _unitOfWork;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     #endregion
 
@@ -26,7 +26,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
                                       ITokenHasher tokenHasher,
                                       IUserRepository users,
                                       IJwtTokenService tokenService,
-                                      IIdentityUnitOfWork unitOfWork,
+                                      IUnitOfWork unitOfWork,
                                       IMapper mapper)
     {
         _refreshTokens = refreshTokens;

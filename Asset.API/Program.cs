@@ -4,7 +4,7 @@ using Asset.API.Middleware;
 using Asset.Application;
 using Asset.Application.Interfaces.Comman;
 using Asset.Infastructure;
-using Asset.Infastructure.DBContext.Identity;
+using Asset.Infastructure.DBContext;
 using Asset.Infastructure.Service;
 using Microsoft.AspNetCore.Localization;
 using Serilog;

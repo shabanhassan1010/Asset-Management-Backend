@@ -16,7 +16,7 @@ using cateogryEntity = Asset.Domain.Models.Category;
 
 namespace Asset.Application.Features.Category.Commands.CommandHandlers
 {
-    public class CreateCategoryCommandHandler : BaseResponseHandler,
+    public class CategoryCommandHandler : BaseResponseHandler,
                                                 IRequestHandler<CreateCategoryCommandModel, ApiResponse<CreateCategoryResponseDto>>,
                                                 IRequestHandler<UpdateCategoryCommandModel, ApiResponse<UpdateCategoryResponseDto>>,
                                                 IRequestHandler<DeleteCategoryCommandModel, ApiResponse<string>>
@@ -28,7 +28,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
         #endregion
 
         #region Constructor
-        public CreateCategoryCommandHandler(IUnitOfWork unitOfWork,IMapper mapper, ICacheService cache,
+        public CategoryCommandHandler(IUnitOfWork unitOfWork,IMapper mapper, ICacheService cache,
                                             IStringLocalizer<SharedResources> localizer) : base(localizer)
         {
             _unitOfWork = unitOfWork;

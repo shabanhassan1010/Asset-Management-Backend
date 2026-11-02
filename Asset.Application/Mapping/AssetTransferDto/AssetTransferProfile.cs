@@ -28,7 +28,7 @@ namespace Asset.Application.Mapping.AssetTransferDto
                     .ForMember(d => d.FromLocationName, o => o.MapFrom(s => s.FromLocation.LocationName))
                     .ForMember(d => d.ToLocationName, o => o.MapFrom(s => s.ToLocation.LocationName))
                     .ForMember(d => d.TransferDate, o => o.MapFrom(s => DateTime.SpecifyKind(s.TransferDate, DateTimeKind.Utc)))
-                    .ForMember(d => d.TransferredByName, o => o.Ignore());
+                    .ForMember(d => d.TransferredByName,o => o.MapFrom(s => s.TransferredByUser == null ? null : s.TransferredByUser.UserName));
         }
     }
 }

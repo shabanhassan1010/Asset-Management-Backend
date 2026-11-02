@@ -1,7 +1,7 @@
 #region
 using Asset.Application.Interfaces.Comman;
 using Asset.Domain.Identity;
-using Asset.Infastructure.DBContext.Identity;
+using Asset.Infastructure.Models;
 using Microsoft.EntityFrameworkCore;
 #endregion
 
@@ -9,11 +9,11 @@ namespace Asset.Infastructure.Repositories;
 public class RefreshTokenRepository : IRefreshTokenRepository
 {
     #region Fields
-    private readonly AppIdentityDbContext _context;
+    private readonly AssetManagementDbContext _context;
     #endregion
 
     #region Constructor
-    public RefreshTokenRepository(AppIdentityDbContext context) => _context = context;
+    public RefreshTokenRepository(AssetManagementDbContext context) => _context = context;
     #endregion
 
     #region Logout & Refresh Token Method

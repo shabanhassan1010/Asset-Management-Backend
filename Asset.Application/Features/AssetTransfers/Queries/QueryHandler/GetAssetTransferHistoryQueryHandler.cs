@@ -23,15 +23,13 @@ namespace Asset.Application.Features.AssetTransfers.Queries.QueryHandler
         #region Fields
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IUserRepository _userRepository;
         #endregion
 
         #region Constructor
-        public GetAssetTransferHistoryQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, IUserRepository userRepository, IStringLocalizer<SharedResources> localizer) : base(localizer)
+        public GetAssetTransferHistoryQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, IStringLocalizer<SharedResources> localizer) : base(localizer)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _userRepository = userRepository;
         }
         #endregion
 
@@ -52,23 +50,12 @@ namespace Asset.Application.Features.AssetTransfers.Queries.QueryHandler
 
         public async Task<BaseResponse<GetTransferDetailsResponse>> Handle(GetTransferDetailsQueryModel request, CancellationToken cancellationToken)
         {
-            // 1. Transfer + asset + departments + employees + locations (AssetManagementDbContext)
-            var transfer = await _unitOfWork.AssetTransfers
-                .GetDetailsAsync(request.AssetId, request.TransferId, cancellationToken);
+            var transfer = await _unitOfWork.AssetTransfers.GetDetailsAsync(request.AssetId, request.TransferId, cancellationToken);
 
             if (transfer is null)
-                return NotFound<GetTransferDetailsResponse>(
-                    $"Transfer {request.TransferId} was not found for asset {request.AssetId}.");
+                return NotFound<GetTransferDetailsResponse>($"Transfer {request.TransferId} was not found for asset {request.AssetId}.");
 
             var response = _mapper.Map<GetTransferDetailsResponse>(transfer);
-
-            // 2. Admin name lives in AppIdentityDbContext → can't Include it,
-            //    so we fetch it with one separate call.
-            if (!string.IsNullOrEmpty(transfer.TransferredByUserId))
-            {
-                var admin = await _userRepository.GetByIdAsync(transfer.TransferredByUserId, cancellationToken);
-                response.TransferredByName = admin?.UserName;
-            }
 
             return Success(response);
         }

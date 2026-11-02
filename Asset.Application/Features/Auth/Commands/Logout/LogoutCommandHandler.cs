@@ -9,11 +9,11 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand>
     #region Fields
     private readonly IRefreshTokenRepository _refreshTokens;  // Get refresh Tokens from database
     private readonly ICurrentUserService _currentUser;       //  know which user did this request
-    private readonly IIdentityUnitOfWork _unitOfWork;  
+    private readonly IUnitOfWork _unitOfWork;  
     #endregion
 
     #region Constructor
-    public LogoutCommandHandler(IRefreshTokenRepository refreshTokens,ICurrentUserService currentUser,IIdentityUnitOfWork unitOfWork)
+    public LogoutCommandHandler(IRefreshTokenRepository refreshTokens,ICurrentUserService currentUser,IUnitOfWork unitOfWork)
     {
         _refreshTokens = refreshTokens;
         _currentUser = currentUser;

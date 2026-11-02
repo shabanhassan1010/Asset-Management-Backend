@@ -22,7 +22,7 @@ namespace Asset.XUnitTest.ApplicationTests.RefreshToken
         private readonly Mock<IRefreshTokenRepository> _refreshTokensMock = new();
         private readonly Mock<IJwtTokenService> _tokenServiceMock = new();
         private readonly Mock<ITokenHasher> _tokenHasherMock = new();
-        private readonly Mock<IIdentityUnitOfWork> _unitOfWorkMock = new();
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock = new();
         private readonly Mock<IMapper> _mapperMock = new();
 
         private readonly RefreshTokenCommandHandler _handler;
@@ -93,7 +93,7 @@ namespace Asset.XUnitTest.ApplicationTests.RefreshToken
         [Fact]
         public async Task RefreshToken_Should_RevokeAllUserTokens_When_ReusedTokenIsAlreadyRevoked()
         {
-            // Arrange — ده الـ theft-detection scenario: حد بيحاول يستخدم توكن اتلغى قبل كده
+            // Arrange — ده الـ theft-detection scenario:
             var request = new RefreshTokenCommand(IncomingRawToken);
             var stored = StoredToken(userId: "user-1", isRevoked: true);
 
@@ -108,7 +108,6 @@ namespace Asset.XUnitTest.ApplicationTests.RefreshToken
             await act.Should().ThrowAsync<AuthenticationFailedException>()
                      .WithMessage(InvalidMessage);
 
-            // أهم اتنين سطر في الملف ده: لازم يلغي كل توكنات نفس اليوزر ويحفظهم قبل ما يرمي
             _refreshTokensMock.Verify(x => x.RevokeAllForUserAsync(stored.UserId, _ct), Times.Once);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(_ct), Times.Once);
 
@@ -133,7 +132,6 @@ namespace Asset.XUnitTest.ApplicationTests.RefreshToken
             await act.Should().ThrowAsync<AuthenticationFailedException>()
                      .WithMessage(InvalidMessage);
 
-            // مهم: توكن منتهي مش نفسه توكن معاد استخدامه — مايستحقش عملية الـ revoke-all
             _refreshTokensMock.Verify(x => x.RevokeAllForUserAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
 
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -210,16 +208,16 @@ namespace Asset.XUnitTest.ApplicationTests.RefreshToken
             // Act
             var result = await _handler.Handle(request, _ct);
 
-            // Assert — الرد اللي رايح للفرونت
+            // Assert
             result.AccessToken.Should().Be("new-access-token");
             result.RefreshToken.Should().Be("new-raw-refresh-token");   // الخام، مش الـ hash
             result.User.Should().BeSameAs(expectedUserDto);
 
-            // Assert — التوكن القديم اتقفل وربطناه باللي جاي بدل منه (audit chain)
+            // Assert 
             stored.IsRevoked.Should().BeTrue();
             stored.ReplacedByTokenHash.Should().Be(newHash);
 
-            // Assert — التوكن الجديد المخزّن هو الـ hash، مش الخام
+            // Assert 
             _refreshTokensMock.Verify(x => x.AddAsync(
                 It.Is<RefreshTokenEntity>(t =>
                     t.UserId == user.Id &&
@@ -229,11 +227,9 @@ namespace Asset.XUnitTest.ApplicationTests.RefreshToken
                 _ct),
                 Times.Once);
 
-            // الـ theft-detection متنداش هنا — ده مش reuse، ده استخدام سليم
             _refreshTokensMock.Verify(x => x.RevokeAllForUserAsync(
                 It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
 
-            // الاتنين لازم يتحفظوا معًا في نفس الـ SaveChangesAsync
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(_ct), Times.Once);
         }
     }

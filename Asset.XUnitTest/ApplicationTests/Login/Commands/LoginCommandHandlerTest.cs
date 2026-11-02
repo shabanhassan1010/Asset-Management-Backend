@@ -21,7 +21,7 @@ namespace Asset.XUnitTest.ApplicationTests.Login.Commands
         private readonly Mock<IRefreshTokenRepository> _refreshTokensMock;
         private readonly Mock<IJwtTokenService> _tokenServiceMock;
         private readonly Mock<ITokenHasher> _tokenHasherMock;
-        private readonly Mock<IIdentityUnitOfWork> _unitOfWorkMock;
+        private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<IMapper> _mapperMock;
 
         private readonly LoginCommandHandler _handler;

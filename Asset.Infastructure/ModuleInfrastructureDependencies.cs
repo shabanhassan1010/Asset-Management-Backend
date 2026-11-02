@@ -7,7 +7,6 @@ using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Application.Interfaces.Repository;
 using Asset.Domain.Identity;
-using Asset.Infastructure.DBContext.Identity;
 using Asset.Infastructure.Models;
 using Asset.Infastructure.Repositories;
 using Asset.Infastructure.Security;
@@ -35,7 +34,7 @@ namespace Asset.Infastructure
                 throw new InvalidOperationException("Connection string 'DefaultConnection' is missing. Run: dotnet user-secrets set \"ConnectionStrings:DefaultConnection\" \"<value>\"");
 
             services.AddDbContext<AssetManagementDbContext>(options => options.UseSqlServer(connectionString)); // related into entities and tables of the application
-            services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(connectionString));     // related into identity and roles of the application
+            //services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(connectionString));     // related into identity and roles of the application
             services.AddIdentityCore<ApplicationUser>(options =>
             {
                 // Password
@@ -45,7 +44,7 @@ namespace Asset.Infastructure
                 options.User.RequireUniqueEmail = true;
             })
             .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<AppIdentityDbContext>()
+            .AddEntityFrameworkStores<AssetManagementDbContext>()
             .AddDefaultTokenProviders();  // for generating tokens for password reset, email confirmation, etc.
             #endregion
 
@@ -88,7 +87,7 @@ namespace Asset.Infastructure
             #region Identity and tokens
             services.Configure<JWTSettings>(configuration.GetSection(JWTSettings.SectionName));
             services.AddScoped<IJwtTokenService, JwtTokenService>();
-            services.AddScoped<IIdentityUnitOfWork, IdentityUnitOfWork>();
+            //services.AddScoped<IIdentityUnitOfWork, IdentityUnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddScoped<ITokenHasher, TokenHasher>();

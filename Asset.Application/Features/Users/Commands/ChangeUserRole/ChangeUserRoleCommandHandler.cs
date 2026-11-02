@@ -13,14 +13,14 @@ public class ChangeUserRoleCommandHandler : IRequestHandler<ChangeUserRoleComman
     private readonly IUserRepository _users;
     private readonly IRefreshTokenRepository _refreshTokens;
     private readonly ICurrentUserService _currentUser;
-    private readonly IIdentityUnitOfWork _unitOfWork;
+    private readonly IUnitOfWork _unitOfWork;
     #endregion
 
     #region Constructor
     public ChangeUserRoleCommandHandler(IUserRepository users,
                                         IRefreshTokenRepository refreshTokens,
                                         ICurrentUserService currentUser,
-                                        IIdentityUnitOfWork unitOfWork)
+                                        IUnitOfWork unitOfWork)
     {
         _users = users;
         _refreshTokens = refreshTokens;

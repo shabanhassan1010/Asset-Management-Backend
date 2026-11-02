@@ -46,6 +46,7 @@ namespace Asset.Infastructure.Repositories
                 .Include(t => t.ToDepartment)
                 .Include(t => t.FromLocation)
                 .Include(t => t.ToLocation)
+                .Include(t=>t.TransferredByUser)
                 .FirstOrDefaultAsync(t => t.Id == transferId && t.AssetId == assetId, cancellationToken);
         }
         #endregion

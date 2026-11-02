@@ -4,6 +4,7 @@ using Asset.Application.Common.Caching;
 using Asset.Application.Features.AssetTypes.Commands.CommandModels;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Resoures;
+using Asset.Domain.Enum;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Models;
 using AutoMapper;
@@ -13,7 +14,7 @@ using Microsoft.Extensions.Localization;
 
 namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 {
-    public class CreateAssetTypeCommandHandler : BaseResponseHandler, IRequestHandler<CreateAssetTypeCommandModel, BaseResponse<int>> ,
+    public class AssetTypeCommandHandler : BaseResponseHandler, IRequestHandler<CreateAssetTypeCommandModel, BaseResponse<int>> ,
                                                                       IRequestHandler<UpdateAssetTypeCommandModel, BaseResponse<string>> ,
                                                                       IRequestHandler<DeleteAssetTypeCommandModel, BaseResponse<string>>
     {
@@ -24,7 +25,7 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
         #endregion
 
         #region Constructor
-        public CreateAssetTypeCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,
+        public AssetTypeCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,
                                              ICacheService cacheService, 
                                              IStringLocalizer<SharedResources> localizer) : base(localizer)
         {
@@ -64,7 +65,7 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
             if (assetType is null)
                 return NotFound<string>("Asset type not found");
 
-            var isUsed = await _unitOfWork.Assets.AnyAsync(a => a.AssetTypeId == request.Id, cancellationToken);
+            var isUsed = await _unitOfWork.Assets.AnyAsync(a => a.AssetTypeId == request.Id && a.Status != (int)AssetStatus.Retired, cancellationToken);
             if (isUsed)
                  throw new BusinessException("This asset type is in use. Delete or reassign its assets first.");
 

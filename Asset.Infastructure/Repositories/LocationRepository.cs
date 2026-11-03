@@ -49,7 +49,7 @@ namespace Asset.Infastructure.Repositories
         // Check
         public async Task<bool> LocationNameExistsAsync(string name, int? exceptId, CancellationToken ct)
         {
-            var query = _dbContext.Locations.AsNoTracking().Where(l => l.LocationName == name);
+            var query = _dbContext.Locations.AsNoTracking().Where(l => l.IsActive && l.LocationName == name);
             if (exceptId.HasValue)
             {
                 query = query.Where(l => l.Id != exceptId.Value);

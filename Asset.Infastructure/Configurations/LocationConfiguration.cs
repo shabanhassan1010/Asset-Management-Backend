@@ -10,12 +10,16 @@ namespace Asset.Infastructure.Configurations
             entity.HasIndex(e => e.LocationName, "UQ_Locations_LocationName").IsUnique();
 
             entity.Property(e => e.Address).HasMaxLength(300);
+
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasAnnotation("Relational:DefaultConstraintName", "DF_Locations_IsActive");
-            entity.Property(e => e.LocationName)
-                .IsRequired()
-                .HasMaxLength(150);
+
+            entity.Property(e => e.LocationName).IsRequired().HasMaxLength(150);
+
+            entity.HasIndex(a => a.LocationName, "UX_Locations_LocationName_Active")
+                  .IsUnique()
+                  .HasFilter("[IsActive] = 1");
         }
     }
 }

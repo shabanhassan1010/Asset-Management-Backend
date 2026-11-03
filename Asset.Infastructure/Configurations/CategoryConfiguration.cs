@@ -15,13 +15,17 @@ namespace Asset.Infastructure.Configurations
         {
             entity.HasIndex(e => e.CategoryName, "UQ_Categories_CategoryName").IsUnique();
 
-            entity.Property(e => e.CategoryName)
-                .IsRequired()
-                .HasMaxLength(100);
+            entity.Property(e => e.CategoryName).IsRequired().HasMaxLength(100);
+
             entity.Property(e => e.Description).HasMaxLength(500);
+
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasAnnotation("Relational:DefaultConstraintName", "DF_Categories_IsActive");
+
+            entity.HasIndex(x => x.CategoryName, "UX_Categories_CategoryName_Active")
+                  .IsUnique()
+                  .HasFilter("[IsActive] = 1");
         }
     }
 }

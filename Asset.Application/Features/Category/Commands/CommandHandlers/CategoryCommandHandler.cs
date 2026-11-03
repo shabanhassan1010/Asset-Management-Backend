@@ -11,6 +11,7 @@ using Asset.Domain.Exceptions;
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Localization;
+using System.Security.AccessControl;
 using cateogryEntity = Asset.Domain.Models.Category;
 #endregion
 
@@ -40,7 +41,12 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
         #region handlers
         public async Task<ApiResponse<CreateCategoryResponseDto>> Handle(CreateCategoryCommandModel request, CancellationToken cancellationToken)
         {
+            var name = request.CategoryName.Trim();
+            if(await _unitOfWork.Categories.CategoryNameExistsAsync(name,null,cancellationToken))
+                throw new BusinessException("A Category with this name already exists.");
+
             var entity = _mapper.Map<cateogryEntity>(request);
+            entity.CategoryName = name;
             entity.IsActive = true;
 
             _unitOfWork.Categories.Add(entity);
@@ -58,10 +64,17 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
         public async Task<ApiResponse<UpdateCategoryResponseDto>> Handle(UpdateCategoryCommandModel request, CancellationToken cancellationToken)
         {
             var entity = await _unitOfWork.Categories.GetByIdAsync(request.Id, cancellationToken);
-            if (entity is null)
+            if (entity is null || !entity.IsActive)
                 throw new NotFoundException($"Category {request.Id} was not found.");
 
+            var name = request.CategoryName.Trim();                                              
+
+            if (await _unitOfWork.Categories.CategoryNameExistsAsync(name, request.Id, cancellationToken))  
+                throw new BusinessException("A Category with this name already exists.");
+
             _mapper.Map(request, entity);
+            entity.CategoryName = name; 
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await cache.RemoveAsync(new[] { CacheKeys.CategoryById(request.Id), CacheKeys.CategoryList });
             await cache.BumpVersionAsync(CacheKeys.AssetsVersion);
@@ -78,7 +91,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
         {
             // Get Category Which i went to Delete It 
             var entity = await _unitOfWork.Categories.GetByIdAsync(request.Id, cancellationToken);
-            if (entity is null)
+            if (entity is null || !entity.IsActive)
                 throw new NotFoundException($"Category {request.Id} was not found.");
 
             // Check if this category Has Any Assets

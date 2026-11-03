@@ -14,8 +14,6 @@ namespace Asset.Application.Interfaces.IRepository
         // Get
         Task<IReadOnlyList<GetLocationListResponse>> GetAllProjectedAsync(CancellationToken ct);
         Task<IReadOnlyList<AssetEntity>> GetTrackedAssetsByLocationAsync(int locationId, CancellationToken ct);
-
-        // Check
         Task<bool> LocationNameExistsAsync(string name, int? exceptId, CancellationToken ct);
 
         // Delete (soft Delete)

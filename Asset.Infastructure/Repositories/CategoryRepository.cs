@@ -52,7 +52,7 @@ namespace Asset.Infastructure.Repositories
         // Check
         public async Task<bool> CategoryNameExistsAsync(string name, int? exceptId, CancellationToken ct)
         {
-            var query = _dbContext.Categories.AsNoTracking().Where(c => c.CategoryName == name);
+            var query = _dbContext.Categories.AsNoTracking().Where(c => c.CategoryName == name && c.IsActive);
             if (exceptId.HasValue)
             {
                 query = query.Where(c => c.Id != exceptId.Value);

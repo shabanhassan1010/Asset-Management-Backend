@@ -15,15 +15,17 @@ namespace Asset.Infastructure.Configurations
         {
             entity.HasIndex(e => e.Code, "UQ_Departments_Code").IsUnique();
 
-            entity.Property(e => e.Code)
-                .IsRequired()
-                .HasMaxLength(20);
-            entity.Property(e => e.DepartmentName)
-                .IsRequired()
-                .HasMaxLength(150);
+            entity.Property(e => e.Code).IsRequired().HasMaxLength(20);
+
+            entity.Property(e => e.DepartmentName).IsRequired().HasMaxLength(150);
+
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasAnnotation("Relational:DefaultConstraintName", "DF_Departments_IsActive");
+
+            entity.HasIndex(a=>a.DepartmentName, "UX_Departments_DepartmentName_Active")
+                  .IsUnique()
+                  .HasFilter("[IsActive] = 1");
         }
     }
 }

@@ -13,5 +13,6 @@ namespace Asset.Application.Interfaces.IRepository
 
         // Write
         void Remove(Department entity);
+
     }
 }

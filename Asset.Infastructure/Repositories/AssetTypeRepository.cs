@@ -34,15 +34,15 @@ namespace Asset.Infastructure.Repositories
         }
         public async Task<bool> AssetTypeNameExistsAsync(string name, int? exceptId, CancellationToken cancellationToken)
         {
-            var query = _dbContext.AssetTypes.AsQueryable();
+            var query = _dbContext.AssetTypes.Where(a=>a.IsActive && a.TypeName == name);
 
             if (exceptId.HasValue)
             {
                 query = query.Where(t => t.Id != exceptId.Value);
             }
-            return await query.AnyAsync(t => t.TypeName == name, cancellationToken);
+            return await query.AnyAsync(cancellationToken);
         }
-        public void Remove(AssetType entity)
+        public void Deactivate(AssetType entity)
         {
             entity.IsActive = false;
         }

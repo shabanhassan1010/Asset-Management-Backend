@@ -34,7 +34,13 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
         #region Handlers
         public async Task<ApiResponse<CreateDepartmentResponseDto>> Handle(CreateDepartmentCommandModel request, CancellationToken cancellationToken)
         {
+            var name = request.DepartmentName.Trim();
+            if(await _unitOfWork.Departments.IsNameExistsAsync(name, null, cancellationToken))
+                throw new BusinessException($"Department with name '{name}' already exists.");
+
+
             var entity = _mapper.Map<Department>(request);
+            entity.DepartmentName = name;
             entity.IsActive = true;
 
             _unitOfWork.Departments.Add(entity);
@@ -52,10 +58,17 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
         public async Task<ApiResponse<UpdateDepartmentResponseDto>> Handle(UpdateDepartmentCommandModel request, CancellationToken cancellationToken)
         {
             var entity = await _unitOfWork.Departments.GetByIdAsync(request.Id, cancellationToken);
-            if (entity is null || entity.IsActive == false)
+            if (entity is null || !entity.IsActive)
                 throw new NotFoundException($"Department {request.Id} does not exist.");
 
+            var name = request.DepartmentName.Trim();                                            
+
+            if (await _unitOfWork.Departments.IsNameExistsAsync(name, request.Id, cancellationToken)) 
+                throw new BusinessException("A location with this name already exists.");
+
             _mapper.Map(request, entity);
+            entity.DepartmentName = name;
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _cache.RemoveAsync( new[] { CacheKeys.DepartmentById(request.Id), CacheKeys.DepartmentList });
             await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
@@ -72,10 +85,8 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
         {
             var entity = await _unitOfWork.Departments.GetByIdAsync(request.Id, cancellationToken);
 
-            if (entity is null)
-                throw new NotFoundException($"Department {request.Id} does not exist.");
-            if(!entity.IsActive)
-                throw new BusinessException($"Department {request.Id} is already deactivated.");
+            if (entity is null || !entity.IsActive)
+                throw new NotFoundException($"Department {request.Id} was not found.");
 
             var employeesCount = await _unitOfWork.Employees.CountEmployeesAsync(request.Id, cancellationToken);
             var assetsCount   = await _unitOfWork.Assets.CountAssetsAsync(request.Id, cancellationToken);

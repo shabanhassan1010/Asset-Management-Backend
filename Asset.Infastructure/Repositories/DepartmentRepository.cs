@@ -45,7 +45,7 @@ namespace Asset.Infastructure.Repositories
         }
         public Task<bool> IsNameExistsAsync(string name, int? exceptId, CancellationToken ct)
         {
-            var query = _dbContext.Departments.AsNoTracking().Where(a => a.DepartmentName == name);
+            var query = _dbContext.Departments.AsNoTracking().Where(a => a.DepartmentName == name && a.IsActive);
             if (exceptId.HasValue)
             {
                 query = query.Where(a => a.Id != exceptId.Value);

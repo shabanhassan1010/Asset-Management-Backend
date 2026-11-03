@@ -34,7 +34,13 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
         #region handlers
         public async Task<ApiResponse<CreateLocationResponseDto>> Handle( CreateLocationCommandModel request, CancellationToken cancellationToken)
         {
+            var name = request.LocationName.Trim();
+
+            if(await _unitOfWork.Locations.LocationNameExistsAsync(name, null, cancellationToken))
+                throw new ConflictException($"Location with name '{name}' already exists.");
+
             var entity = _mapper.Map<Location>(request);
+            entity.LocationName = name;
             entity.IsActive = true;
 
             _unitOfWork.Locations.Add(entity);
@@ -52,10 +58,17 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
         public async Task<ApiResponse<UpdateLocationResponseDto>> Handle(UpdateLocationCommandModel request, CancellationToken cancellationToken)
         {
             var entity = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
-            if (entity is null)
+            if (entity is null || !entity.IsActive)
                 throw new NotFoundException($"Location {request.Id} was not found.");
 
+            var name = request.LocationName.Trim();                                              // NEW
+
+            if (await _unitOfWork.Locations.LocationNameExistsAsync(name, request.Id, cancellationToken))  // NEW
+                throw new BusinessException("A location with this name already exists.");
+
             _mapper.Map(request, entity);
+            entity.LocationName = name;
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _cache.RemoveAsync(new[] { CacheKeys.LocationById(request.Id), CacheKeys.LocationList });
             await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
@@ -71,7 +84,7 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
         public async Task<ApiResponse<string>> Handle(DeleteLocationCommandModel request, CancellationToken cancellationToken)
         {
             var entity = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
-            if (entity is null)
+            if (entity is null || !entity.IsActive)
                 throw new NotFoundException($"Location {request.Id} was not found.");
 
             // Assets associated with this location must be unassigned before deactivation.

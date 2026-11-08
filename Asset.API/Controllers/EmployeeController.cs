@@ -36,16 +36,6 @@ namespace Asset.API.Controllers
         }
         #endregion
 
-        #region GetAll
-        [HttpGet(BaseRouter.EmployeeRouter.Base)]
-        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
-        {
-            var employees = await _sender.Send(new GetEmployeesLookupQueryModel(), cancellationToken);
-
-            return Ok(employees);
-        }
-        #endregion
-
         #region GetEmployeeById
         [HttpGet(BaseRouter.EmployeeRouter.Id)]
         public async Task<IActionResult> GetEmployeeById(int id, CancellationToken cancellationToken)

@@ -16,8 +16,9 @@ namespace Asset.Application.Features.Employees.Queries.QueryModels
         public string CacheKey => $"employees:list" +
                                   $":p{PageNumber}:s{PageSize}" + 
                                   $":d{DepartmentId}" +
-                                  $":q{Search?.Trim().ToLowerInvariant()}";
+                                  $":q{Search?.Trim().ToLowerInvariant()}" +
+                                  $":a{(IsActive.HasValue ? (IsActive.Value ? "1" : "0") : "all")}";
         public CacheDuration Duration => CacheDuration.Lookup;
-        public string VersionKey => CacheKeys.AssetsVersion;            //  same version as asset detail
+        public string VersionKey => CacheKeys.EmployeesVersion;            //  same version as asset detail
     }
 }

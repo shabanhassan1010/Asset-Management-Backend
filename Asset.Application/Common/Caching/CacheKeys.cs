@@ -20,6 +20,7 @@
         // Hold the current version for all assets cache entries
         // Asset keys include this version, so changing it makes every old asset key unreachable.
         public const string AssetsVersion = "assets:version";
+        public const string EmployeesVersion = "employees:version";
         public static string AssetById(int id) => $"assets:{id}";           
 
         public static readonly string[] ListsAffectedByAssetChanges =

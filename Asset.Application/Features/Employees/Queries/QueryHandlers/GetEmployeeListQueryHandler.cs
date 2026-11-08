@@ -52,10 +52,10 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
         {
             var (employees, totalCount) = await _unitOfWork.Employees.GetPagedAsync(request.Search,request.DepartmentId,request.IsActive,
                                                                                   request.PageNumber,request.PageSize,cancellationToken);
-
+            var mapper = _mapper.Map<List<GetEmployeeListQueryResponse>>(employees);
             var result = new PagedResult<GetEmployeeListQueryResponse>
             {
-                Items = _mapper.Map<List<GetEmployeeListQueryResponse>>(employees),
+                Items = mapper,
                 TotalCount = totalCount,
                 Page = request.PageNumber,
                 PageSize = request.PageSize

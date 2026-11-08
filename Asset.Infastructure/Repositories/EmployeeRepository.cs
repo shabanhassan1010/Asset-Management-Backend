@@ -75,7 +75,7 @@ namespace Asset.Infastructure.Repositories
         }
         public async Task<(List<Employee> Items, int TotalCount)> GetPagedAsync(string search, int? departmentId, bool? isActive,int pageNumber, int pageSize, CancellationToken ct)
         {
-            var query = _dbContext.Employees.AsNoTracking().Include(e => e.Department)  .AsQueryable();
+            var query = _dbContext.Employees.AsNoTracking().Include(e => e.Department).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {

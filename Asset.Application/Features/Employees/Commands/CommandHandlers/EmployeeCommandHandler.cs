@@ -163,6 +163,8 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
         private async Task InvalidateAsync()
         {
             await _cache.RemoveAsync(new[] { CacheKeys.EmployeeList, CacheKeys.DepartmentList });
+            // Employee paged list is cached by version → bump the version
+            await _cache.BumpVersionAsync(CacheKeys.EmployeesVersion);
         }
         #endregion
     }

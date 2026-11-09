@@ -1,4 +1,5 @@
 ﻿#region
+using Asset.Application.Bases;
 using Asset.Application.Common.Caching;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.Departments.Queries.QueryResponse;

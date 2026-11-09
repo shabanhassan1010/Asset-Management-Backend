@@ -1,5 +1,6 @@
 ﻿#region
 using Asset.API.Helper;
+using Asset.Application.Features.Category.Queries.QueryModels;
 using Asset.Application.Features.Locations.Commands.CommandModels;
 using Asset.Application.Features.Locations.Queries.QueryModels;
 using Asset.Domain.Enum;
@@ -23,6 +24,15 @@ namespace Asset.API.Controllers
         public LocationController(ISender sender)
         {
             _sender = sender;
+        }
+        #endregion
+
+        #region Paginated
+        [HttpGet(BaseRouter.LocationRouter.Paginated)]
+        public async Task<IActionResult> GetPaginated([FromQuery] GetLocationPaginatedModelQuery query, CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(query, cancellationToken);
+            return Ok(result);
         }
         #endregion
 

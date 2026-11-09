@@ -45,7 +45,7 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
 
             _unitOfWork.Locations.Add(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cache.RemoveAsync(CacheKeys.LocationList);
+            await InvalidateAsync();
 
             return new ApiResponse<CreateLocationResponseDto>
             {
@@ -61,17 +61,16 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
             if (entity is null || !entity.IsActive)
                 throw new NotFoundException($"Location {request.Id} was not found.");
 
-            var name = request.LocationName.Trim();                                              // NEW
+            var name = request.LocationName.Trim();   
 
-            if (await _unitOfWork.Locations.LocationNameExistsAsync(name, request.Id, cancellationToken))  // NEW
+            if (await _unitOfWork.Locations.LocationNameExistsAsync(name, request.Id, cancellationToken)) 
                 throw new BusinessException("A location with this name already exists.");
 
             _mapper.Map(request, entity);
             entity.LocationName = name;
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cache.RemoveAsync(new[] { CacheKeys.LocationById(request.Id), CacheKeys.LocationList });
-            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
+            await InvalidateAsync();
 
             return new ApiResponse<UpdateLocationResponseDto>
             {
@@ -95,10 +94,9 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
                 asset.LocationId = null;
             }
 
-            _unitOfWork.Locations.Remove(entity);   // IsActive = false
+            _unitOfWork.Locations.DeActivate(entity);   // IsActive = false
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cache.RemoveAsync(new[] { CacheKeys.LocationById(request.Id), CacheKeys.LocationList });
-            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
+            await InvalidateAsync();
 
             return new ApiResponse<string>
             {
@@ -106,6 +104,14 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
                 Success = true,
                 Message = "Location Deactivated Successfully"
             };
+        }
+        #endregion
+
+        #region Private Methods
+        private async Task InvalidateAsync()
+        {
+            await _cache.RemoveAsync(CacheKeys.LocationList);
+            await _cache.BumpVersionAsync(CacheKeys.LocationsVersion);
         }
         #endregion
     }

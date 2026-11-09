@@ -12,7 +12,7 @@ namespace Asset.Application.Interfaces.IRepository
         Task<Employee?> GetByIdWithDepartmentAsync(int id, CancellationToken ct);
         Task<IReadOnlyList<Employee>> GetAllWithDepartmentAsync(CancellationToken cancellationToken);
         Task<IReadOnlyList<Employee>> GetAvailableAsync(IReadOnlyList<int> takenEmployeeIds, int? departmentId, CancellationToken cancellationToken);
-        Task<(List<Employee> Items, int TotalCount)> GetPagedAsync(string search, int? departmentId, bool? isActive, int pageNumber, int pageSize, CancellationToken ct);
+        Task<(List<Employee> Items, int TotalCount)> GetPagedAsync(string? search, int? departmentId, bool? isActive, int pageNumber, int pageSize, CancellationToken ct);
         Task<int> CountEmployeesAsync(int departmentId, CancellationToken ct);
         // Check
         Task<bool> IsEmailExistsAsync(string email, int? exceptId, CancellationToken ct);

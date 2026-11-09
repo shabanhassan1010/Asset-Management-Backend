@@ -144,6 +144,9 @@ namespace Asset.Application.Features.AssetTransfers.Commands.CommandHandler
 
             // must remove the cache list for department and location because the asset has been transferred to another department or location
             await _cache.RemoveAsync(new[] { CacheKeys.DepartmentList, CacheKeys.LocationList });
+            await _cache.BumpVersionAsync(CacheKeys.DepartmentsVersion);   // asset count per department changed
+            await _cache.BumpVersionAsync(CacheKeys.LocationsVersion);     // asset count per location changed
+            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);        // the asset row and detail changed
 
             return new ApiResponse<TransferAssetResponseDto>
             {

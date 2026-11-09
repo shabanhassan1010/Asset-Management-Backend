@@ -1,4 +1,5 @@
 ﻿using Asset.Application.Features.Category.Queries.QueryResponse;
+using Asset.Application.Features.Departments.Queries.QueryResponse;
 using Asset.Application.Interfaces.Comman;
 using Asset.Domain.Models;
 
@@ -7,8 +8,9 @@ namespace Asset.Application.Interfaces.IRepository
     public interface ICategoryRepository : IBaseRepository<Category>, IActiveRepository<Category>
     {
         Task<IReadOnlyList<GetCategoryListResponse>> GetAllProjectedAsync(CancellationToken ct);
+        Task<(List<GetCategoryListResponse> Items, int TotalCount)> GetPagedAsync(string? search, bool? isActive, int pageNumber, int pageSize, CancellationToken ct);
         Task<bool> CategoryNameExistsAsync(string name, int? exceptId, CancellationToken ct);
         Task<bool> HasAssetsAsync(int id, CancellationToken ct);
-        void Remove(Category entity);
+        void DeActivate(Category entity);
     }
 }

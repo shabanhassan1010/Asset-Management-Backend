@@ -1,11 +1,13 @@
 ﻿#region
 using Asset.Application.Features.Category.Queries.QueryResponse;
+using Asset.Application.Features.Departments.Queries.QueryResponse;
 using Asset.Application.Features.Locations.Queries.QueryResponse;
 using Asset.Application.Interfaces.IRepository;
+using Asset.Domain.Enum;
 using Asset.Domain.Models;
-using AssetEntity = Asset.Domain.Models.Asset;
 using Asset.Infastructure.Models;
 using Microsoft.EntityFrameworkCore;
+using AssetEntity = Asset.Domain.Models.Asset;
 #endregion
 
 namespace Asset.Infastructure.Repositories
@@ -38,7 +40,39 @@ namespace Asset.Infastructure.Repositories
                             IsActive = c.IsActive,
                             AssetsCount = c.Assets.Count()
                         }).ToListAsync(ct);
-        }      
+        }
+        public async Task<(List<GetLocationListResponse> Items, int TotalCount)> GetPagedAsync(string? search, bool? isActive, int pageNumber, int pageSize, CancellationToken ct)
+        {
+            var query = _dbContext.Locations.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+                query = query.Where(e => e.LocationName.Contains(search));
+            }
+
+            if (isActive.HasValue)
+                query = query.Where(e => e.IsActive == isActive.Value);
+
+            var totalCount = await query.CountAsync(ct);
+
+            var items = await query
+                .OrderBy(t => t.LocationName)
+                .ThenBy(t => t.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(t => new GetLocationListResponse
+                {
+                    Id = t.Id,
+                    LocationName = t.LocationName,
+                    Address = t.Address,
+                    IsActive = t.IsActive,
+                    AssetsCount = t.Assets.Count(a => a.Status != (int)AssetStatus.Retired),
+                })
+                .ToListAsync(ct);
+
+            return (items, totalCount);
+        }
         public async Task<IReadOnlyList<AssetEntity>> GetTrackedAssetsByLocationAsync(int locationId, CancellationToken ct)
         {
             return await _dbContext.Assets
@@ -63,7 +97,7 @@ namespace Asset.Infastructure.Repositories
         }
 
         // Delete
-        public void Remove(Location entity)
+        public void DeActivate(Location entity)
         {
             entity.IsActive = false;
         }

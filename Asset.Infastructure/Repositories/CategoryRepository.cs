@@ -1,5 +1,6 @@
 ﻿#region
 using Asset.Application.Features.Category.Queries.QueryResponse;
+using Asset.Application.Features.Departments.Queries.QueryResponse;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Application.Interfaces.Repository;
 using Asset.Domain.Enum;
@@ -44,6 +45,38 @@ namespace Asset.Infastructure.Repositories
                 })
                 .ToListAsync(ct);
         }
+        public async Task<(List<GetCategoryListResponse> Items, int TotalCount)> GetPagedAsync(string? search, bool? isActive, int pageNumber, int pageSize, CancellationToken ct)
+        {
+            var query = _dbContext.Categories.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+                query = query.Where(e => e.CategoryName.Contains(search));
+            }
+
+            if (isActive.HasValue)
+                query = query.Where(e => e.IsActive == isActive.Value);
+
+            var totalCount = await query.CountAsync(ct);
+
+            var items = await query
+                .OrderBy(t => t.CategoryName)
+                .ThenBy(t => t.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(t => new GetCategoryListResponse
+                {
+                    Id = t.Id,
+                    CategoryName = t.CategoryName,
+                    Description = t.Description,
+                    IsActive = t.IsActive,
+                    AssetsCount = t.Assets.Count(a => a.Status != (int)AssetStatus.Retired),
+                })
+                .ToListAsync(ct);
+
+            return (items, totalCount);
+        }
         public async Task<bool> HasAssetsAsync(int id, CancellationToken ct)
         {
             return await _dbContext.Assets.AsNoTracking().AnyAsync(a => a.CategoryId == id && a.Status != (int)AssetStatus.Retired, ct);
@@ -66,7 +99,7 @@ namespace Asset.Infastructure.Repositories
         }
 
         // Delete
-        public void Remove(Category entity)
+        public void DeActivate(Category entity)
         {
             entity.IsActive = false;
         }

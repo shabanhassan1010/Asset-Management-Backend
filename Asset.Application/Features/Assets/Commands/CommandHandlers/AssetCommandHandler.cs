@@ -234,6 +234,9 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             // Lookup lists show AssetsCount per category / location / department / type.
             await _cache.RemoveAsync(CacheKeys.ListsAffectedByAssetChanges);
 
+            foreach(var version in CacheKeys.VersionsAffectedByAssetChanges)
+                await _cache.BumpVersionAsync(version);
+
             // Every cached asset detail (and later the asset list) is now possibly wrong.
             await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
         }

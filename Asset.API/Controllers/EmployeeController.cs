@@ -29,7 +29,16 @@ namespace Asset.API.Controllers
 
         #region Paginated
         [HttpGet(BaseRouter.EmployeeRouter.Paginated)]
-        public async Task<IActionResult> GetEmployees([FromQuery] GetEmployeesPaginatedQuery query, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetPaginated([FromQuery] GetEmployeesPaginatedQuery query, CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(query, cancellationToken);
+            return Ok(result);
+        }
+        #endregion
+
+        #region List
+        [HttpGet(BaseRouter.EmployeeRouter.Base)]
+        public async Task<IActionResult> GetEmployeeList([FromQuery] GetEmployeesLookupQueryModel query, CancellationToken cancellationToken)
         {
             var result = await _sender.Send(query, cancellationToken);
             return Ok(result);

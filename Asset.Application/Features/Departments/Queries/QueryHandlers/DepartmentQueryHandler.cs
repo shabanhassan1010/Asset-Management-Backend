@@ -3,6 +3,7 @@ using Asset.Application.Bases;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.Departments.Queries.QueryModels;
 using Asset.Application.Features.Departments.Queries.QueryResponse;
+using Asset.Application.Features.Employees.Queries.QueryResponses;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Resoures;
 using Asset.Domain.Exceptions;
@@ -14,8 +15,9 @@ using Microsoft.Extensions.Localization;
 namespace Asset.Application.Features.Departments.Queries.QueryHandlers
 {
     public class DepartmentQueryHandler : BaseResponseHandler,
-                                          IRequestHandler<GetDepartmentListQueryModel, ApiResponse<IReadOnlyList<GetDepartmentListResponse>>>,
-                                          IRequestHandler<GetDepartmentByIdQueryModel, ApiResponse<GetDepartmentByIdResponse>>
+                                          IRequestHandler<GetDepartmentListQueryModel,      ApiResponse<IReadOnlyList<GetDepartmentListResponse>>>,
+                                          IRequestHandler<GetDepartmentByIdQueryModel,      ApiResponse<GetDepartmentByIdResponse>>,
+                                          IRequestHandler<GetDepartmentPaginatedQueryModel, ApiResponse<PagedResult<GetDepartmentListResponse>>>
     {
         #region Fields
         private readonly IUnitOfWork _unitOfWork;
@@ -54,6 +56,26 @@ namespace Asset.Application.Features.Departments.Queries.QueryHandlers
                 data = _mapper.Map<GetDepartmentByIdResponse>(entity),
                 Success = true,
                 Message = "Department Retrieved Successfully"
+            };
+        }
+
+        public async Task<ApiResponse<PagedResult<GetDepartmentListResponse>>> Handle(GetDepartmentPaginatedQueryModel request, CancellationToken cancellationToken)
+        {
+            var (departments, totalCount) = await _unitOfWork.Departments.GetPagedAsync(request.Search, request.IsActive, request.PageNumber, request.PageSize, cancellationToken); 
+
+            var result = new PagedResult<GetDepartmentListResponse>
+            {
+                Items = departments,
+                TotalCount = totalCount,
+                Page = request.PageNumber,
+                PageSize = request.PageSize
+            };
+
+            return new ApiResponse<PagedResult<GetDepartmentListResponse>>
+            {
+                data = result,
+                Success = true,
+                Message = "Departments Retrieved Successfully"
             };
         }
         #endregion

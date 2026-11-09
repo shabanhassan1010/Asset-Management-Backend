@@ -4,6 +4,7 @@ using Asset.Application.Common.Caching;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.Category.Queries.QueryModels;
 using Asset.Application.Features.Category.Queries.QueryResponse;
+using Asset.Application.Features.Departments.Queries.QueryResponse;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Application.Resoures;
@@ -17,7 +18,8 @@ namespace Asset.Application.Features.Category.Queries.QueryHandlers
 {
     public class CategoryQueryHandler : BaseResponseHandler,
                                         IRequestHandler<GetCategoryListQueryModel, ApiResponse<IReadOnlyList<GetCategoryListResponse>>>,
-                                        IRequestHandler<GetCategoryByIdQueryModel, ApiResponse<GetCategoryByIdResponse>>
+                                        IRequestHandler<GetCategoryByIdQueryModel, ApiResponse<GetCategoryByIdResponse>>,
+                                        IRequestHandler<GetCategoryPaginatedModelQuery, ApiResponse<PagedResult<GetCategoryListResponse>>>
     {
         #region Fields
         private readonly IMapper _mapper;
@@ -58,6 +60,26 @@ namespace Asset.Application.Features.Category.Queries.QueryHandlers
                 data = _mapper.Map<GetCategoryByIdResponse>(category),
                 Success = true,
                 Message = "Category Retrieved Successfully"
+            };
+        }
+
+        public async Task<ApiResponse<PagedResult<GetCategoryListResponse>>> Handle(GetCategoryPaginatedModelQuery request, CancellationToken cancellationToken)
+        {
+            var (Categories, totalCount) = await _unitOfWork.Categories.GetPagedAsync(request.Search, request.IsActive, request.PageNumber, request.PageSize, cancellationToken);
+
+            var result = new PagedResult<GetCategoryListResponse>
+            {
+                Items = Categories,
+                TotalCount = totalCount,
+                Page = request.PageNumber,
+                PageSize = request.PageSize
+            };
+
+            return new ApiResponse<PagedResult<GetCategoryListResponse>>
+            {
+                data = result,
+                Success = true,
+                Message = "Categories Retrieved Successfully"
             };
         }
         #endregion

@@ -1,5 +1,6 @@
 ﻿#region
 using Asset.Application.Common.Responses;
+using Asset.Application.Features.Employees.Queries.QueryResponses;
 using Asset.Application.Features.Locations.Queries.QueryModels;
 using Asset.Application.Features.Locations.Queries.QueryResponse;
 using Asset.Application.Interfaces.Comman;
@@ -13,8 +14,9 @@ using MediatR;
 namespace Asset.Application.Features.Locations.Queries.QueryHandlers
 {
     public class LocationQueryHandler :
-                                        IRequestHandler<GetLocationListQueryModel, ApiResponse<IReadOnlyList<GetLocationListResponse>>>,
-                                        IRequestHandler<GetLocationByIdQueryModel, ApiResponse<GetLocationByIdResponse>>
+                                        IRequestHandler<GetLocationListQueryModel,      ApiResponse<IReadOnlyList<GetLocationListResponse>>>,
+                                        IRequestHandler<GetLocationByIdQueryModel,      ApiResponse<GetLocationByIdResponse>> ,
+                                        IRequestHandler<GetLocationPaginatedModelQuery, ApiResponse<PagedResult<GetLocationListResponse>>>
     {
         #region Fields
         private readonly IUnitOfWork _unitOfWork;
@@ -53,6 +55,27 @@ namespace Asset.Application.Features.Locations.Queries.QueryHandlers
                 data = _mapper.Map<GetLocationByIdResponse>(entity),
                 Success = true,
                 Message = "Location Retrieved Successfully"
+            };
+        }
+
+        public async Task<ApiResponse<PagedResult<GetLocationListResponse>>> Handle(GetLocationPaginatedModelQuery request, CancellationToken cancellationToken)
+        {
+            var (locations, totalCount) = await _unitOfWork.Locations.GetPagedAsync(request.Search, request.IsActive,
+                                                                      request.PageNumber, request.PageSize, cancellationToken);
+            var mapper = _mapper.Map<List<GetLocationListResponse>>(locations);
+            var result = new PagedResult<GetLocationListResponse>
+            {
+                Items = mapper,
+                TotalCount = totalCount,
+                Page = request.PageNumber,
+                PageSize = request.PageSize
+            };
+
+            return new ApiResponse<PagedResult<GetLocationListResponse>>
+            {
+                data = result,
+                Success = true,
+                Message = "Employees Retrieved Successfully"
             };
         }
     }

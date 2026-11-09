@@ -2,7 +2,7 @@
 using MediatR;
 namespace Asset.Application.Features.AssetTypes.Commands.CommandModels
 {
-    public class DeleteAssetTypeCommandModel : IRequest<BaseResponse<string>>
+    public class DeactivateAssetTypeCommandModel : IRequest<BaseResponse<string>>
     {
         public int Id { get; set; }
     }

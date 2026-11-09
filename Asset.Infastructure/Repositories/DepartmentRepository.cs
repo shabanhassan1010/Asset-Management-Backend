@@ -1,4 +1,5 @@
 ﻿#region 
+using Asset.Application.Features.AssetTypes.Queries.QueryResponses;
 using Asset.Application.Features.Departments.Queries.QueryResponse;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Domain.Enum;
@@ -33,11 +34,44 @@ namespace Asset.Infastructure.Repositories
                                                     Id = d.Id,
                                                     DepartmentName = d.DepartmentName,
                                                     Code = d.Code,
+                                                    IsActive = d.IsActive,
                                                     AssetsCount = d.Assets.Count(a => a.Status != (int)AssetStatus.Retired),
                                                     EmployeesCount = d.Employees.Count(e => e.IsActive)
                                                 }).ToListAsync(ct);
         }
+        public async Task<(List<GetDepartmentListResponse> Items, int TotalCount)> GetPagedAsync(string? search, bool? isActive, int pageNumber, int pageSize, CancellationToken ct)
+        {
+            var query = _dbContext.Departments.AsNoTracking();
 
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+                query = query.Where(e => e.DepartmentName.Contains(search));
+            }
+
+            if (isActive.HasValue)
+                query = query.Where(e => e.IsActive == isActive.Value);
+
+            var totalCount = await query.CountAsync(ct);
+
+            var items = await query
+                .OrderBy(t => t.DepartmentName)
+                .ThenBy(t => t.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(t => new GetDepartmentListResponse
+                {
+                    Id = t.Id,
+                    DepartmentName = t.DepartmentName,
+                    Code = t.Code,
+                    IsActive = t.IsActive,
+                    AssetsCount = t.Assets.Count(a => a.Status != (int)AssetStatus.Retired),
+                    EmployeesCount = t.Employees.Count(e => e.IsActive)
+                })
+                .ToListAsync(ct);
+
+            return (items, totalCount);
+        }
         // Check
         public async Task<bool> ExistsActiveAsync(int id, CancellationToken ct)
         {
@@ -63,7 +97,7 @@ namespace Asset.Infastructure.Repositories
         }
 
         // Delete
-        public void Remove(Department entity)
+        public void DeActivate(Department entity)
         {
             entity.IsActive = false;
         }

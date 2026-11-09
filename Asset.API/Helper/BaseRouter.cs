@@ -17,16 +17,19 @@
         }
         public static class CategoryRouter
         {
+            public const string Paginated = Base + "/paginated";
             public const string Base = Rule + "/categories";
             public const string Id   = Base + "/" + RouteId;
         }
         public static class LocationRouter
         {
+            public const string Paginated = Base + "/paginated";
             public const string Base = Rule + "/locations";
             public const string Id = Base + "/" + RouteId;
         }
         public static class DepartmentRouter
         {
+            public const string Paginated = Base + "/paginated";
             public const string Base = Rule + "/departments";
             public const string Id = Base + "/" + RouteId;
         }
@@ -41,6 +44,7 @@
 
         public static class AssetTypeRouter
         {
+            public const string Paginated = Base + "/paginated";
             public const string Base = Rule + "/asset-types";
             public const string Id = Base + "/{id:int}";
         }

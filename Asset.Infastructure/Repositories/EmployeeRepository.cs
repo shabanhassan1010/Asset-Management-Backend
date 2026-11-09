@@ -73,14 +73,14 @@ namespace Asset.Infastructure.Repositories
 
             return await query.OrderBy(e => e.FullName).ToListAsync(cancellationToken);
         }
-        public async Task<(List<Employee> Items, int TotalCount)> GetPagedAsync(string search, int? departmentId, bool? isActive,int pageNumber, int pageSize, CancellationToken ct)
+        public async Task<(List<Employee> Items, int TotalCount)> GetPagedAsync(string? search, int? departmentId, bool? isActive,int pageNumber, int pageSize, CancellationToken ct)
         {
             var query = _dbContext.Employees.AsNoTracking().Include(e => e.Department).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
                 search = search.Trim();
-                query = query.Where(e => e.FullName.Contains(search) || e.EmployeeCode.Contains(search));
+                query = query.Where(e => e.FullName.Contains(search) || e.EmployeeCode.Contains(search) || e.Email != null && e.Email.Contains(search));
             }
 
             if (departmentId.HasValue)

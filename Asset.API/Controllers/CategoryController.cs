@@ -2,6 +2,7 @@
 using Asset.API.Helper;
 using Asset.Application.Features.Category.Commands.CommandModels;
 using Asset.Application.Features.Category.Queries.QueryModels;
+using Asset.Application.Features.Departments.Queries.QueryModels;
 using Asset.Application.Features.Locations.Commands.CommandModels;
 using Asset.Domain.Enum;
 using MediatR;
@@ -23,6 +24,15 @@ namespace Asset.API.Controllers
         public CategoryController(ISender sender)
         {
             _sender = sender;
+        }
+        #endregion
+
+        #region Paginated
+        [HttpGet(BaseRouter.CategoryRouter.Paginated)]
+        public async Task<IActionResult> GetPaginated([FromQuery] GetCategoryPaginatedModelQuery query, CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(query, cancellationToken);
+            return Ok(result);
         }
         #endregion
 

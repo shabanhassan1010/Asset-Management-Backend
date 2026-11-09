@@ -1,5 +1,6 @@
 ﻿#region
 using Asset.API.Helper;
+using Asset.Application.Features.AssetTypes.Queries.QueryModels;
 using Asset.Application.Features.Departments.Commands.CommandModels;
 using Asset.Application.Features.Departments.Queries.QueryModels;
 using Asset.Application.Features.Locations.Commands.CommandModels;
@@ -7,6 +8,7 @@ using Asset.Domain.Enum;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Reflection;
 #endregion
 
 namespace Asset.API.Controllers
@@ -31,6 +33,15 @@ namespace Asset.API.Controllers
         public async Task<IActionResult> GetList(CancellationToken ct)
         {
             return Ok(await _sender.Send(new GetDepartmentListQueryModel(), ct));
+        }
+        #endregion
+
+        #region Paginated
+        [HttpGet(BaseRouter.DepartmentRouter.Paginated)]
+        public async Task<IActionResult> GetPaginated([FromQuery] GetDepartmentPaginatedQueryModel query, CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(query, cancellationToken);
+            return Ok(result);
         }
         #endregion
 
@@ -68,7 +79,7 @@ namespace Asset.API.Controllers
         [HttpDelete(BaseRouter.DepartmentRouter.Id)]
         public async Task<IActionResult> Delete([FromRoute] int id, CancellationToken ct)
         {
-            var result = await _sender.Send(new DeleteDepartmentCommandModel(id), ct);
+            var result = await _sender.Send(new DeactivateDepartmentCommandModel(id), ct);
             return NoContent();
         }
         #endregion

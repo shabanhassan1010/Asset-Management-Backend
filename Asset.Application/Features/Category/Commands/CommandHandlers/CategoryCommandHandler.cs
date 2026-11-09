@@ -51,7 +51,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
 
             _unitOfWork.Categories.Add(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await cache.RemoveAsync(CacheKeys.CategoryList);
+            await InvalidateAsync();
 
             return new ApiResponse<CreateCategoryResponseDto>
             {
@@ -76,8 +76,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
             entity.CategoryName = name; 
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await cache.RemoveAsync(new[] { CacheKeys.CategoryById(request.Id), CacheKeys.CategoryList });
-            await cache.BumpVersionAsync(CacheKeys.AssetsVersion);
+            await InvalidateAsync();
 
             return new ApiResponse<UpdateCategoryResponseDto>
             {
@@ -99,9 +98,9 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
             if (hasAssets)
                 throw new BusinessException($"This Category has linked assets. Please remove or reassign them before deleting this category.");
 
-            _unitOfWork.Categories.Remove(entity);
+            _unitOfWork.Categories.DeActivate(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await cache.RemoveAsync(new[] { CacheKeys.CategoryById(request.Id), CacheKeys.CategoryList });
+            await InvalidateAsync();
 
 
             return new ApiResponse<string>
@@ -110,6 +109,14 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
                 Success = true,
                 Message = "CategoryDeletedSuccessfully"
             };
+        }
+        #endregion
+
+        #region Pricate Methods
+        private async Task InvalidateAsync()
+        {
+            await cache.RemoveAsync(CacheKeys.CategoryList);              // full list (dropdowns)
+            await cache.BumpVersionAsync(CacheKeys.CategoriesVersion);    // every page of the paged list
         }
         #endregion
     }

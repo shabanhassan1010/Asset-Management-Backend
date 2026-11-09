@@ -184,7 +184,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
         public async Task DeleteDepartment_Should_DeactivateDepartment_When_ItHasNoEmployees_And_NoAssets()
         {
             // Arrange
-            var request = new DeleteDepartmentCommandModel(1);
+            var request = new DeactivateDepartmentCommandModel(1);
             var entity = new Department
             {
                 Id = 1, DepartmentName = "IT Department", Code = "IT", IsActive = true
@@ -202,7 +202,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
             result.Message.Should().Be("Department Deactivated Successfully");
             result.data.Should().BeNull();
 
-            _unitOfWorkMock.Verify(x => x.Departments.Remove(entity), Times.Once);
+            _unitOfWorkMock.Verify(x => x.Departments.DeActivate(entity), Times.Once);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(CancellationToken.None), Times.Once);
 
             _cacheMock.Verify(x => x.RemoveAsync(
@@ -217,7 +217,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
         public async Task DeleteDepartment_Should_Throw_NotFoundException_When_Department_Does_NotExist()
         {
             // Arrange
-            var request = new DeleteDepartmentCommandModel(99);
+            var request = new DeactivateDepartmentCommandModel(99);
 
             _unitOfWorkMock.Setup(x => x.Departments.GetByIdAsync(request.Id, CancellationToken.None))
                            .ReturnsAsync((Department?)null);
@@ -228,7 +228,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
             // Assert
             await act.Should().ThrowAsync<NotFoundException>().WithMessage("Department 99 does not exist.");
 
-            _unitOfWorkMock.Verify(x => x.Departments.Remove(It.IsAny<Department>()), Times.Never);
+            _unitOfWorkMock.Verify(x => x.Departments.DeActivate(It.IsAny<Department>()), Times.Never);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
@@ -236,7 +236,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
         public async Task DeleteDepartment_Should_Throw_BusinessException_When_Department_IsAlready_Deactivated()
         {
             // Arrange
-            var request = new DeleteDepartmentCommandModel(1);
+            var request = new DeactivateDepartmentCommandModel(1);
             var entity = new Department
             {
                 Id = 1, DepartmentName = "IT Department", Code = "IT", IsActive = true
@@ -252,7 +252,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
             await act.Should().ThrowAsync<BusinessException>().WithMessage("Department 1 is already deactivated.");
 
             _unitOfWorkMock.Verify(x => x.Employees.CountEmployeesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
-            _unitOfWorkMock.Verify(x => x.Departments.Remove(It.IsAny<Department>()), Times.Never);
+            _unitOfWorkMock.Verify(x => x.Departments.DeActivate(It.IsAny<Department>()), Times.Never);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
         #endregion

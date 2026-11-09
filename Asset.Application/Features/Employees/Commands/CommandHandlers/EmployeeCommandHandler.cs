@@ -2,11 +2,9 @@
 using Asset.Application.Bases;
 using Asset.Application.Common.Caching;
 using Asset.Application.Common.Responses;
-using Asset.Application.Features.Departments.Commands.CommandResponse;
 using Asset.Application.Features.Employees.Commands.CommandModels;
 using Asset.Application.Features.Employees.Commands.CommandResponse;
 using Asset.Application.Interfaces.Comman;
-using Asset.Application.Interfaces.IRepository;
 using Asset.Application.Resoures;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Models;
@@ -65,8 +63,8 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
             {
                 EmployeeCode = employeeCode,
                 FullName = request.FullName.Trim(),
-                Email = request.Email,
-                Phone = request.Phone,
+                Email = email,
+                Phone = request.Phone?.Trim(),
                 DepartmentId = request.DepartmentId,
                 IsActive = true
             };
@@ -84,7 +82,7 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
         }
         public async Task<ApiResponse<UpdateEmployeeCommandResponse>> Handle(UpdateEmployeeCommandModel request, CancellationToken cancellationToken)
         {
-            var email = request.Email.Trim();
+            var email = request.Email?.Trim();
 
             var employee = await _unitOfWork.Employees.GetByIdAsync(request.Id, cancellationToken);
             if (employee is null)
@@ -165,6 +163,7 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
             await _cache.RemoveAsync(new[] { CacheKeys.EmployeeList, CacheKeys.DepartmentList });
             // Employee paged list is cached by version → bump the version
             await _cache.BumpVersionAsync(CacheKeys.EmployeesVersion);
+            await _cache.BumpVersionAsync(CacheKeys.DepartmentsVersion);
         }
         #endregion
     }

@@ -14,7 +14,7 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
 {
     public class GetEmployeeListQueryHandler :  IRequestHandler<GetAvailableEmployeesQueryModel, IReadOnlyList<AvailableEmployeeDto>>,
                                                 IRequestHandler<GetEmployeesPaginatedQuery, ApiResponse<PagedResult<GetEmployeeListQueryResponse>>>,
-                                                IRequestHandler<GetEmployeeByIdQueryModel, ApiResponse<GetEmployeeByIdResponse>> ,
+                                                IRequestHandler<GetEmployeeByIdQueryModel,  ApiResponse<GetEmployeeByIdResponse>> ,
                                                 IRequestHandler<GetEmployeesLookupQueryModel, IReadOnlyList<AvailableEmployeeDto>>
 
     {

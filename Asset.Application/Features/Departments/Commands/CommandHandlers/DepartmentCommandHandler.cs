@@ -14,7 +14,7 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
 {
     public class DepartmentCommandHandler : IRequestHandler<CreateDepartmentCommandModel, ApiResponse<CreateDepartmentResponseDto>>,
                                             IRequestHandler<UpdateDepartmentCommandModel, ApiResponse<UpdateDepartmentResponseDto>>,
-                                            IRequestHandler<DeleteDepartmentCommandModel, ApiResponse<string>>
+                                            IRequestHandler<DeactivateDepartmentCommandModel, ApiResponse<string>>
     {
         #region Fields
         private readonly IUnitOfWork _unitOfWork;
@@ -45,7 +45,7 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
 
             _unitOfWork.Departments.Add(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cache.RemoveAsync(CacheKeys.DepartmentList);
+            await InvalidateAsync();
 
             return new ApiResponse<CreateDepartmentResponseDto>
             {
@@ -70,8 +70,7 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
             entity.DepartmentName = name;
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cache.RemoveAsync( new[] { CacheKeys.DepartmentById(request.Id), CacheKeys.DepartmentList });
-            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
+            await InvalidateAsync();
 
             return new ApiResponse<UpdateDepartmentResponseDto>
             {
@@ -81,7 +80,7 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
             };
         }
 
-        public async Task<ApiResponse<string>> Handle(DeleteDepartmentCommandModel request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<string>> Handle(DeactivateDepartmentCommandModel request, CancellationToken cancellationToken)
         {
             var entity = await _unitOfWork.Departments.GetByIdAsync(request.Id, cancellationToken);
 
@@ -96,9 +95,10 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
                 throw new BusinessException($"Cannot deactivate this department: it has {employeesCount} employee(s) and {assetsCount} asset(s). Reassign them first.");
             }
 
-            _unitOfWork.Departments.Remove(entity);  
+            _unitOfWork.Departments.DeActivate(entity);  
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cache.RemoveAsync(new[] { CacheKeys.DepartmentById(request.Id), CacheKeys.DepartmentList });
+
+            await InvalidateAsync();
 
             return new ApiResponse<string>
             {
@@ -106,6 +106,14 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
                 Success = true,
                 Message = "Department Deactivated Successfully"
             };
+        }
+        #endregion
+
+        #region Private Methods
+        private async Task InvalidateAsync()
+        {
+            await _cache.RemoveAsync(CacheKeys.DepartmentList);           // the full list (dropdowns)
+            await _cache.BumpVersionAsync(CacheKeys.DepartmentsVersion);  // every page of the paged list
         }
         #endregion
     }

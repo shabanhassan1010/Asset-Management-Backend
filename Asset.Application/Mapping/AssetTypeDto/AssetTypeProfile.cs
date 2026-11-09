@@ -10,10 +10,7 @@ namespace Asset.Application.Mapping.AssetTypeDto
     {
         public AssetTypeProfile()
         {
-            CreateMap<AssetType, GetAssetTypeListQueryResponse>()
-                      .ForMember(dest => dest.AssetTypeName, opt => opt.MapFrom(src => src.TypeName));
-
-            // Read
+             // Read
             CreateMap<AssetType, GetAssetTypeListQueryResponse>()
                       .ForMember(dest => dest.AssetTypeName, opt => opt.MapFrom(src => src.TypeName));
 

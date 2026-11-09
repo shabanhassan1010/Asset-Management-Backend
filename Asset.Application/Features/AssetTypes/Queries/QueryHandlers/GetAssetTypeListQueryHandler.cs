@@ -1,11 +1,15 @@
 ﻿#region
 using Asset.Application.Bases;
+using Asset.Application.Common.Responses;
+using Asset.Application.Features.Assets.Queries.QueryModels;
 using Asset.Application.Features.AssetTypes.Queries.QueryModels;
 using Asset.Application.Features.AssetTypes.Queries.QueryResponses;
+using Asset.Application.Features.Employees.Queries.QueryResponses;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Application.Resoures;
 using Asset.Domain.Exceptions;
+using Asset.Domain.Models;
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Localization;
@@ -15,7 +19,8 @@ namespace Asset.Application.Features.AssetTypes.Queries.QueryHandlers
 {
     public class GetAssetTypeListQueryHandler : BaseResponseHandler,
                                                 IRequestHandler<GetAssetTypeListQueryModel, BaseResponse<IReadOnlyList<GetAssetTypeListQueryResponse>>>,
-                                                IRequestHandler<GetAssetTypeByIdQueryModel, BaseResponse<GetAssetTypeByIdQueryResponse>>
+                                                IRequestHandler<GetAssetTypeByIdQueryModel, BaseResponse<GetAssetTypeByIdQueryResponse>> ,
+                                                IRequestHandler<GetAssetTypePaginatedQueryModel, BaseResponse<PagedResult<GetAssetTypeListQueryResponse>>>
     {
         #region Fields
         private readonly IUnitOfWork _unitOfWork;
@@ -56,6 +61,22 @@ namespace Asset.Application.Features.AssetTypes.Queries.QueryHandlers
             var data = _mapper.Map<GetAssetTypeByIdQueryResponse>(assetType);
             return Success(data);
         }
+
+        public async Task<BaseResponse<PagedResult<GetAssetTypeListQueryResponse>>> Handle(GetAssetTypePaginatedQueryModel request, CancellationToken cancellationToken)
+        {
+            var (paginatedAssetTypes, totalCount) = await _unitOfWork.AssetTypes.GetPagedAsync(request.Search,request.IsActive,request.PageNumber,request.PageSize,cancellationToken);
+
+            var mapper = _mapper.Map<List<GetAssetTypeListQueryResponse>>(paginatedAssetTypes);
+            var result = new PagedResult<GetAssetTypeListQueryResponse>
+            {
+                Items = mapper,
+                TotalCount = totalCount,
+                Page = request.PageNumber,
+                PageSize = request.PageSize
+            };
+            return Success(result);
+        }
+
         #endregion
     }
 }

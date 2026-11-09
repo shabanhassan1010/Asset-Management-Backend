@@ -204,7 +204,7 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
 
             _unitOfWorkMock.Verify(x => x.Locations.GetByIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
             _unitOfWorkMock.Verify(x => x.Locations.GetTrackedAssetsByLocationAsync(id, It.IsAny<CancellationToken>()), Times.Once);
-            _unitOfWorkMock.Verify(x => x.Locations.Remove(location), Times.Once);              // soft delete → IsActive = false
+            _unitOfWorkMock.Verify(x => x.Locations.DeActivate(location), Times.Once);              // soft delete → IsActive = false
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(_ct), Times.Once);
 
             _cacheServiceMock.Verify(
@@ -243,7 +243,7 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
             Assert.True(result.Success);
             Assert.Equal("0 asset(s) unassigned.", result.data);
 
-            _locationRepositoryMock.Verify(x => x.Remove(location), Times.Once);
+            _locationRepositoryMock.Verify(x => x.DeActivate(location), Times.Once);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(_ct), Times.Once);
         }
 
@@ -264,7 +264,7 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
             _locationRepositoryMock.Verify(x => x.GetByIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
 
             _locationRepositoryMock.Verify(x => x.GetTrackedAssetsByLocationAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
-            _locationRepositoryMock.Verify(x => x.Remove(It.IsAny<Location>()), Times.Never);
+            _locationRepositoryMock.Verify(x => x.DeActivate(It.IsAny<Location>()), Times.Never);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
             _cacheServiceMock.Verify(x => x.RemoveAsync(It.IsAny<string[]>()), Times.Never);
         }

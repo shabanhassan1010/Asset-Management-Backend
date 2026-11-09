@@ -15,8 +15,8 @@ using Microsoft.Extensions.Localization;
 namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 {
     public class AssetTypeCommandHandler : BaseResponseHandler, IRequestHandler<CreateAssetTypeCommandModel, BaseResponse<int>> ,
-                                                                      IRequestHandler<UpdateAssetTypeCommandModel, BaseResponse<string>> ,
-                                                                      IRequestHandler<DeleteAssetTypeCommandModel, BaseResponse<string>>
+                                                                IRequestHandler<UpdateAssetTypeCommandModel, BaseResponse<string>> ,
+                                                                IRequestHandler<DeactivateAssetTypeCommandModel, BaseResponse<string>>
     {
         #region Fields
         private readonly IUnitOfWork _unitOfWork;
@@ -46,7 +46,8 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 
             _unitOfWork.AssetTypes.Add(assetType);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cacheService.RemoveAsync(CacheKeys.AssetTypeList);
+
+            await InvalidateAsync();
 
             return Created(assetType.Id);
         }
@@ -67,12 +68,12 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
             assetType.TypeName = name;
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cacheService.RemoveAsync(new[] { CacheKeys.AssetTypeById(request.Id), CacheKeys.AssetTypeList });
-            await _cacheService.BumpVersionAsync(CacheKeys.AssetsVersion);   // assets show AssetTypeName
+
+            await InvalidateAsync();
 
             return Success("Updated successfully");
         }
-        public async Task<BaseResponse<string>> Handle(DeleteAssetTypeCommandModel request, CancellationToken cancellationToken)
+        public async Task<BaseResponse<string>> Handle(DeactivateAssetTypeCommandModel request, CancellationToken cancellationToken)
         {
             var assetType = await _unitOfWork.AssetTypes.GetByIdAsync(request.Id, cancellationToken);
             if (assetType is null || !assetType.IsActive)
@@ -84,9 +85,19 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 
             _unitOfWork.AssetTypes.Deactivate(assetType);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _cacheService.RemoveAsync(new[] { CacheKeys.AssetTypeById(request.Id), CacheKeys.AssetTypeList });
+
+            await InvalidateAsync();
+
 
             return Deleted<string>("Deleted successfully");
         }
+
+        #region Private Methods
+        private async Task InvalidateAsync()
+        {
+            await _cacheService.RemoveAsync(CacheKeys.AssetTypeList);
+            await _cacheService.BumpVersionAsync(CacheKeys.AssetTypesVersion);
+        }
+        #endregion
     }
 }

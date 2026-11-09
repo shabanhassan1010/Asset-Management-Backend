@@ -2,6 +2,7 @@
 using Asset.API.Helper;
 using Asset.Application.Features.AssetTypes.Commands.CommandModels;
 using Asset.Application.Features.AssetTypes.Queries.QueryModels;
+using Asset.Application.Features.Employees.Queries.QueryModels;
 using Asset.Domain.Enum;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -19,6 +20,15 @@ namespace Asset.API.Controllers
         public async Task<IActionResult> GetList(CancellationToken cancellationToken)
         {
             return Ok(await sender.Send(new GetAssetTypeListQueryModel(), cancellationToken));
+        }
+        #endregion
+
+        #region Paginated
+        [HttpGet(BaseRouter.AssetTypeRouter.Paginated)]
+        public async Task<IActionResult> GetPaginated([FromQuery] GetAssetTypePaginatedQueryModel query, CancellationToken cancellationToken)
+        {
+            var result = await sender.Send(query, cancellationToken);
+            return Ok(result);
         }
         #endregion
 
@@ -57,7 +67,7 @@ namespace Asset.API.Controllers
         [HttpDelete(BaseRouter.AssetTypeRouter.Id)]
         public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
         {
-            var response = await sender.Send(new DeleteAssetTypeCommandModel { Id = id }, cancellationToken);
+            var response = await sender.Send(new DeactivateAssetTypeCommandModel { Id = id }, cancellationToken);
             return Ok(response);
         }
         #endregion

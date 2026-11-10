@@ -173,14 +173,11 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
                         return Answer(request.Question, AssetAnswerBuilder.AmbiguousEmployee(parsed.EmployeeName, matches));
 
                     filter.EmployeeId = matches[0].Id;
-                } 
-                //else // User not Admin
-                //{
-                //    if (_currentUser.EmployeeId is null)
-                //        return Answer(request.Question, AssetAnswerBuilder.NoEmployeeLink());
-
-                //    filter.EmployeeId = _currentUser.EmployeeId;
-                //}
+                }
+                else // User not Admin
+                {
+                    return Answer(request.Question, AssetAnswerBuilder.CannotLookUpOthers());
+                }
             }
 
             var page = await _unitOfWork.Assets.GetPaginationAsync(filter, cancellationToken);

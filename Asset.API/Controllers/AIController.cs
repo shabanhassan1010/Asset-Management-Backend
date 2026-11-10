@@ -1,4 +1,5 @@
 ﻿#region
+using Asset.API.Extensions;
 using Asset.API.Helper;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.AI.Queries.QueryModel;
@@ -6,6 +7,7 @@ using Asset.Application.Features.AI.Queries.QueryResponse;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 #endregion
 
 namespace Asset.API.Controllers
@@ -27,8 +29,7 @@ namespace Asset.API.Controllers
 
         #region  Ask AI
         [HttpPost(BaseRouter.AIRouter.Ask)]
-        [ProducesResponseType(typeof(ApiResponse<AssetQuestionResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+        [EnableRateLimiting(RateLimitingExtensions.AiPolicy)]   // 10 questions / minute / user - protects the free API quota
         public async Task<IActionResult> Ask([FromBody] AskAssetQuestionQuery query, CancellationToken cancellationToken)
         {
             var result = await _sender.Send(query, cancellationToken);

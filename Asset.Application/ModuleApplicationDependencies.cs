@@ -41,7 +41,7 @@ public static class ModuleApplicationDependencies
         services.AddValidatorsFromAssembly(assembly);
 
         // AI 
-        services.AddScoped<IAssetQuestionParserService, RuleBasedAssetQuestionParser>();
+        //services.AddScoped<IAssetQuestionParserService, RuleBasedAssetQuestionParser>();
         return services;
     }
 }

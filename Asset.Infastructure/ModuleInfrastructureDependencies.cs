@@ -1,12 +1,14 @@
 ﻿#region
 using Asset.Application.Common.Caching;
 using Asset.Application.Common.Interfaces;
+using Asset.Application.Features.AI.Interfases;
 using Asset.Application.Features.AI.IService;
 using Asset.Application.Features.AI.ServiceImplementation;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Application.Interfaces.Repository;
 using Asset.Domain.Identity;
+using Asset.Infastructure.AI;
 using Asset.Infastructure.Models;
 using Asset.Infastructure.Repositories;
 using Asset.Infastructure.Security;
@@ -130,6 +132,28 @@ namespace Asset.Infastructure
             services.AddMemoryCache();
             services.AddScoped<IConversationStoreService, InMemoryConversationStore>();
             services.AddScoped<IAiLookupRepository, AiLookupRepository>();
+
+            // Always registered: it is Gemini's fallback, and the main parser when there is no key.
+            services.AddScoped<RuleBasedAssetQuestionParser>();
+
+            var geminiSection = configuration.GetSection(GeminiOptions.SectionName);
+            services.Configure<GeminiOptions>(geminiSection);
+
+            if (string.IsNullOrWhiteSpace(geminiSection["ApiKey"]))
+            {
+                // No key (e.g. someone cloned the repo): the app still runs with the rule-based parser.
+                services.AddScoped<IAssetQuestionParserService, RuleBasedAssetQuestionParser>();
+            }
+            else
+            {
+                // Typed HttpClient: the factory manages the connections for us.
+                services.AddHttpClient<IAssetQuestionParserService, GeminiAssetQuestionParser>(client =>
+                {
+                    client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
+                    client.Timeout = TimeSpan.FromSeconds(10);   // a slow API must not freeze the chat
+                });
+            }
+
             #endregion
 
             return services;

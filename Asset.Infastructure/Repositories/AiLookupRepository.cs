@@ -18,7 +18,7 @@ namespace Asset.Infastructure.Repositories
         }
         #endregion
 
-        #region Merthods
+        #region Methods
         public async Task<int?> GetAssetTypeIdByNameAsync(string typeName, CancellationToken ct)
         {
             var id = await _dbContext.AssetTypes.AsNoTracking()
@@ -45,6 +45,24 @@ namespace Asset.Infastructure.Repositories
                                              .OrderBy(e => e.FullName)
                                              .Take(MaxEmployee)
                                              .Select(e => new EmployeeLookup(e.Id, e.FullName)).ToListAsync(ct);
+        }
+
+        public async Task<List<string>> GetAssetTypeNamesAsync(CancellationToken ct)
+        {
+            return await _dbContext.AssetTypes.AsNoTracking()
+                                              .Where(t => t.IsActive)
+                                              .OrderBy(t => t.TypeName)
+                                              .Select(t => t.TypeName)
+                                              .ToListAsync(ct);
+        }
+
+        public async Task<List<string>> GetDepartmentNamesAsync(CancellationToken ct)
+        {
+            return await _dbContext.Departments.AsNoTracking()
+                                               .Where(d=>d.IsActive)
+                                               .OrderBy(d => d.DepartmentName)
+                                               .Select(d => d.DepartmentName + " (" + d.Code + ")")
+                                               .ToListAsync(ct);
         }
         #endregion
     }

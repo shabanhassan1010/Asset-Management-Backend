@@ -32,7 +32,7 @@ namespace Asset.Infastructure
         {
             #region Connection string
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-            if(string.IsNullOrEmpty(connectionString))
+            if (string.IsNullOrEmpty(connectionString))
                 throw new InvalidOperationException("Connection string 'DefaultConnection' is missing. Run: dotnet user-secrets set \"ConnectionStrings:DefaultConnection\" \"<value>\"");
 
             services.AddDbContext<AssetManagementDbContext>(options => options.UseSqlServer(connectionString)); // related into entities and tables of the application
@@ -96,8 +96,8 @@ namespace Asset.Infastructure
             #endregion
 
             #region Caching (Redis)
-            var cacheSection = configuration.GetSection(CacheSettings.SectionName);   
-            services.Configure<CacheSettings>(cacheSection);                           
+            var cacheSection = configuration.GetSection(CacheSettings.SectionName);
+            services.Configure<CacheSettings>(cacheSection);
             var cacheSettings = cacheSection.Get<CacheSettings>() ?? new CacheSettings();
 
             var redisConnectionString = configuration.GetConnectionString("Redis");
@@ -139,19 +139,33 @@ namespace Asset.Infastructure
             var geminiSection = configuration.GetSection(GeminiOptions.SectionName);
             services.Configure<GeminiOptions>(geminiSection);
 
-            if (string.IsNullOrWhiteSpace(geminiSection["ApiKey"]))
+            var hasGeminiKey = !string.IsNullOrWhiteSpace(geminiSection["ApiKey"]);
+            var generateAnswers = geminiSection.GetValue<bool?>("GenerateAnswers") ?? true;   // missing setting = on
+
+            if (!hasGeminiKey)
             {
-                // No key (e.g. someone cloned the repo): the app still runs with the rule-based parser.
+                // No key (e.g. someone cloned the repo): the app still runs, without any AI.
                 services.AddScoped<IAssetQuestionParserService, RuleBasedAssetQuestionParser>();
+                services.AddScoped<IAssetAnswerWriterService, TemplateAssetAnswerWriter>();
             }
             else
             {
                 // Typed HttpClient: the factory manages the connections for us.
-                services.AddHttpClient<IAssetQuestionParserService, GeminiAssetQuestionParser>(client =>
+                // One GeminiClient is shared by the parser and the answer writer.
+                services.AddHttpClient<GeminiClient>(client =>
                 {
                     client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/");
-                    client.Timeout = TimeSpan.FromSeconds(10);   // a slow API must not freeze the chat
+                    client.Timeout = TimeSpan.FromSeconds(15);   // a slow API must not freeze the chat
                 });
+
+                // Call 1: Gemini understands the question (the whole chat -> filters).
+                services.AddScoped<IAssetQuestionParserService, GeminiAssetQuestionParser>();
+
+                // Call 2: Gemini writes the reply, or the template text when GenerateAnswers is false.
+                if (generateAnswers)
+                    services.AddScoped<IAssetAnswerWriterService, GeminiAssetAnswerWriter>();
+                else
+                    services.AddScoped<IAssetAnswerWriterService, TemplateAssetAnswerWriter>();
             }
 
             #endregion

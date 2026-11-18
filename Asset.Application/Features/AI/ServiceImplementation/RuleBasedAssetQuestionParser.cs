@@ -13,13 +13,13 @@ namespace Asset.Application.Features.AI.ServiceImplementation
         #region Fields
         // ReDoS (Regular expression Denial of Service. 
         // After 100ms, regex will throw a timeout exception to avoid performance issues with complex patterns.
-        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(100); 
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(100);
         private const RegexOptions Options = RegexOptions.IgnoreCase | RegexOptions.Compiled;
 
         private static readonly Regex DepartmentRegex = new(
-            @"\b(?:the\s+)?([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*){0,2})\s+department\b"     
+            @"\b(?:the\s+)?([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*){0,2})\s+department\b"
                                                     +
-            @"|\bdepartment\s+(?:of\s+)?([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*){0,2})", 
+            @"|\bdepartment\s+(?:of\s+)?([A-Za-z][A-Za-z\-]*(?:\s+[A-Za-z][A-Za-z\-]*){0,2})",
             Options, RegexTimeout);
 
         private static readonly Regex EmployeeRegex = new(
@@ -29,7 +29,7 @@ namespace Asset.Application.Features.AI.ServiceImplementation
             Options, RegexTimeout);
 
         private static readonly Regex PolitePhrases = new(
-             @"\b(?:show|give|tell|find|get|list|bring)\s+me\b" ,
+             @"\b(?:show|give|tell|find|get|list|bring)\s+me\b",
             Options, RegexTimeout);
 
         private static readonly Regex SelfReference = new(
@@ -84,7 +84,9 @@ namespace Asset.Application.Features.AI.ServiceImplementation
         #endregion
 
         #region Public API
-        public Task<ParsedAssetQuestion> ParseAsync(string question, ParsedAssetQuestion? previous ,CancellationToken cancellationToken)
+        // history is not used here: keyword rules can't read a conversation. It is in the signature
+        // because the interface needs it for Gemini. "previous" still lets simple follow-ups work.
+        public Task<ParsedAssetQuestion> ParseAsync(string question, IReadOnlyList<ChatTurn> history, ParsedAssetQuestion? previous, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(question))
             {
@@ -97,12 +99,12 @@ namespace Asset.Application.Features.AI.ServiceImplementation
             // Normalize the question to lowercase for easier matching of keywords and phrases.
             var lower = question.ToLowerInvariant();
 
-            var department    = DetectDepartment(question);
-            var isAboutSelf   = DetectSelfReference(question);
+            var department = DetectDepartment(question);
+            var isAboutSelf = DetectSelfReference(question);
             var assetTypeName = DetectAssetType(question);
-            var manufacturer  = DetectManufacturer(question);
-            var status        = DetectStatus(lower);
-            var greeting      = GreetingRegex.IsMatch(question);
+            var manufacturer = DetectManufacturer(question);
+            var status = DetectStatus(lower);
+            var greeting = GreetingRegex.IsMatch(question);
 
             // If the question is not about a department and not about self, try to detect an employee name.
             string? employeeName = null;
@@ -110,7 +112,7 @@ namespace Asset.Application.Features.AI.ServiceImplementation
             {
                 employeeName = DetectEmployee(question);
             }
-            var hasAnyFilter = assetTypeName is not null || manufacturer is not null|| status is not null|| department is not null|| employeeName is not null || isAboutSelf;
+            var hasAnyFilter = assetTypeName is not null || manufacturer is not null || status is not null || department is not null || employeeName is not null || isAboutSelf;
 
             if (!hasAnyFilter && previous is not null && FollowUpRegex.IsMatch(question))
             {
@@ -147,24 +149,24 @@ namespace Asset.Application.Features.AI.ServiceImplementation
         #endregion
 
         #region Detection
-        private static AssetQuestionIntent DetectIntent(string lower, bool hasFilter , bool isGreeting)
+        private static AssetQuestionIntent DetectIntent(string lower, bool hasFilter, bool isGreeting)
         {
             // Greeting only, no filters → Greeting
             if (isGreeting && !hasFilter)
                 return AssetQuestionIntent.Greeting;
 
-            if (lower.Contains("how many")   || lower.Contains("count")        ||
-                lower.Contains("number of")  || lower.Contains("total number") ||
-                lower.Contains("total")      || lower.Contains("how much")) 
+            if (lower.Contains("how many") || lower.Contains("count") ||
+                lower.Contains("number of") || lower.Contains("total number") ||
+                lower.Contains("total") || lower.Contains("how much"))
                 return AssetQuestionIntent.CountAssets;
 
-            if (lower.Contains("show")       || lower.Contains("list") ||
-                lower.Contains("which")      || lower.Contains("what asset") ||
-                lower.Contains("give me")    || lower.Contains("tell me") ||
-                lower.Contains("find")       || lower.Contains("display") ||
+            if (lower.Contains("show") || lower.Contains("list") ||
+                lower.Contains("which") || lower.Contains("what asset") ||
+                lower.Contains("give me") || lower.Contains("tell me") ||
+                lower.Contains("find") || lower.Contains("display") ||
                 lower.Contains("do we have") || lower.Contains("do i have") ||
-                lower.Contains("what do")    || lower.Contains("bring me") ||
-                lower.Contains("get me")     || lower.Contains("see all") ||
+                lower.Contains("what do") || lower.Contains("bring me") ||
+                lower.Contains("get me") || lower.Contains("see all") ||
                 lower.Contains("view"))
             {
                 return AssetQuestionIntent.ListAssets;
@@ -202,7 +204,7 @@ namespace Asset.Application.Features.AI.ServiceImplementation
             // We will check if the question contains any of the known asset types, and if so, return that asset type.
             return KnownAssetTypes.FirstOrDefault(type =>
             {
-                                          // "Docking Station".Split(' ')
+                // "Docking Station".Split(' ')
                 var pattern = @"\b" + string.Join(@"\s+", type.Split(' ').Select(Regex.Escape)) + @"s?\b";
                 return Regex.IsMatch(question, pattern, Options, RegexTimeout);
             });

@@ -34,15 +34,21 @@ namespace Asset.Application.Features.AI.Builders
         public static string UnknownAssetType(string typeName)
         {
             return $"I don't recognise \"{typeName}\" as an asset type in the system.";
-        }        
+        }
         public static string UnknownDepartment(string departmentName)
         {
             return $"I couldn't find a department called \"{departmentName}\".";
-        }          
+        }
         public static string UnknownEmployee(string name)
         {
             return $"I couldn't find anyone called \"{name}\".";
         }
+        // The employee exists but has no assets that match (e.g. "Hesham2").
+        public static string NoAssetsForEmployee(string fullName)
+        {
+            return $"{fullName} has no assets assigned that match your question.";
+        }
+
         public static string AmbiguousEmployee(string name, IReadOnlyList<EmployeeLookup> matches)
         {
             var names = string.Join(", ", matches.Select(m => m.FullName));

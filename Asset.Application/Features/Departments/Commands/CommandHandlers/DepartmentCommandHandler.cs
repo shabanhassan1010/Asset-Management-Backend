@@ -114,6 +114,7 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
         {
             await _cache.RemoveAsync(CacheKeys.DepartmentList);           // the full list (dropdowns)
             await _cache.BumpVersionAsync(CacheKeys.DepartmentsVersion);  // every page of the paged list
+            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
         }
         #endregion
     }

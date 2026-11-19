@@ -75,7 +75,7 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
 
             return new ApiResponse<CreateEmployeeCommandResponse>
             {
-                data = _mapper.Map<CreateEmployeeCommandResponse>(employee), 
+                data = _mapper.Map<CreateEmployeeCommandResponse>(employee),
                 Success = true,
                 Message = "Employee Created Successfully"
             };
@@ -101,7 +101,7 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
                 if (!departmentExists)
                     throw new NotFoundException($"Department {request.DepartmentId} does not exist.");
 
-                employee.DepartmentId = request.DepartmentId;   
+                employee.DepartmentId = request.DepartmentId;
             }
 
             employee.FullName = request.FullName.Trim();
@@ -110,7 +110,6 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await InvalidateAsync();
-            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
 
             var saved = await _unitOfWork.Employees.GetByIdWithDepartmentAsync(employee.Id, cancellationToken);
             return new ApiResponse<UpdateEmployeeCommandResponse>
@@ -164,6 +163,10 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
             // Employee paged list is cached by version → bump the version
             await _cache.BumpVersionAsync(CacheKeys.EmployeesVersion);
             await _cache.BumpVersionAsync(CacheKeys.DepartmentsVersion);
+            // Asset rows and asset details show this employee's name and are cached under "assets:version".
+            // Without this bump, the asset list keeps the OLD name until its cache expires.
+            // It lives here (not only in Update) so Create and Enable/Disable are covered too.
+            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
         }
         #endregion
     }

@@ -32,11 +32,11 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
         #endregion
 
         #region handlers
-        public async Task<ApiResponse<CreateLocationResponseDto>> Handle( CreateLocationCommandModel request, CancellationToken cancellationToken)
+        public async Task<ApiResponse<CreateLocationResponseDto>> Handle(CreateLocationCommandModel request, CancellationToken cancellationToken)
         {
             var name = request.LocationName.Trim();
 
-            if(await _unitOfWork.Locations.LocationNameExistsAsync(name, null, cancellationToken))
+            if (await _unitOfWork.Locations.LocationNameExistsAsync(name, null, cancellationToken))
                 throw new ConflictException($"Location with name '{name}' already exists.");
 
             var entity = _mapper.Map<Location>(request);
@@ -61,9 +61,9 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
             if (entity is null || !entity.IsActive)
                 throw new NotFoundException($"Location {request.Id} was not found.");
 
-            var name = request.LocationName.Trim();   
+            var name = request.LocationName.Trim();
 
-            if (await _unitOfWork.Locations.LocationNameExistsAsync(name, request.Id, cancellationToken)) 
+            if (await _unitOfWork.Locations.LocationNameExistsAsync(name, request.Id, cancellationToken))
                 throw new BusinessException("A location with this name already exists.");
 
             _mapper.Map(request, entity);
@@ -112,6 +112,9 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
         {
             await _cache.RemoveAsync(CacheKeys.LocationList);
             await _cache.BumpVersionAsync(CacheKeys.LocationsVersion);
+            // Asset rows and asset details show this location's name and are cached under "assets:version".
+            // Without this bump, the asset list keeps the OLD name until its cache expires.
+            await _cache.BumpVersionAsync(CacheKeys.AssetsVersion);
         }
         #endregion
     }

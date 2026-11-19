@@ -30,7 +30,7 @@ namespace Asset.Infastructure.Repositories
         {
             // AsNoTracking: the row is read to validate a rule and then thrown away.
             // Tracking it would put an entity in the change tracker that SaveChanges then has to scan for modifications that cannot exist.
-            return _dbContext.Employees.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
+            return _dbContext.Employees.FirstOrDefaultAsync(e => e.Id == id, ct);
         }
         public async Task<EmployeeInfo?> GetProjectedByIdAsync(int id, CancellationToken cancellationToken)
         {

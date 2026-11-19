@@ -117,6 +117,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
         {
             await cache.RemoveAsync(CacheKeys.CategoryList);              // full list (dropdowns)
             await cache.BumpVersionAsync(CacheKeys.CategoriesVersion);    // every page of the paged list
+            await cache.BumpVersionAsync(CacheKeys.AssetsVersion);
         }
         #endregion
     }

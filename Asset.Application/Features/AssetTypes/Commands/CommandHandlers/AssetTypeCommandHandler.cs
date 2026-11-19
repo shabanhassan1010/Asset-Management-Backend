@@ -14,8 +14,8 @@ using Microsoft.Extensions.Localization;
 
 namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 {
-    public class AssetTypeCommandHandler : BaseResponseHandler, IRequestHandler<CreateAssetTypeCommandModel, BaseResponse<int>> ,
-                                                                IRequestHandler<UpdateAssetTypeCommandModel, BaseResponse<string>> ,
+    public class AssetTypeCommandHandler : BaseResponseHandler, IRequestHandler<CreateAssetTypeCommandModel, BaseResponse<int>>,
+                                                                IRequestHandler<UpdateAssetTypeCommandModel, BaseResponse<string>>,
                                                                 IRequestHandler<DeactivateAssetTypeCommandModel, BaseResponse<string>>
     {
         #region Fields
@@ -26,7 +26,7 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 
         #region Constructor
         public AssetTypeCommandHandler(IUnitOfWork unitOfWork, IMapper mapper,
-                                             ICacheService cacheService, 
+                                             ICacheService cacheService,
                                              IStringLocalizer<SharedResources> localizer) : base(localizer)
         {
             _unitOfWork = unitOfWork;
@@ -81,7 +81,7 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
 
             var isUsed = await _unitOfWork.Assets.AnyAsync(a => a.AssetTypeId == request.Id && a.Status != (int)AssetStatus.Retired, cancellationToken);
             if (isUsed)
-                 throw new BusinessException("This asset type is in use. Delete or reassign its assets first.");
+                throw new BusinessException("This asset type is in use. Delete or reassign its assets first.");
 
             _unitOfWork.AssetTypes.Deactivate(assetType);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -97,6 +97,9 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
         {
             await _cacheService.RemoveAsync(CacheKeys.AssetTypeList);
             await _cacheService.BumpVersionAsync(CacheKeys.AssetTypesVersion);
+            // Asset rows and asset details show this asset type's name and are cached under "assets:version".
+            // Without this bump, the asset list keeps the OLD name until its cache expires.
+            await _cacheService.BumpVersionAsync(CacheKeys.AssetsVersion);
         }
         #endregion
     }

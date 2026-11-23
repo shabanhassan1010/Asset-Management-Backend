@@ -54,6 +54,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
 
         var role = await _users.GetRoleAsync(user, cancellationToken);
 
+        // The employee linked to this account (name, code, department, phone).
+        // Without it the "user" in the response had only the account fields and every employee field was null.
+        // null when the account isn't linked to an employee.
+        var employee = user.EmployeeId is int employeeId
+            ? await _unitOfWork.Employees.GetProjectedByIdAsync(employeeId, cancellationToken)
+            : null;
+
         var accessToken = _tokenService.CreateAccessToken(user, role);
         var refreshToken = _tokenService.CreateRefreshToken();
 
@@ -76,7 +83,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponseDto
             AccessTokenExpiresAtUtc = accessToken.ExpiresAtUtc,       // Angular with it know if token is expire or not
             RefreshToken = refreshToken.Token,                       //  use it to get a new Access Token
             RefreshTokenExpiresAtUtc = refreshToken.ExpiresAtUtc,     
-            User = _mapper.Map<CurrentUserDto>(new UserWithRole(user, role))
+            User = _mapper.Map<CurrentUserDto>(new UserWithRole(user, role, employee))
         };
     }
-}
+}

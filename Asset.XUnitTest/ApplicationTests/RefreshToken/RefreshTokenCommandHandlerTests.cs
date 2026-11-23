@@ -4,6 +4,7 @@ using Asset.Application.Common.Models;
 using Asset.Application.Features.Auth.Commands.Refresh;
 using Asset.Application.Features.Auth.DTOs;
 using Asset.Application.Interfaces.Comman;
+using Asset.Application.Interfaces.IRepository;
 using Asset.Domain.Enum;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Identity;
@@ -35,6 +36,9 @@ namespace Asset.XUnitTest.ApplicationTests.RefreshToken
         public RefreshTokenCommandHandlerTests()
         {
             _tokenHasherMock.Setup(x => x.Hash(IncomingRawToken)).Returns(IncomingHash);
+
+            // The handler now reads the linked employee through _unitOfWork.Employees.
+            _unitOfWorkMock.Setup(x => x.Employees).Returns(new Mock<IEmployeeRepository>().Object);
 
             _handler = new RefreshTokenCommandHandler(_refreshTokensMock.Object, _tokenHasherMock.Object, _usersMock.Object, _tokenServiceMock.Object, _unitOfWorkMock.Object, _mapperMock.Object);
         }
@@ -233,4 +237,4 @@ namespace Asset.XUnitTest.ApplicationTests.RefreshToken
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(_ct), Times.Once);
         }
     }
-}
+}

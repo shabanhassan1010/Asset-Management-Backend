@@ -62,8 +62,8 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
             var chatKey = $"{_currentUser.UserId}:{request.SessionId}";
 
             // The whole chat so far (not only the last question).
-            var history = _conversationStore.GetHistory(chatKey);
-            var previous = _conversationStore.GetLast(chatKey);
+            var history = await _conversationStore.GetHistoryAsync(chatKey, cancellationToken);
+            var previous = await _conversationStore.GetLastAsync(chatKey, cancellationToken);
 
             var parsed = await _parser.ParseAsync(request.Question, history, previous, cancellationToken);
 
@@ -88,7 +88,7 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
             if (!parsed.HasAnyFilter && !_currentUser.IsAdmin)
             {
                 if (_currentUser.EmployeeId is null)
-                    return Reply(request, chatKey, AssetAnswerBuilder.NoEmployeeLink(_localizer));
+                    return await ReplyAsync(request, chatKey, AssetAnswerBuilder.NoEmployeeLink(_localizer));
 
                 parsed = parsed with { IsAboutSelf = true };
             }
@@ -111,7 +111,7 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
                 var assetTypeId = await _unitOfWork.AiLookup.GetAssetTypeIdByNameAsync(parsed.AssetTypeName, cancellationToken);
 
                 if (assetTypeId is null)
-                    return Reply(request, chatKey, AssetAnswerBuilder.UnknownAssetType(_localizer, parsed.AssetTypeName));
+                    return await ReplyAsync(request, chatKey, AssetAnswerBuilder.UnknownAssetType(_localizer, parsed.AssetTypeName));
 
                 filter.AssetTypeId = assetTypeId;
             }
@@ -121,7 +121,7 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
                 var departmentId = await _unitOfWork.AiLookup.GetDepartmentIdByNameAsync(parsed.DepartmentName, cancellationToken);
 
                 if (departmentId is null)
-                    return Reply(request, chatKey, AssetAnswerBuilder.UnknownDepartment(_localizer, parsed.DepartmentName));
+                    return await ReplyAsync(request, chatKey, AssetAnswerBuilder.UnknownDepartment(_localizer, parsed.DepartmentName));
 
                 filter.DepartmentId = departmentId;
             }
@@ -131,19 +131,19 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
             {
                 // Authenticated, but the account is not linked to an employee record.
                 if (_currentUser.EmployeeId is null)
-                    return Reply(request, chatKey, AssetAnswerBuilder.NoEmployeeLink(_localizer));
+                    return await ReplyAsync(request, chatKey, AssetAnswerBuilder.NoEmployeeLink(_localizer));
 
                 filter.EmployeeId = _currentUser.EmployeeId;
             }
             else if (parsed.EmployeeName is not null)
             {
                 if (!_currentUser.IsAdmin)
-                    return Reply(request, chatKey, AssetAnswerBuilder.CannotLookUpOthers(_localizer));
+                    return await ReplyAsync(request, chatKey, AssetAnswerBuilder.CannotLookUpOthers(_localizer));
 
                 var matches = await _unitOfWork.AiLookup.FindEmployeesByNameAsync(parsed.EmployeeName, cancellationToken);
 
                 if (matches.Count == 0)
-                    return Reply(request, chatKey, AssetAnswerBuilder.UnknownEmployee(_localizer, parsed.EmployeeName));
+                    return await ReplyAsync(request, chatKey, AssetAnswerBuilder.UnknownEmployee(_localizer, parsed.EmployeeName));
 
                 // An exact name wins: "Hesham" is not ambiguous just because "Hesham2" also contains it.
                 // OrdinalIgnoreCase: "hesham" and "Hesham" count as the same name.
@@ -157,7 +157,7 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
                 // Still more than one person: ask, with one clickable chip per person.
                 // Each chip uses the FULL name, so clicking it hits the exact-match rule above.
                 if (matches.Count > 1)
-                    return Reply(request, chatKey,
+                    return await ReplyAsync(request, chatKey,
                                  AssetAnswerBuilder.AmbiguousEmployee(_localizer, parsed.EmployeeName, matches),
                                  suggestions: matches.Select(m => (string)_localizer["Show assets assigned to {0}", m.DisplayName]).ToList());
 
@@ -175,7 +175,7 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
                                                 cancellationToken);
 
             // Remember the exact filters of this search for the next question.
-            _conversationStore.SaveLast(chatKey, parsed);
+            await _conversationStore.SaveLastAsync(chatKey, parsed, cancellationToken);
 
             if (parsed.Intent == AssetQuestionIntent.CountAssets)
             {
@@ -217,19 +217,21 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
 
             var answer = await _answerWriter.WriteAnswerAsync(context, cancellationToken);
 
-            return Reply(request, chatKey, answer, rows, totalCount, suggestions);
+            return await ReplyAsync(request, chatKey, answer, rows, totalCount, suggestions);
         }
 
         // Every reply goes through here, so EVERY turn is saved to the chat history
         // (also refusals and "which one did you mean?", so "the first one" can be understood next).
-        private ApiResponse<AssetQuestionResponse> Reply(AskAssetQuestionQuery request,
-                                                         string chatKey,
-                                                         string answer,
-                                                         IReadOnlyList<AssetQuestionResultDto>? rows = null,
-                                                         int totalCount = 0,
-                                                         IReadOnlyList<string>? suggestions = null)
+        private async Task<ApiResponse<AssetQuestionResponse>> ReplyAsync(AskAssetQuestionQuery request,
+                                                                          string chatKey,
+                                                                          string answer,
+                                                                          IReadOnlyList<AssetQuestionResultDto>? rows = null,
+                                                                          int totalCount = 0,
+                                                                          IReadOnlyList<string>? suggestions = null)
         {
-            _conversationStore.AddTurn(chatKey, request.Question, answer);
+            // CancellationToken.None: the answer is ready; if the user closes the tab now
+            // the turn should still be saved, or the next question would miss it.
+            await _conversationStore.AddTurnAsync(chatKey, request.Question, answer, CancellationToken.None);
 
             return new ApiResponse<AssetQuestionResponse>
             {

@@ -1,18 +1,27 @@
-﻿using Asset.Application.Features.Locations.Commands.CommandModels;
+﻿using Asset.Application.Resources;
+using Microsoft.Extensions.Localization;
+using Asset.Application.Features.Locations.Commands.CommandModels;
 using Asset.Application.Interfaces.IRepository;
 using FluentValidation;
 namespace Asset.Application.Features.Locations.Commands.CommandValidator
 {
     public class CreateLocationCommandValidator : AbstractValidator<CreateLocationCommandModel>
     {
-        public CreateLocationCommandValidator(ILocationRepository locationRepository)
+        public CreateLocationCommandValidator(ILocationRepository locationRepository, IStringLocalizer<SharedResources> localizer)
         {
             RuleFor(x => x.LocationName)
-                .NotEmpty().WithMessage("Location name is required.")
+                .NotEmpty().WithMessage(_ => localizer["Location name is required."])
                 .MaximumLength(150)
                 .MustAsync(async (name, ct) =>
                     !await locationRepository.LocationNameExistsAsync(name, null, ct))
-                .WithMessage(x => $"Location name '{x.LocationName}' is already in use.");
+                .WithMessage(x => localizer["Location name '{0}' is already in use.", x.LocationName]);
+
+            // Optional. Checked only when it is filled in (the index allows many NULLs).
+            RuleFor(x => x.LocationNameAr)
+                .MaximumLength(150).WithMessage(_ => localizer["Arabic name must not exceed {0} characters.", 150])
+                .MustAsync(async (nameAr, ct) => !await locationRepository.LocationNameArExistsAsync(nameAr!.Trim(), null, ct))
+                .WithMessage(x => localizer["Arabic location name '{0}' is already in use.", x.LocationNameAr!])
+                .When(x => !string.IsNullOrWhiteSpace(x.LocationNameAr));
 
             RuleFor(x => x.Address).MaximumLength(300);
         }

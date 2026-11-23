@@ -5,7 +5,7 @@ using Asset.Application.Features.Assets.Queries.QueryModels;
 using Asset.Application.Features.Assets.Queries.QueryResponses;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.Repository;
-using Asset.Application.Resoures;
+using Asset.Application.Resources;
 using Asset.Domain.Common;
 using Asset.Domain.Exceptions;
 using AutoMapper;
@@ -40,7 +40,7 @@ namespace Asset.Application.Features.Assets.Queries.QueryHandlers
             var asset = await _unitOfWork.Assets.GetByIdWithDetailsAsync(request.Id, cancellationToken);
 
             if (asset == null)
-                throw new NotFoundException($"Asset {request.Id} was not found.");
+                throw new NotFoundException("Asset {0} was not found.", request.Id);
 
             var dto = _mapper.Map<GetByIdQueryResponse>(asset);
             // reads the role claim inside the JWT

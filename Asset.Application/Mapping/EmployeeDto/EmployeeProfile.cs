@@ -25,7 +25,8 @@ namespace Asset.Application.Mapping.EmployeeDto
         {
             CreateMap<Employee, GetEmployeeByIdResponse>()
                 .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName))
-                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.DepartmentName));
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.DepartmentName))
+                .ForMember(dest => dest.DepartmentNameAr, opt => opt.MapFrom(src => src.Department.DepartmentNameAr));
         }
         private void CreateEmployeeCommandMapping()
         {
@@ -34,7 +35,8 @@ namespace Asset.Application.Mapping.EmployeeDto
         private void UpdateEmployeeCommandMapping()
         {
             CreateMap<Employee, UpdateEmployeeCommandResponse>()
-                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.DepartmentName));
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.DepartmentName))
+                .ForMember(dest => dest.DepartmentNameAr, opt => opt.MapFrom(src => src.Department.DepartmentNameAr));
         }
         private void SetEmployeeStatusCommandMapping()
         {
@@ -44,7 +46,9 @@ namespace Asset.Application.Mapping.EmployeeDto
         {
             CreateMap<Employee, GetEmployeeListQueryResponse>()
                 .ForMember(dest => dest.EmployeeName, opt => opt.MapFrom(src => src.FullName))
-                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.DepartmentName));
+                .ForMember(dest => dest.EmployeeNameAr, opt => opt.MapFrom(src => src.FullNameAr))
+                .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.DepartmentName))
+                .ForMember(dest => dest.DepartmentNameAr, opt => opt.MapFrom(src => src.Department.DepartmentNameAr));
         }
     }
 }

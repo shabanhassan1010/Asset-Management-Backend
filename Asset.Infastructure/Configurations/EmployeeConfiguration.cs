@@ -28,6 +28,8 @@ namespace Asset.Infastructure.Configurations
                 .HasDefaultValue(true)
                 .HasAnnotation("Relational:DefaultConstraintName", "DF_Employees_IsActive");
             entity.Property(e => e.Phone).HasMaxLength(30);
+            // Arabic name (script 05). No unique index: two employees can share a name.
+            entity.Property(e => e.FullNameAr).HasMaxLength(200);
 
             entity.HasOne(d => d.Department).WithMany(p => p.Employees)
                 .HasForeignKey(d => d.DepartmentId)

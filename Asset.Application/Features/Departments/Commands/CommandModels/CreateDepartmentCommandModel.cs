@@ -7,6 +7,7 @@ namespace Asset.Application.Features.Departments.Commands.CommandModels
     public class CreateDepartmentCommandModel : IRequest<ApiResponse<CreateDepartmentResponseDto>>
     {
         public string DepartmentName { get; set; }
+        public string? DepartmentNameAr { get; set; }    // optional
         public string Code { get; set; }
     }
 

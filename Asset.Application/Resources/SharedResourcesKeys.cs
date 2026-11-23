@@ -1,4 +1,4 @@
-﻿namespace Asset.Application.Resoures
+﻿namespace Asset.Application.Resources
 {
     public class SharedResourcesKeys
     {

@@ -1,18 +1,20 @@
-﻿using Asset.Application.Features.AssetTransfers.Commands.CommandModel;
+﻿using Asset.Application.Resources;
+using Microsoft.Extensions.Localization;
+using Asset.Application.Features.AssetTransfers.Commands.CommandModel;
 using FluentValidation;
 namespace Asset.Application.Features.AssetTransfers.Commands.CommandValidator
 {
     public class TransferAssetCommandValidator : AbstractValidator<TransferAssetCommandModel>
     {
-        public TransferAssetCommandValidator()
+        public TransferAssetCommandValidator(IStringLocalizer<SharedResources> localizer)
         {
             RuleFor(x => x.AssetId).GreaterThan(0);
             RuleFor(x => x.Reason)
-                .NotEmpty().WithMessage("A reason is required for every transfer.")
+                .NotEmpty().WithMessage(_ => localizer["A reason is required for every transfer."])
                 .MaximumLength(500);
 
             RuleFor(x => x.TransferDate)
-                .NotEmpty().WithMessage("A transfer date is required.");
+                .NotEmpty().WithMessage(_ => localizer["A transfer date is required."]);
 
             RuleFor(x => x.ToEmployeeId).GreaterThanOrEqualTo(0).When(x => x.ToEmployeeId.HasValue);
             RuleFor(x => x.ToDepartmentId).GreaterThanOrEqualTo(0).When(x => x.ToDepartmentId.HasValue);
@@ -21,11 +23,11 @@ namespace Asset.Application.Features.AssetTransfers.Commands.CommandValidator
 
             RuleFor(x => x.ToDepartmentId).NotNull()
                 .When(x => x.ToEmployeeId is > 0)
-                .WithMessage("A transfer to an employee also needs a department.");
+                .WithMessage(_ => localizer["A transfer to an employee also needs a department."]);
 
             RuleFor(x => x.RowVersion)
-                .NotEmpty().WithMessage("RowVersion is required. Re-read the asset and try again.")
-                .Must(BeBase64).WithMessage("RowVersion is not a valid Base64 value.");
+                .NotEmpty().WithMessage(_ => localizer["RowVersion is required. Re-read the asset and try again."])
+                .Must(BeBase64).WithMessage(_ => localizer["RowVersion is not a valid Base64 value."]);
         }
 
 

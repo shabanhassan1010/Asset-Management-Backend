@@ -10,6 +10,7 @@ namespace Asset.Application.Interfaces.IRepository
         Task<IReadOnlyList<GetCategoryListResponse>> GetAllProjectedAsync(CancellationToken ct);
         Task<(List<GetCategoryListResponse> Items, int TotalCount)> GetPagedAsync(string? search, bool? isActive, int pageNumber, int pageSize, CancellationToken ct);
         Task<bool> CategoryNameExistsAsync(string name, int? exceptId, CancellationToken ct);
+        Task<bool> CategoryNameArExistsAsync(string nameAr, int? exceptId, CancellationToken ct);
         Task<bool> HasAssetsAsync(int id, CancellationToken ct);
         void DeActivate(Category entity);
     }

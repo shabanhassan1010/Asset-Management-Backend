@@ -13,6 +13,8 @@ namespace Asset.Application.Interfaces.IRepository
         Task<IReadOnlyList<GetDepartmentListResponse>> GetAllProjectedAsync(CancellationToken ct);
         Task<(List<GetDepartmentListResponse> Items, int TotalCount)> GetPagedAsync(string? search, bool? isActive, int pageNumber, int pageSize, CancellationToken ct);
 
+        Task<bool> IsNameArExistsAsync(string nameAr, int? exceptId, CancellationToken ct);
+
         // Write
         void DeActivate(Department entity);
     }

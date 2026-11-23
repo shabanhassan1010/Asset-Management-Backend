@@ -12,10 +12,12 @@ namespace Asset.Application.Mapping.AssetTypeDto
         {
              // Read
             CreateMap<AssetType, GetAssetTypeListQueryResponse>()
-                      .ForMember(dest => dest.AssetTypeName, opt => opt.MapFrom(src => src.TypeName));
+                      .ForMember(dest => dest.AssetTypeName, opt => opt.MapFrom(src => src.TypeName))
+                      .ForMember(dest => dest.AssetTypeNameAr, opt => opt.MapFrom(src => src.TypeNameAr));
 
             CreateMap<AssetType, GetAssetTypeByIdQueryResponse>()
-                     .ForMember(dest => dest.AssetTypeName, opt => opt.MapFrom(src => src.TypeName));
+                     .ForMember(dest => dest.AssetTypeName, opt => opt.MapFrom(src => src.TypeName))
+                     .ForMember(dest => dest.AssetTypeNameAr, opt => opt.MapFrom(src => src.TypeNameAr));
 
             // Write
             CreateMap<CreateAssetTypeCommandModel, AssetType>()

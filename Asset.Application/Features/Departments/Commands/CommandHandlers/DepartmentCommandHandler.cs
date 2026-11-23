@@ -1,4 +1,5 @@
 ﻿#region
+using Asset.Application.Common;
 using Asset.Application.Common.Caching;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.Departments.Commands.CommandModels;
@@ -36,11 +37,16 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
         {
             var name = request.DepartmentName.Trim();
             if(await _unitOfWork.Departments.IsNameExistsAsync(name, null, cancellationToken))
-                throw new BusinessException($"Department with name '{name}' already exists.");
+                throw new BusinessException("Department with name '{0}' already exists.", name);
 
+
+            var nameAr = LocalizedName.TrimOrNull(request.DepartmentNameAr);
+            if (nameAr is not null && await _unitOfWork.Departments.IsNameArExistsAsync(nameAr, null, cancellationToken))
+                throw new BusinessException("Arabic department name '{0}' is already in use.", nameAr);
 
             var entity = _mapper.Map<Department>(request);
             entity.DepartmentName = name;
+            entity.DepartmentNameAr = nameAr;
             entity.IsActive = true;
 
             _unitOfWork.Departments.Add(entity);
@@ -59,15 +65,20 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
         {
             var entity = await _unitOfWork.Departments.GetByIdAsync(request.Id, cancellationToken);
             if (entity is null || !entity.IsActive)
-                throw new NotFoundException($"Department {request.Id} does not exist.");
+                throw new NotFoundException("Department {0} does not exist.", request.Id);
 
             var name = request.DepartmentName.Trim();                                            
 
             if (await _unitOfWork.Departments.IsNameExistsAsync(name, request.Id, cancellationToken)) 
-                throw new BusinessException("A location with this name already exists.");
+                throw new BusinessException("A department with this name already exists.");
+
+            var nameAr = LocalizedName.TrimOrNull(request.DepartmentNameAr);
+            if (nameAr is not null && await _unitOfWork.Departments.IsNameArExistsAsync(nameAr, request.Id, cancellationToken))
+                throw new BusinessException("Arabic department name '{0}' is already in use.", nameAr);
 
             _mapper.Map(request, entity);
             entity.DepartmentName = name;
+            entity.DepartmentNameAr = nameAr;    // "" from the form is saved as NULL
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await InvalidateAsync();
@@ -85,14 +96,14 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
             var entity = await _unitOfWork.Departments.GetByIdAsync(request.Id, cancellationToken);
 
             if (entity is null || !entity.IsActive)
-                throw new NotFoundException($"Department {request.Id} was not found.");
+                throw new NotFoundException("Department {0} was not found.", request.Id);
 
             var employeesCount = await _unitOfWork.Employees.CountEmployeesAsync(request.Id, cancellationToken);
             var assetsCount   = await _unitOfWork.Assets.CountAssetsAsync(request.Id, cancellationToken);
 
             if (employeesCount > 0 || assetsCount > 0)
             {
-                throw new BusinessException($"Cannot deactivate this department: it has {employeesCount} employee(s) and {assetsCount} asset(s). Reassign them first.");
+                throw new BusinessException("Cannot deactivate this department: it has {0} employee(s) and {1} asset(s). Reassign them first.", employeesCount, assetsCount);
             }
 
             _unitOfWork.Departments.DeActivate(entity);  

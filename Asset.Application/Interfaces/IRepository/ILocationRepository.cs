@@ -18,6 +18,7 @@ namespace Asset.Application.Interfaces.IRepository
 
         Task<IReadOnlyList<AssetEntity>> GetTrackedAssetsByLocationAsync(int locationId, CancellationToken ct);
         Task<bool> LocationNameExistsAsync(string name, int? exceptId, CancellationToken ct);
+        Task<bool> LocationNameArExistsAsync(string nameAr, int? exceptId, CancellationToken ct);
 
         // Delete (soft Delete)
         void DeActivate(Location entity);

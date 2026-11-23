@@ -43,6 +43,7 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
                             {
                                 Id = e.Id,
                                 EmployeeName = e.FullName,
+                                EmployeeNameAr = e.FullNameAr,
                                 DepartmentId = e.DepartmentId,
                                 IsActive = e.IsActive,
                             }).ToList(); ;
@@ -73,7 +74,7 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
         {
             var employee = await _unitOfWork.Employees.GetByIdWithDepartmentAsync(request.Id, cancellationToken);
             if (employee is null)
-                throw new NotFoundException($"Employee {request.Id} does not exist.");
+                throw new NotFoundException("Employee {0} does not exist.", request.Id);
 
             return new ApiResponse<GetEmployeeByIdResponse>
             {
@@ -91,6 +92,7 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
             {
                 Id = e.Id,
                 EmployeeName = e.FullName,
+                EmployeeNameAr = e.FullNameAr,
                 DepartmentId = e.DepartmentId,
                 IsActive = e.IsActive
             }).ToList();

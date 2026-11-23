@@ -3,6 +3,7 @@
     public class UpdateDepartmentResponseDto
     {
         public string DepartmentName { get; set; }
+        public string? DepartmentNameAr { get; set; }
         public string Code { get; set; }
     }
 }

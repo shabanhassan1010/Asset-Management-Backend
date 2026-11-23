@@ -4,7 +4,7 @@ using Asset.Application.Features.Departments.Queries.QueryModels;
 using Asset.Application.Features.Departments.Queries.QueryResponse;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
-using Asset.Application.Resoures;
+using Asset.Application.Resources;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Models;
 using AutoMapper;

@@ -16,6 +16,7 @@ namespace Asset.Application.Interfaces.Repository
         Task<AssetEntity?> GetByIdWithDetailsAsync(int id, CancellationToken ct);
         Task<PagedResult<AssetEntity>> GetPaginationAsync(AssetFilter filter, CancellationToken ct);
         Task<AssetEntity?> GetForUpdateAsync(int id, CancellationToken ct);     // tracked, for writes
+        Task<List<AssetEntity>> GetActiveAssignedToEmployeeAsync(int employeeId, CancellationToken ct); // tracked, for writes
         Task<List<GetAssetTransferHistoryResponse>> GetTransferHistoryAsync(int assetId, CancellationToken ct);
         void SetOriginalRowVersion(AssetEntity entity, byte[] rowVersion);
         Task<IReadOnlyList<AssetTypeCountResult>> GetCountsByAssetTypeAsync(CancellationToken cancellationToken);

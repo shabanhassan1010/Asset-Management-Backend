@@ -36,6 +36,7 @@ namespace Asset.Infastructure.Repositories
                         {
                             Id = c.Id,
                             LocationName = c.LocationName,
+                            LocationNameAr = c.LocationNameAr,
                             Address = c.Address,
                             IsActive = c.IsActive,
                             AssetsCount = c.Assets.Count()
@@ -48,7 +49,9 @@ namespace Asset.Infastructure.Repositories
             if (!string.IsNullOrWhiteSpace(search))
             {
                 search = search.Trim();
-                query = query.Where(e => e.LocationName.Contains(search));
+                // Search the English AND the Arabic name, so typing in either language finds the row.
+                query = query.Where(e => e.LocationName.Contains(search) ||
+                                         (e.LocationNameAr != null && e.LocationNameAr.Contains(search)));
             }
 
             if (isActive.HasValue)
@@ -65,6 +68,7 @@ namespace Asset.Infastructure.Repositories
                 {
                     Id = t.Id,
                     LocationName = t.LocationName,
+                    LocationNameAr = t.LocationNameAr,
                     Address = t.Address,
                     IsActive = t.IsActive,
                     AssetsCount = t.Assets.Count(a => a.Status != (int)AssetStatus.Retired),
@@ -84,6 +88,18 @@ namespace Asset.Infastructure.Repositories
         public async Task<bool> LocationNameExistsAsync(string name, int? exceptId, CancellationToken ct)
         {
             var query = _dbContext.Locations.AsNoTracking().Where(l => l.IsActive && l.LocationName == name);
+            if (exceptId.HasValue)
+            {
+                query = query.Where(l => l.Id != exceptId.Value);
+            }
+
+            return await query.AnyAsync(ct);
+        }
+        // Same rule as the unique index UX_Locations_LocationNameAr_Active: only ACTIVE rows count.
+        public async Task<bool> LocationNameArExistsAsync(string nameAr, int? exceptId, CancellationToken ct)
+        {
+            var query = _dbContext.Locations.AsNoTracking().Where(l => l.IsActive && l.LocationNameAr == nameAr);
+
             if (exceptId.HasValue)
             {
                 query = query.Where(l => l.Id != exceptId.Value);

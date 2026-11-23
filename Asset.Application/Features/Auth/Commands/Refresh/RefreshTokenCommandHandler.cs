@@ -69,6 +69,13 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
         // the next refresh even though the old access token cannot be edited.
         var role = await _users.GetRoleAsync(user, cancellationToken);
 
+        // The employee linked to this account (name, code, department, phone).
+        // Without it the "user" in the response had only the account fields and every employee field was null.
+        // null when the account isn't linked to an employee.
+        var employee = user.EmployeeId is int employeeId
+            ? await _unitOfWork.Employees.GetProjectedByIdAsync(employeeId, cancellationToken)
+            : null;
+
         var accessToken = _tokenService.CreateAccessToken(user, role);
         var newRefreshToken = _tokenService.CreateRefreshToken();
         var newTokenHash = _tokenHasher.Hash(newRefreshToken.Token);
@@ -95,8 +102,8 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
             AccessTokenExpiresAtUtc = accessToken.ExpiresAtUtc,
             RefreshToken = newRefreshToken.Token,
             RefreshTokenExpiresAtUtc = newRefreshToken.ExpiresAtUtc,
-            User = _mapper.Map<CurrentUserDto>(new UserWithRole(user, role))
+            User = _mapper.Map<CurrentUserDto>(new UserWithRole(user, role, employee))
         };
     }
     #endregion
-}
+}

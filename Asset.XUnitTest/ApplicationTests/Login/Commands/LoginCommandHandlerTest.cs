@@ -3,6 +3,7 @@ using Asset.Application.Common.Models;
 using Asset.Application.Features.Auth.Commands.Login;
 using Asset.Application.Features.Auth.DTOs;
 using Asset.Application.Interfaces.Comman;
+using Asset.Application.Interfaces.IRepository;
 using Asset.Domain.Enum;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Identity;
@@ -40,6 +41,10 @@ namespace Asset.XUnitTest.ApplicationTests.Login.Commands
             _tokenHasherMock = new();
             _unitOfWorkMock = new();
             _mapperMock = new();
+
+            // The handler now reads the linked employee through _unitOfWork.Employees.
+            // A loose mock returns null for that property, so give it an empty repository mock.
+            _unitOfWorkMock.Setup(x => x.Employees).Returns(new Mock<IEmployeeRepository>().Object);
 
             _handler = new LoginCommandHandler(_usersMock.Object, _refreshTokensMock.Object, _tokenServiceMock.Object, _tokenHasherMock.Object, _unitOfWorkMock.Object, _mapperMock.Object);
         }
@@ -192,4 +197,4 @@ namespace Asset.XUnitTest.ApplicationTests.Login.Commands
         }
         #endregion
     }
-}
+}

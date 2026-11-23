@@ -38,10 +38,12 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, C
 
         var role = await _users.GetRoleAsync(user, cancellationToken);
 
-        EmployeeInfo employee = await _unitOfWork.Employees.GetProjectedByIdAsync(user.EmployeeId.Value, cancellationToken);
-        if(employee.Id == null)
-            throw new AuthenticationFailedException("Employee information not found for the current user.");
+        // An account may have no employee (EmployeeId is NULL). The old code did user.EmployeeId.Value,
+        // which crashed with a 500 for such accounts; now the employee fields are simply null.
+        EmployeeInfo? employee = user.EmployeeId is int employeeId
+            ? await _unitOfWork.Employees.GetProjectedByIdAsync(employeeId, cancellationToken)
+            : null;
         
         return _mapper.Map<CurrentUserDto>(new UserWithRole(user, role, employee));
     }
-}
+}

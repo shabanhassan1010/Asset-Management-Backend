@@ -129,8 +129,8 @@ namespace Asset.Infastructure
             #endregion
 
             #region AI assistant
-            services.AddMemoryCache();
-            services.AddScoped<IConversationStoreService, InMemoryConversationStore>();
+            // AI chat memory in Redis (was IMemoryCache): survives restarts and is shared by all servers.
+            services.AddScoped<IConversationStoreService, RedisConversationStore>();
             services.AddScoped<IAiLookupRepository, AiLookupRepository>();
 
             // Always registered: it is Gemini's fallback, and the main parser when there is no key.
@@ -173,4 +173,4 @@ namespace Asset.Infastructure
             return services;
         }
     }
-}
+}

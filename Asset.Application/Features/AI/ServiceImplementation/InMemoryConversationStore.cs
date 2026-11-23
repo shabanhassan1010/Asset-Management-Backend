@@ -4,6 +4,9 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Asset.Application.Features.AI.ServiceImplementation
 {
+    // NOT registered any more: the app uses RedisConversationStore (survives restarts, shared by all servers).
+    // Kept only as a simple option for running locally without Redis: swap the line in
+    // ModuleInfrastructureDependencies.cs and add services.AddMemoryCache().
     public class InMemoryConversationStore : IConversationStoreService
     {
         #region Fields
@@ -28,26 +31,33 @@ namespace Asset.Application.Features.AI.ServiceImplementation
         #endregion
 
         #region Last filters
-        public ParsedAssetQuestion? GetLast(string chatKey)
+        // RAM is instant, so these just wrap the result in a finished Task to match the async interface.
+        public Task<ParsedAssetQuestion?> GetLastAsync(string chatKey, CancellationToken ct)
         {
             _cache.TryGetValue(FiltersKey(chatKey), out ParsedAssetQuestion? parsed);
-            return parsed;
+            return Task.FromResult(parsed);
         }
 
-        public void SaveLast(string chatKey, ParsedAssetQuestion parsed)
+        public Task SaveLastAsync(string chatKey, ParsedAssetQuestion parsed, CancellationToken ct)
         {
             _cache.Set(FiltersKey(chatKey), parsed, Lifetime);
+            return Task.CompletedTask;
         }
         #endregion
 
         #region Chat history
-        public IReadOnlyList<ChatTurn> GetHistory(string chatKey)
+        public Task<IReadOnlyList<ChatTurn>> GetHistoryAsync(string chatKey, CancellationToken ct)
+        {
+            return Task.FromResult(GetHistory(chatKey));
+        }
+
+        private IReadOnlyList<ChatTurn> GetHistory(string chatKey)
         {
             _cache.TryGetValue(HistoryKey(chatKey), out List<ChatTurn>? turns);
             return turns ?? new List<ChatTurn>();
         }
 
-        public void AddTurn(string chatKey, string question, string answer)
+        public Task AddTurnAsync(string chatKey, string question, string answer, CancellationToken ct)
         {
             if (answer.Length > MaxAnswerLength)
                 answer = answer[..MaxAnswerLength] + "...";
@@ -60,6 +70,7 @@ namespace Asset.Application.Features.AI.ServiceImplementation
                         .ToList();
 
             _cache.Set(HistoryKey(chatKey), turns, Lifetime);
+            return Task.CompletedTask;
         }
         #endregion
 

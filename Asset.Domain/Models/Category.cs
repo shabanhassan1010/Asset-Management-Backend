@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Asset.Domain.Models;
 
-[Index("CategoryName", Name = "UQ_Categories_CategoryName", IsUnique = true)]
 public partial class Category
 {
     [Key]
@@ -22,6 +21,9 @@ public partial class Category
     public string Description { get; set; }
 
     public bool IsActive { get; set; }
+
+    [StringLength(100)]
+    public string CategoryNameAr { get; set; }
 
     [InverseProperty("Category")]
     public virtual ICollection<Asset> Assets { get; set; } = new List<Asset>();

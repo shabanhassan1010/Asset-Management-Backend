@@ -34,6 +34,9 @@ public partial class Employee
 
     public bool IsActive { get; set; }
 
+    [StringLength(200)]
+    public string FullNameAr { get; set; }
+
     [InverseProperty("FromEmployee")]
     public virtual ICollection<AssetTransfer> AssetTransferFromEmployees { get; set; } = new List<AssetTransfer>();
 

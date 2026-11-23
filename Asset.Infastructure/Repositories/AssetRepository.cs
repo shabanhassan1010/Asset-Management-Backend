@@ -155,13 +155,26 @@ namespace Asset.Infastructure.Repositories
                     FromLocationName = t.FromLocation.LocationName,
                     ToLocationName = t.ToLocation.LocationName,
                     FromDepartmentName = t.FromDepartment.DepartmentName,
-                    ToDepartmentName = t.ToDepartment.DepartmentName
+                    ToDepartmentName = t.ToDepartment.DepartmentName,
+                    FromLocationNameAr = t.FromLocation.LocationNameAr,
+                    ToLocationNameAr = t.ToLocation.LocationNameAr,
+                    FromDepartmentNameAr = t.FromDepartment.DepartmentNameAr,
+                    ToDepartmentNameAr = t.ToDepartment.DepartmentNameAr
                 })
                 .ToListAsync(ct);
         }
         public Task<AssetEntity?> GetForUpdateAsync(int id, CancellationToken ct)
         {
             return _dbContext.Assets.FirstOrDefaultAsync(a => a.Id == id, ct);
+        }
+
+        // Tracked (no AsNoTracking) because the caller changes these assets and saves them.
+        // Retired assets are left out: their record is history and must not move.
+        public Task<List<AssetEntity>> GetActiveAssignedToEmployeeAsync(int employeeId, CancellationToken ct)
+        {
+            return _dbContext.Assets
+                             .Where(a => a.AssignedEmployeeId == employeeId && a.Status != (int)AssetStatus.Retired)
+                             .ToListAsync(ct);
         }
         public async Task<IReadOnlyList<AssetTypeCountResult>> GetCountsByAssetTypeAsync(CancellationToken cancellationToken)
         {

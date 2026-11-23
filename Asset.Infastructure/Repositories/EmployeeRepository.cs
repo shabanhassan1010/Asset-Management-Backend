@@ -41,10 +41,12 @@ namespace Asset.Infastructure.Repositories
                     Id = e.Id,
                     EmployeeCode = e.EmployeeCode,
                     FullName = e.FullName,
+                    FullNameAr = e.FullNameAr,
                     Email = e.Email,
                     Phone = e.Phone,
                     DepartmentId = e.DepartmentId,
                     DepartmentName = e.Department.DepartmentName,
+                    DepartmentNameAr = e.Department.DepartmentNameAr,
                     IsActive = e.IsActive
                 })
                 .FirstOrDefaultAsync(cancellationToken);
@@ -80,7 +82,11 @@ namespace Asset.Infastructure.Repositories
             if (!string.IsNullOrWhiteSpace(search))
             {
                 search = search.Trim();
-                query = query.Where(e => e.FullName.Contains(search) || e.EmployeeCode.Contains(search) || e.Email != null && e.Email.Contains(search));
+                // The Arabic name is searched too, so typing "أحمد" finds "Ahmed Kamal".
+                query = query.Where(e => e.FullName.Contains(search) ||
+                                         (e.FullNameAr != null && e.FullNameAr.Contains(search)) ||
+                                         e.EmployeeCode.Contains(search) ||
+                                         e.Email != null && e.Email.Contains(search));
             }
 
             if (departmentId.HasValue)

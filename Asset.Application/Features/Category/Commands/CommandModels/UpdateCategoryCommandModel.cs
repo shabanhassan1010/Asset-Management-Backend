@@ -8,6 +8,7 @@ namespace Asset.Application.Features.Category.Commands.CommandModels
     {
         public int Id { get; set; }  
         public string CategoryName { get; set; }
+        public string? CategoryNameAr { get; set; }      // optional
         public string Description { get; set; }
     }
 }

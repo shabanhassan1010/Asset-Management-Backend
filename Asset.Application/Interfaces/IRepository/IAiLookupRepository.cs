@@ -1,4 +1,6 @@
-﻿namespace Asset.Application.Interfaces.IRepository
+﻿using Asset.Application.Common;
+
+namespace Asset.Application.Interfaces.IRepository
 {
     public interface IAiLookupRepository
     {
@@ -10,5 +12,10 @@
         Task<List<string>> GetAssetTypeNamesAsync(CancellationToken ct);
         Task<List<string>> GetDepartmentNamesAsync(CancellationToken ct);
     }
-    public record EmployeeLookup(int Id, string FullName);
+    // FullNameAr is NULL when no Arabic name was entered.
+    public record EmployeeLookup(int Id, string FullName, string? FullNameAr)
+    {
+        // The name to show in the chat, in the language of the request.
+        public string DisplayName => LocalizedName.Pick(FullName, FullNameAr);
+    }
 }

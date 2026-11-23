@@ -14,13 +14,19 @@
 
         // From
         public string? FromEmployeeName { get; set; }
+        public string? FromEmployeeNameAr { get; set; }
         public string? FromDepartmentName { get; set; }
+        public string? FromDepartmentNameAr { get; set; }
         public string? FromLocationName { get; set; }
+        public string? FromLocationNameAr { get; set; }
 
         // To
         public string? ToEmployeeName { get; set; }
+        public string? ToEmployeeNameAr { get; set; }
         public string? ToDepartmentName { get; set; }
+        public string? ToDepartmentNameAr { get; set; }
         public string? ToLocationName { get; set; }
+        public string? ToLocationNameAr { get; set; }
 
         // Admin who made the transfer (comes from the Identity DbContext)
         public string? TransferredByName { get; set; }

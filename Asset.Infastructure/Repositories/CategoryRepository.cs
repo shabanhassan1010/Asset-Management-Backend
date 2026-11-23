@@ -39,6 +39,7 @@ namespace Asset.Infastructure.Repositories
                 {
                     Id = c.Id,
                     CategoryName = c.CategoryName,
+                    CategoryNameAr = c.CategoryNameAr,
                     Description = c.Description,
                     IsActive = c.IsActive,
                     AssetsCount = c.Assets.Count(a => a.Status != (int)AssetStatus.Retired)
@@ -52,7 +53,9 @@ namespace Asset.Infastructure.Repositories
             if (!string.IsNullOrWhiteSpace(search))
             {
                 search = search.Trim();
-                query = query.Where(e => e.CategoryName.Contains(search));
+                // Search the English AND the Arabic name, so typing in either language finds the row.
+                query = query.Where(e => e.CategoryName.Contains(search) ||
+                                         (e.CategoryNameAr != null && e.CategoryNameAr.Contains(search)));
             }
 
             if (isActive.HasValue)
@@ -69,6 +72,7 @@ namespace Asset.Infastructure.Repositories
                 {
                     Id = t.Id,
                     CategoryName = t.CategoryName,
+                    CategoryNameAr = t.CategoryNameAr,
                     Description = t.Description,
                     IsActive = t.IsActive,
                     AssetsCount = t.Assets.Count(a => a.Status != (int)AssetStatus.Retired),
@@ -86,6 +90,17 @@ namespace Asset.Infastructure.Repositories
         public async Task<bool> CategoryNameExistsAsync(string name, int? exceptId, CancellationToken ct)
         {
             var query = _dbContext.Categories.AsNoTracking().Where(c => c.CategoryName == name && c.IsActive);
+            if (exceptId.HasValue)
+            {
+                query = query.Where(c => c.Id != exceptId.Value);
+            }
+
+            return await query.AnyAsync(ct);
+        }
+        // Same rule as the unique index UX_Categories_CategoryNameAr_Active: only ACTIVE rows count.
+        public async Task<bool> CategoryNameArExistsAsync(string nameAr, int? exceptId, CancellationToken ct)
+        {
+            var query = _dbContext.Categories.AsNoTracking().Where(c => c.CategoryNameAr == nameAr && c.IsActive);
             if (exceptId.HasValue)
             {
                 query = query.Where(c => c.Id != exceptId.Value);

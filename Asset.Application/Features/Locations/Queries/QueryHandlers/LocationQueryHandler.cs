@@ -48,7 +48,7 @@ namespace Asset.Application.Features.Locations.Queries.QueryHandlers
             var entity = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
 
             if (entity == null || entity.IsActive == false)
-                throw new NotFoundException($"Location {request.Id} was not found.");
+                throw new NotFoundException("Location {0} was not found.", request.Id);
 
             return new ApiResponse<GetLocationByIdResponse>
             {
@@ -75,7 +75,7 @@ namespace Asset.Application.Features.Locations.Queries.QueryHandlers
             {
                 data = result,
                 Success = true,
-                Message = "Employees Retrieved Successfully"
+                Message = "Locations Retrieved Successfully"
             };
         }
     }

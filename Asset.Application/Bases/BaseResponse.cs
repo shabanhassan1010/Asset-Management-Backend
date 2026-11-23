@@ -1,8 +1,9 @@
-﻿using System.Net;
+﻿using Asset.Application.Common.Responses;
+using System.Net;
 
 namespace Asset.Application.Bases
 {
-    public class BaseResponse<T>
+    public class BaseResponse<T> : IHasMessage   // so LocalizationBehavior translates Message
     {
         #region  Constructor
         public BaseResponse()

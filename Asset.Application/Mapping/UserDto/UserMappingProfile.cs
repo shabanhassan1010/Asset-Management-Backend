@@ -31,6 +31,8 @@ public class UserMappingProfile : Profile
             .ForMember(d => d.EmployeeName, o => o.MapFrom(s => s.Employee != null ? s.Employee.FullName : null))
             .ForMember(d => d.EmployeeCode, o => o.MapFrom(s => s.Employee != null ? s.Employee.EmployeeCode : null))
             .ForMember(d=> d.DepartmentName , o=> o.MapFrom(s => s.Employee != null ? s.Employee.DepartmentName : null))
+            .ForMember(d => d.EmployeeNameAr, o => o.MapFrom(s => s.Employee != null ? s.Employee.FullNameAr : null))
+            .ForMember(d => d.DepartmentNameAr, o => o.MapFrom(s => s.Employee != null ? s.Employee.DepartmentNameAr : null))
             .ForMember(d =>d.IsActive, o => o.MapFrom(s => s.User.IsActive))
             .ForMember(d => d.Phone, o => o.MapFrom(s => s.Employee != null ? s.Employee.Phone : null))
             .ForMember(d => d.Role, o => o.MapFrom(s => s.Role));

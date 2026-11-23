@@ -26,6 +26,12 @@ namespace Asset.Infastructure.Configurations
             entity.HasIndex(x => x.CategoryName, "UX_Categories_CategoryName_Active")
                   .IsUnique()
                   .HasFilter("[IsActive] = 1");
+
+            // Arabic name (script 05 + 07). Optional, but unique among active rows when it is filled in.
+            entity.Property(e => e.CategoryNameAr).HasMaxLength(100);
+            entity.HasIndex(x => x.CategoryNameAr, "UX_Categories_CategoryNameAr_Active")
+                  .IsUnique()
+                  .HasFilter("[IsActive] = 1 AND [CategoryNameAr] IS NOT NULL");
         }
     }
 }

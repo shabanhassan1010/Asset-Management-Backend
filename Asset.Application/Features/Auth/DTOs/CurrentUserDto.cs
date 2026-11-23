@@ -8,8 +8,10 @@ public class CurrentUserDto
     public Role Role { get; set; }
     public int? EmployeeId { get; set; }
     public string? EmployeeName { get; set; }
+    public string? EmployeeNameAr { get; set; }
     public string? EmployeeCode { get; set; }
     public string? DepartmentName { get; set; }
+    public string? DepartmentNameAr { get; set; }
     public string? Phone { get; set; }
     public bool IsActive { get; init; }
 }

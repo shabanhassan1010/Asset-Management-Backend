@@ -37,7 +37,9 @@ namespace Asset.Infastructure.Repositories
             if (!string.IsNullOrWhiteSpace(search))
             {
                 search = search.Trim();
-                query = query.Where(e => e.TypeName.Contains(search));
+                // Search the English AND the Arabic name, so typing in either language finds the row.
+                query = query.Where(e => e.TypeName.Contains(search) ||
+                                         (e.TypeNameAr != null && e.TypeNameAr.Contains(search)));
             }
 
             if (isActive.HasValue)
@@ -54,6 +56,7 @@ namespace Asset.Infastructure.Repositories
                 {
                     Id = t.Id,
                     AssetTypeName = t.TypeName,
+                    AssetTypeNameAr = t.TypeNameAr,
                     Description = t.Description,
                     IsActive = t.IsActive,
                     AssetsCount = t.Assets.Count(
@@ -75,6 +78,18 @@ namespace Asset.Infastructure.Repositories
             {
                 query = query.Where(t => t.Id != exceptId.Value);
             }
+            return await query.AnyAsync(cancellationToken);
+        }
+        // Same rule as the unique index UX_AssetTypes_TypeNameAr_Active: only ACTIVE rows count.
+        public async Task<bool> AssetTypeNameArExistsAsync(string nameAr, int? exceptId, CancellationToken cancellationToken)
+        {
+            var query = _dbContext.AssetTypes.Where(a => a.IsActive && a.TypeNameAr == nameAr);
+
+            if (exceptId.HasValue)
+            {
+                query = query.Where(t => t.Id != exceptId.Value);
+            }
+
             return await query.AnyAsync(cancellationToken);
         }
         public void Deactivate(AssetType entity)

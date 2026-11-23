@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string EmployeeName { get; set; }  
+        public string? EmployeeNameAr { get; set; }
         public int DepartmentId { get; set; }      
         public bool IsActive { get; set; }
     }

@@ -145,7 +145,8 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
 
             // Assert
             await act.Should().ThrowAsync<NotFoundException>()
-                     .WithMessage("Department 99 does not exist.");
+                     .WithMessage("Department {0} does not exist.")
+                     .Where(e => (int)e.Args[0] == 99);
 
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
             _cacheMock.Verify(x => x.RemoveAsync(It.IsAny<string[]>()), Times.Never);
@@ -226,14 +227,15 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
             var act = async () => await _handler.Handle(request, CancellationToken.None);
 
             // Assert
-            await act.Should().ThrowAsync<NotFoundException>().WithMessage("Department 99 does not exist.");
+            await act.Should().ThrowAsync<NotFoundException>().WithMessage("Department {0} was not found.")
+                     .Where(e => (int)e.Args[0] == 99);
 
             _unitOfWorkMock.Verify(x => x.Departments.DeActivate(It.IsAny<Department>()), Times.Never);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
-        public async Task DeleteDepartment_Should_Throw_BusinessException_When_Department_IsAlready_Deactivated()
+        public async Task DeleteDepartment_Should_Throw_NotFoundException_When_Department_IsAlready_Deactivated()
         {
             // Arrange
             var request = new DeactivateDepartmentCommandModel(1);
@@ -249,7 +251,8 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
             var act = async () => await _handler.Handle(request, CancellationToken.None);
 
             // Assert
-            await act.Should().ThrowAsync<BusinessException>().WithMessage("Department 1 is already deactivated.");
+            await act.Should().ThrowAsync<NotFoundException>().WithMessage("Department {0} was not found.")
+                     .Where(e => (int)e.Args[0] == 1);
 
             _unitOfWorkMock.Verify(x => x.Employees.CountEmployeesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
             _unitOfWorkMock.Verify(x => x.Departments.DeActivate(It.IsAny<Department>()), Times.Never);

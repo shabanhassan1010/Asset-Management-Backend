@@ -7,7 +7,7 @@ using Asset.Application.Features.AssetTransfers.Queries.QueryResponses;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
 using Asset.Application.Interfaces.Repository;
-using Asset.Application.Resoures;
+using Asset.Application.Resources;
 using Asset.Domain.Exceptions;
 using AutoMapper;
 using MediatR;
@@ -39,7 +39,7 @@ namespace Asset.Application.Features.AssetTransfers.Queries.QueryHandler
         {
             var assetExists = await _unitOfWork.Assets.ExistsAsync(request.AssetId, cancellationToken);
             if (!assetExists)
-                throw new NotFoundException($"Asset {request.AssetId} was not found.");
+                throw new NotFoundException("Asset {0} was not found.", request.AssetId);
 
             var transfers = await _unitOfWork.AssetTransfers.GetByAssetIdAsync(request.AssetId, cancellationToken);
 
@@ -53,7 +53,9 @@ namespace Asset.Application.Features.AssetTransfers.Queries.QueryHandler
             var transfer = await _unitOfWork.AssetTransfers.GetDetailsAsync(request.AssetId, request.TransferId, cancellationToken);
 
             if (transfer is null)
-                return NotFound<GetTransferDetailsResponse>($"Transfer {request.TransferId} was not found for asset {request.AssetId}.");
+                // Thrown (not returned) like every other "not found": the middleware turns it into a
+                // translated 404 — a message with the ids built in could not be translated.
+                throw new NotFoundException("Transfer {0} was not found for asset {1}.", request.TransferId, request.AssetId);
 
             var response = _mapper.Map<GetTransferDetailsResponse>(transfer);
 

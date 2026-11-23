@@ -22,6 +22,9 @@ public static class ModuleApplicationDependencies
         {
             cfg.RegisterServicesFromAssembly(assembly);
 
+            // Localization FIRST = the outermost step: it translates the response Message on the
+            // way out, AFTER CachingBehavior, so the Redis cache only ever holds English.
+            cfg.AddOpenBehavior(typeof(LocalizationBehavior<,>));
             cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
             // Validations : Only Use it in the Application Layer.
             // responsible for executing the validation, and it will be executed before the handler is executed.
@@ -48,6 +51,8 @@ public static class ModuleApplicationDependencies
 
 #region Execution Flow of a Request in the Application Layer
 //               Request
+//                  ↓
+//         LocalizationBehavior          ->  translates response.Message (after the cache, on the way out)
 //                  ↓
 //           LoggingBehavior             ->  logs start/end + elapsed time
 //                  ↓

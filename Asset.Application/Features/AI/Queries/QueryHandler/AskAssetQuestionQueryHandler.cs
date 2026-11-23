@@ -1,4 +1,5 @@
 ﻿#region
+using Asset.Application.Common;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.AI.Enums;
 using Asset.Application.Features.AI.Interfases;
@@ -6,6 +7,8 @@ using Asset.Application.Features.Assets.DTOs;
 using Asset.Domain.Enum;
 using AssetEntity = Asset.Domain.Models.Asset;
 using MediatR;
+using Asset.Application.Resources;
+using Microsoft.Extensions.Localization;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Features.AI.Builders;
 using Asset.Application.Features.AI.IService;
@@ -30,6 +33,7 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUser;
         private readonly IConversationStoreService _conversationStore;
+        private readonly IStringLocalizer<SharedResources> _localizer;   // template answers in the request's language
         private const int MaxRows = 20;
         #endregion
 
@@ -38,8 +42,10 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
                                             IAssetAnswerWriterService answerWriter,
                                             IUnitOfWork unitOfWork,
                                             ICurrentUserService currentUser,
-                                            IConversationStoreService conversationStore)
+                                            IConversationStoreService conversationStore,
+                                            IStringLocalizer<SharedResources> localizer)
         {
+            _localizer = localizer;
             _parser = parser;
             _answerWriter = answerWriter;
             _unitOfWork = unitOfWork;
@@ -64,17 +70,17 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
             if (parsed.Intent == AssetQuestionIntent.Greeting)
             {
                 return await GenerateReplyAsync(request, chatKey, history,
-                                                AssetAnswerBuilder.Greeting(request.Question.ToLowerInvariant()),
+                                                AssetAnswerBuilder.Greeting(_localizer, request.Question.ToLowerInvariant()),
                                                 cancellationToken,
-                                                suggestions: AssetAnswerBuilder.StarterQuestions());
+                                                suggestions: AssetAnswerBuilder.StarterQuestions(_localizer));
             }
 
             if (parsed.Intent == AssetQuestionIntent.Unsupported)
             {
                 return await GenerateReplyAsync(request, chatKey, history,
-                                                AssetAnswerBuilder.OutOfScope(),
+                                                AssetAnswerBuilder.OutOfScope(_localizer),
                                                 cancellationToken,
-                                                suggestions: AssetAnswerBuilder.StarterQuestions());
+                                                suggestions: AssetAnswerBuilder.StarterQuestions(_localizer));
             }
 
             // "Show me all assets" / "how many assets do we have?" with no filter are fair questions.
@@ -82,7 +88,7 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
             if (!parsed.HasAnyFilter && !_currentUser.IsAdmin)
             {
                 if (_currentUser.EmployeeId is null)
-                    return Reply(request, chatKey, AssetAnswerBuilder.NoEmployeeLink());
+                    return Reply(request, chatKey, AssetAnswerBuilder.NoEmployeeLink(_localizer));
 
                 parsed = parsed with { IsAboutSelf = true };
             }
@@ -105,7 +111,7 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
                 var assetTypeId = await _unitOfWork.AiLookup.GetAssetTypeIdByNameAsync(parsed.AssetTypeName, cancellationToken);
 
                 if (assetTypeId is null)
-                    return Reply(request, chatKey, AssetAnswerBuilder.UnknownAssetType(parsed.AssetTypeName));
+                    return Reply(request, chatKey, AssetAnswerBuilder.UnknownAssetType(_localizer, parsed.AssetTypeName));
 
                 filter.AssetTypeId = assetTypeId;
             }
@@ -115,7 +121,7 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
                 var departmentId = await _unitOfWork.AiLookup.GetDepartmentIdByNameAsync(parsed.DepartmentName, cancellationToken);
 
                 if (departmentId is null)
-                    return Reply(request, chatKey, AssetAnswerBuilder.UnknownDepartment(parsed.DepartmentName));
+                    return Reply(request, chatKey, AssetAnswerBuilder.UnknownDepartment(_localizer, parsed.DepartmentName));
 
                 filter.DepartmentId = departmentId;
             }
@@ -125,23 +131,25 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
             {
                 // Authenticated, but the account is not linked to an employee record.
                 if (_currentUser.EmployeeId is null)
-                    return Reply(request, chatKey, AssetAnswerBuilder.NoEmployeeLink());
+                    return Reply(request, chatKey, AssetAnswerBuilder.NoEmployeeLink(_localizer));
 
                 filter.EmployeeId = _currentUser.EmployeeId;
             }
             else if (parsed.EmployeeName is not null)
             {
                 if (!_currentUser.IsAdmin)
-                    return Reply(request, chatKey, AssetAnswerBuilder.CannotLookUpOthers());
+                    return Reply(request, chatKey, AssetAnswerBuilder.CannotLookUpOthers(_localizer));
 
                 var matches = await _unitOfWork.AiLookup.FindEmployeesByNameAsync(parsed.EmployeeName, cancellationToken);
 
                 if (matches.Count == 0)
-                    return Reply(request, chatKey, AssetAnswerBuilder.UnknownEmployee(parsed.EmployeeName));
+                    return Reply(request, chatKey, AssetAnswerBuilder.UnknownEmployee(_localizer, parsed.EmployeeName));
 
                 // An exact name wins: "Hesham" is not ambiguous just because "Hesham2" also contains it.
                 // OrdinalIgnoreCase: "hesham" and "Hesham" count as the same name.
-                var exactMatches = matches.Where(m => string.Equals(m.FullName, parsed.EmployeeName, StringComparison.OrdinalIgnoreCase))
+                // Either name counts: the user may type the English or the Arabic one.
+                var exactMatches = matches.Where(m => string.Equals(m.FullName, parsed.EmployeeName, StringComparison.OrdinalIgnoreCase) ||
+                                                      string.Equals(m.FullNameAr, parsed.EmployeeName, StringComparison.OrdinalIgnoreCase))
                                           .ToList();
                 if (exactMatches.Count == 1)
                     matches = exactMatches;
@@ -150,11 +158,11 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
                 // Each chip uses the FULL name, so clicking it hits the exact-match rule above.
                 if (matches.Count > 1)
                     return Reply(request, chatKey,
-                                 AssetAnswerBuilder.AmbiguousEmployee(parsed.EmployeeName, matches),
-                                 suggestions: matches.Select(m => $"Show assets assigned to {m.FullName}").ToList());
+                                 AssetAnswerBuilder.AmbiguousEmployee(_localizer, parsed.EmployeeName, matches),
+                                 suggestions: matches.Select(m => (string)_localizer["Show assets assigned to {0}", m.DisplayName]).ToList());
 
                 filter.EmployeeId = matches[0].Id;
-                employeeFullName = matches[0].FullName;
+                employeeFullName = matches[0].DisplayName;
             }
 
             var page = await _unitOfWork.Assets.GetPaginationAsync(filter, cancellationToken);
@@ -163,7 +171,7 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
             // Returned before SaveLast, so an empty search never becomes the base of a follow-up.
             if (page.TotalCount == 0 && employeeFullName is not null)
                 return await GenerateReplyAsync(request, chatKey, history,
-                                                AssetAnswerBuilder.NoAssetsForEmployee(employeeFullName),
+                                                AssetAnswerBuilder.NoAssetsForEmployee(_localizer, employeeFullName),
                                                 cancellationToken);
 
             // Remember the exact filters of this search for the next question.
@@ -172,7 +180,7 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
             if (parsed.Intent == AssetQuestionIntent.CountAssets)
             {
                 return await GenerateReplyAsync(request, chatKey, history,
-                                                AssetAnswerBuilder.ForCount(page.TotalCount),
+                                                AssetAnswerBuilder.ForCount(_localizer, page.TotalCount),
                                                 cancellationToken,
                                                 totalCount: page.TotalCount);
             }
@@ -181,7 +189,7 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
             var rows = page.Items.Select(asset => MapAsset(asset, includeCost: _currentUser.IsAdmin)).ToList();
 
             return await GenerateReplyAsync(request, chatKey, history,
-                                            AssetAnswerBuilder.ForList(rows.Count, page.TotalCount),
+                                            AssetAnswerBuilder.ForList(_localizer, rows.Count, page.TotalCount),
                                             cancellationToken,
                                             rows, page.TotalCount);
         }
@@ -249,12 +257,14 @@ namespace Asset.Application.Features.AI.Queries.QueryHandler
                 SerialNumber = asset.SerialNumber,
                 Manufacturer = asset.Manufacturer,
                 Model = asset.Model,
-                AssetType = asset.AssetType?.TypeName,
-                Category = asset.Category?.CategoryName,
+                // This reply is NOT cached, so the names can be picked here for the request's language
+                // (Arabic when it was filled in, otherwise English).
+                AssetType = asset.AssetType is null ? null : LocalizedName.Pick(asset.AssetType.TypeName, asset.AssetType.TypeNameAr),
+                Category = asset.Category is null ? null : LocalizedName.Pick(asset.Category.CategoryName, asset.Category.CategoryNameAr),
                 Status = ((AssetStatus)asset.Status).ToString(),       // the Status byte -> its enum name
-                EmployeeName = asset.AssignedEmployee?.FullName,
-                DepartmentName = asset.Department?.DepartmentName,
-                LocationName = asset.Location?.LocationName,
+                EmployeeName = asset.AssignedEmployee is null ? null : LocalizedName.Pick(asset.AssignedEmployee.FullName, asset.AssignedEmployee.FullNameAr),
+                DepartmentName = asset.Department is null ? null : LocalizedName.Pick(asset.Department.DepartmentName, asset.Department.DepartmentNameAr),
+                LocationName = asset.Location is null ? null : LocalizedName.Pick(asset.Location.LocationName, asset.Location.LocationNameAr),
                 PurchaseCost = includeCost ? asset.PurchaseCost : null  // hidden (and removed from the JSON) for non-admins
             };
         }

@@ -1,12 +1,13 @@
 ﻿#region
 using Asset.Application.Bases;
+using Asset.Application.Common;
 using Asset.Application.Common.Caching;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.Category.Commands.CommandModels;
 using Asset.Application.Features.Category.Commands.CommandResponse;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
-using Asset.Application.Resoures;
+using Asset.Application.Resources;
 using Asset.Domain.Exceptions;
 using AutoMapper;
 using MediatR;
@@ -45,8 +46,13 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
             if(await _unitOfWork.Categories.CategoryNameExistsAsync(name,null,cancellationToken))
                 throw new BusinessException("A Category with this name already exists.");
 
+            var nameAr = LocalizedName.TrimOrNull(request.CategoryNameAr);
+            if (nameAr is not null && await _unitOfWork.Categories.CategoryNameArExistsAsync(nameAr, null, cancellationToken))
+                throw new BusinessException("Arabic category name '{0}' is already in use.", nameAr);
+
             var entity = _mapper.Map<cateogryEntity>(request);
             entity.CategoryName = name;
+            entity.CategoryNameAr = nameAr;
             entity.IsActive = true;
 
             _unitOfWork.Categories.Add(entity);
@@ -65,15 +71,20 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
         {
             var entity = await _unitOfWork.Categories.GetByIdAsync(request.Id, cancellationToken);
             if (entity is null || !entity.IsActive)
-                throw new NotFoundException($"Category {request.Id} was not found.");
+                throw new NotFoundException("Category {0} was not found.", request.Id);
 
             var name = request.CategoryName.Trim();                                              
 
             if (await _unitOfWork.Categories.CategoryNameExistsAsync(name, request.Id, cancellationToken))  
                 throw new BusinessException("A Category with this name already exists.");
 
+            var nameAr = LocalizedName.TrimOrNull(request.CategoryNameAr);
+            if (nameAr is not null && await _unitOfWork.Categories.CategoryNameArExistsAsync(nameAr, request.Id, cancellationToken))
+                throw new BusinessException("Arabic category name '{0}' is already in use.", nameAr);
+
             _mapper.Map(request, entity);
             entity.CategoryName = name; 
+            entity.CategoryNameAr = nameAr;      // "" from the form is saved as NULL
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await InvalidateAsync();
@@ -91,12 +102,12 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
             // Get Category Which i went to Delete It 
             var entity = await _unitOfWork.Categories.GetByIdAsync(request.Id, cancellationToken);
             if (entity is null || !entity.IsActive)
-                throw new NotFoundException($"Category {request.Id} was not found.");
+                throw new NotFoundException("Category {0} was not found.", request.Id);
 
             // Check if this category Has Any Assets
             var hasAssets = await _unitOfWork.Categories.HasAssetsAsync(request.Id, cancellationToken);
             if (hasAssets)
-                throw new BusinessException($"This Category has linked assets. Please remove or reassign them before deleting this category.");
+                throw new BusinessException("This Category has linked assets. Please remove or reassign them before deleting this category.");
 
             _unitOfWork.Categories.DeActivate(entity);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -107,7 +118,7 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
             {
                 data = $"Category {request.Id} was deleted.",
                 Success = true,
-                Message = "CategoryDeletedSuccessfully"
+                Message = "Category Deactivated Successfully"
             };
         }
         #endregion

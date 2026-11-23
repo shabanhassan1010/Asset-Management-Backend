@@ -1,9 +1,10 @@
 ﻿#region
+using Asset.Application.Resources;
 using Asset.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
+using Microsoft.Extensions.Localization;
 using System.Text.Json;
 using FluentValidationException = FluentValidation.ValidationException;
 #endregion
@@ -25,7 +26,11 @@ namespace Asset.API.Middleware
         }
         #endregion
 
-        public async Task InvokeAsync(HttpContext context)
+        // IStringLocalizer comes in as a parameter of InvokeAsync (not the constructor):
+        // ASP.NET Core resolves InvokeAsync parameters per request, which is the normal way
+        // to give a middleware a service. It translates into the request's culture, which
+        // UseRequestLocalization (registered BEFORE this middleware in Program.cs) set from Accept-Language.
+        public async Task InvokeAsync(HttpContext context, IStringLocalizer<SharedResources> localizer)
         {
             try
             {
@@ -38,62 +43,75 @@ namespace Asset.API.Middleware
 
             catch (FluentValidationException ex)
             {
+                // The messages are already translated by the validators.
                 var errors = ex.Errors.GroupBy(e => e.PropertyName)
                                       .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
 
-                _logger.LogWarning("Validation failed on {Path}: {@Errors}", context.Request.Path, errors);   
+                _logger.LogWarning("Validation failed on {Path}: {@Errors}", context.Request.Path, errors);
 
                 await WriteAsync(context, new ValidationProblemDetails(errors)
                 {
                     Status = StatusCodes.Status400BadRequest,
-                    Title = "Validation failed."
+                    Title = localizer["Validation failed."]
                 });
             }
             catch (AuthenticationFailedException ex)
             {
                 _logger.LogInformation("Authentication failed on {Path}.", context.Request.Path);
-                await WriteAsync(context, Problem( StatusCodes.Status401Unauthorized, "Authentication failed.", ex.Message));
+                await WriteAsync(context, Problem(StatusCodes.Status401Unauthorized, localizer["Authentication failed."], Translate(localizer, ex)));
             }
             catch (NotFoundException ex)
             {
-                _logger.LogWarning("Not found on {Path}: {Message}", context.Request.Path, ex.Message);   
-                await WriteAsync(context, Problem(StatusCodes.Status404NotFound, "Not found.", ex.Message));
+                // Logs keep the English text, so they stay searchable whatever language the user picked.
+                _logger.LogWarning("Not found on {Path}: {Message}", context.Request.Path, ex.Message);
+                await WriteAsync(context, Problem(StatusCodes.Status404NotFound, localizer["Not found."], Translate(localizer, ex)));
             }
             catch (BusinessException ex)
             {
-                _logger.LogWarning("Business rule violated on {Path}: {Message}", context.Request.Path, ex.Message);   
-                await WriteAsync(context, Problem(StatusCodes.Status422UnprocessableEntity, "The request could not be completed.", ex.Message));
+                _logger.LogWarning("Business rule violated on {Path}: {Message}", context.Request.Path, ex.Message);
+                await WriteAsync(context, Problem(StatusCodes.Status422UnprocessableEntity, localizer["The request could not be completed."], Translate(localizer, ex)));
             }
             catch (ConflictException ex)
             {
-                _logger.LogWarning("Conflict on {Path}: {Message}", context.Request.Path, ex.Message);   
-                await WriteAsync(context, Problem(StatusCodes.Status409Conflict, "Conflict.", ex.Message));
+                _logger.LogWarning("Conflict on {Path}: {Message}", context.Request.Path, ex.Message);
+                await WriteAsync(context, Problem(StatusCodes.Status409Conflict, localizer["Conflict."], Translate(localizer, ex)));
             }
             catch (DbUpdateConcurrencyException ex)
             {
                 _logger.LogWarning(ex, "Concurrency conflict.");
-                await WriteAsync(context, Problem(StatusCodes.Status409Conflict, "Concurrency conflict.", "This record was modified by another user. Please reload and try again."));
+                await WriteAsync(context, Problem(StatusCodes.Status409Conflict, localizer["Concurrency conflict."], localizer["This record was modified by another user. Please reload and try again."]));
             }
             catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 547 })
             {
                 _logger.LogWarning(ex, "Foreign key constraint violation.");
-                await WriteAsync(context, Problem(StatusCodes.Status400BadRequest,"Invalid reference.","The data violates a business rule. Check the assigned employee, department, location, and status values."));
-            }        
+                await WriteAsync(context, Problem(StatusCodes.Status400BadRequest, localizer["Invalid reference."], localizer["The data violates a business rule. Check the assigned employee, department, location, and status values."]));
+            }
             catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 2601 or 2627 })
             {
                 _logger.LogWarning(ex, "Unique constraint violation while saving data");
-                await WriteAsync(context, Problem(StatusCodes.Status409Conflict, "Duplicate value.", "The value you entered already exists. Please use a different value."));
-            }         
+                await WriteAsync(context, Problem(StatusCodes.Status409Conflict, localizer["Duplicate value."], localizer["The value you entered already exists. Please use a different value."]));
+            }
             catch (ConcurrencyException ex)
             {
                 _logger.LogWarning("Concurrency conflict on {Path}.", context.Request.Path);
-                await WriteAsync(context, Problem(StatusCodes.Status409Conflict,"Concurrency conflict.",ex.Message));
+                await WriteAsync(context, Problem(StatusCodes.Status409Conflict, localizer["Concurrency conflict."], Translate(localizer, ex)));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unhandled exception on {Path}.", context.Request.Path);
-                await WriteAsync(context, Problem(StatusCodes.Status500InternalServerError,"An unexpected error occurred.", "Please try again. If the problem continues, quote the traceId below when reporting it."));
+                await WriteAsync(context, Problem(StatusCodes.Status500InternalServerError, localizer["An unexpected error occurred."], localizer["Please try again. If the problem continues, quote the traceId below when reporting it."]));
             }
+        }
+
+        // Translate the English template first, THEN put the values in:
+        //   "Department {0} does not exist." + [7]  →  "القسم 7 غير موجود."
+        // Without values the plain indexer is used: string.Format would throw on a raw
+        // message that happens to contain "{" (e.g. text coming from ASP.NET Identity).
+        private static string Translate(IStringLocalizer localizer, AppException ex)
+        {
+            return ex.Args.Length > 0
+                ? localizer[ex.Message, ex.Args]
+                : localizer[ex.Message];
         }
 
         private static ProblemDetails Problem(int status, string title, string detail) => new()

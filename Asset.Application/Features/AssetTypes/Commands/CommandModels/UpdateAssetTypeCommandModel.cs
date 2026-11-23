@@ -6,6 +6,7 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandModels
     {
         public int Id { get; set; }
         public string assetTypeName { get; set; } = string.Empty;
+        public string? assetTypeNameAr { get; set; }     // optional
         public string? Description { get; set; }
     }
 }

@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Asset.Domain.Models;
 
-[Index("LocationName", Name = "UQ_Locations_LocationName", IsUnique = true)]
 public partial class Location
 {
     [Key]
@@ -22,6 +21,9 @@ public partial class Location
     public string Address { get; set; }
 
     public bool IsActive { get; set; }
+
+    [StringLength(150)]
+    public string LocationNameAr { get; set; }
 
     [InverseProperty("FromLocation")]
     public virtual ICollection<AssetTransfer> AssetTransferFromLocations { get; set; } = new List<AssetTransfer>();

@@ -7,6 +7,7 @@ namespace Asset.Application.Features.Departments.Commands.CommandModels
     {
         public int Id { get; set; }
         public string DepartmentName { get; set; }
+        public string? DepartmentNameAr { get; set; }    // optional
         public string Code { get; set; }
     }
 }

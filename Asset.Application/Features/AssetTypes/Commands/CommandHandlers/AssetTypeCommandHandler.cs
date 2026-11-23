@@ -1,9 +1,10 @@
 ﻿#region
 using Asset.Application.Bases;
+using Asset.Application.Common;
 using Asset.Application.Common.Caching;
 using Asset.Application.Features.AssetTypes.Commands.CommandModels;
 using Asset.Application.Interfaces.Comman;
-using Asset.Application.Resoures;
+using Asset.Application.Resources;
 using Asset.Domain.Enum;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Models;
@@ -40,8 +41,13 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
             if (await _unitOfWork.AssetTypes.AssetTypeNameExistsAsync(name, null, cancellationToken))
                 throw new BusinessException("An Asset Type with this name already exists");
 
+            var nameAr = LocalizedName.TrimOrNull(request.assetTypeNameAr);
+            if (nameAr is not null && await _unitOfWork.AssetTypes.AssetTypeNameArExistsAsync(nameAr, null, cancellationToken))
+                throw new BusinessException("Arabic asset type name '{0}' is already in use.", nameAr);
+
             var assetType = _mapper.Map<AssetType>(request);
             assetType.TypeName = name;
+            assetType.TypeNameAr = nameAr;
             assetType.IsActive = true;
 
             _unitOfWork.AssetTypes.Add(assetType);
@@ -64,8 +70,13 @@ namespace Asset.Application.Features.AssetTypes.Commands.CommandHandlers
                 throw new BusinessException("An Asset Type with this name already exists.");
 
 
+            var nameAr = LocalizedName.TrimOrNull(request.assetTypeNameAr);
+            if (nameAr is not null && await _unitOfWork.AssetTypes.AssetTypeNameArExistsAsync(nameAr, request.Id, cancellationToken))
+                throw new BusinessException("Arabic asset type name '{0}' is already in use.", nameAr);
+
             _mapper.Map(request, assetType);
             assetType.TypeName = name;
+            assetType.TypeNameAr = nameAr;       // "" from the form is saved as NULL
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

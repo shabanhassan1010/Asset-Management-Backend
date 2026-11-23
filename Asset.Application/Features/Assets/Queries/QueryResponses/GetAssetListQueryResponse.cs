@@ -9,8 +9,10 @@ namespace Asset.Application.Features.Assets.Queries.QueryResponses
         public string? Description { get; set; }
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
+        public string? CategoryNameAr { get; set; }
         public int AssetTypeId { get; set; }
         public string AssetTypeName { get; set; } = string.Empty;
+        public string? AssetTypeNameAr { get; set; }
         public byte StatusId { get; set; }
         public string StatusName { get; set; } = string.Empty;
         public string? Manufacturer { get; set; }
@@ -22,10 +24,13 @@ namespace Asset.Application.Features.Assets.Queries.QueryResponses
 
         public int? DepartmentId { get; set; }
         public string? DepartmentName { get; set; }
+        public string? DepartmentNameAr { get; set; }
         public int? EmployeeId { get; set; }
         public string? EmployeeName { get; set; }
+        public string? EmployeeNameAr { get; set; }
         public int? LocationId { get; set; }
         public string? LocationName { get; set; }
+        public string? LocationNameAr { get; set; }
         // Admin only.
         // The handler sets it to null for a User, and WhenWritingNull means the key
         // is then NOT written into the JSON at all - so it is absent, not just empty.

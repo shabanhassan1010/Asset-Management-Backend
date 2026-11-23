@@ -20,6 +20,12 @@ namespace Asset.Infastructure.Configurations
             entity.HasIndex(a => a.LocationName, "UX_Locations_LocationName_Active")
                   .IsUnique()
                   .HasFilter("[IsActive] = 1");
+
+            // Arabic name (script 05 + 07). Optional, but unique among active rows when it is filled in.
+            entity.Property(e => e.LocationNameAr).HasMaxLength(150);
+            entity.HasIndex(a => a.LocationNameAr, "UX_Locations_LocationNameAr_Active")
+                  .IsUnique()
+                  .HasFilter("[IsActive] = 1 AND [LocationNameAr] IS NOT NULL");
         }
     }
 }

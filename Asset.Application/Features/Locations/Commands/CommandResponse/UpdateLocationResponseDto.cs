@@ -3,6 +3,7 @@
     public class UpdateLocationResponseDto
     {
         public string LocationName { get; set; }
+        public string? LocationNameAr { get; set; }
         public string Address { get; set; }
         public bool IsActive { get; set; }
     }

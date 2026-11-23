@@ -6,7 +6,7 @@ using Asset.Application.Features.Assets.Commands.CommandModels;
 using Asset.Application.Features.Assets.Commands.CommandResponse;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.Repository;
-using Asset.Application.Resoures;
+using Asset.Application.Resources;
 using Asset.Domain.Enum;
 using Asset.Domain.Exceptions;
 using AutoMapper;
@@ -76,7 +76,7 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             {
                 data = _mapper.Map<CreateAssetResponseDto>(entity),
                 Success = true,
-                Message = "AssetCreatedSuccessfully"
+                Message = "Asset created successfully."
             };
         }
 
@@ -94,7 +94,7 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
 
             var entity = await _unitOfWork.Assets.GetForUpdateAsync(request.AssetId, cancellationToken);
             if (entity is null)
-                throw new NotFoundException($"Asset {request.AssetId} was not found.");
+                throw new NotFoundException("Asset {0} was not found.", request.AssetId);
 
 
             // Concurrency FIRST: a stale client is the real error, so it must not be masked
@@ -104,7 +104,7 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
 
             // A retired asset is history: nothing on it may change.
             if (entity.Status == (int)AssetStatus.Retired)
-                throw new BusinessException($"{entity.AssetCode} is retired and cannot be edited.");
+                throw new BusinessException("{0} is retired and cannot be edited.", entity.AssetCode);
 
             request.DepartmentId = request.DepartmentId is null or 0 ? null : request.DepartmentId;
             request.AssignedEmployeeId = request.AssignedEmployeeId is null or 0 ? null : request.AssignedEmployeeId;
@@ -125,7 +125,7 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
                                ?? throw new BusinessException("The selected employee does not exist.");
 
                 if (!employee.IsActive)
-                    throw new BusinessException($"{employee.FullName} is not an active employee.");
+                    throw new BusinessException("{0} is not an active employee.", employee.FullName);
 
                 // If no department was sent, inherit the employee's own.
                 request.DepartmentId ??= employee.DepartmentId;
@@ -179,7 +179,7 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             {
                 data = _mapper.Map<UpdateAssetResponseDto>(entity),
                 Success = true,
-                Message = "AssetUpdatedSuccessfully"
+                Message = "Asset updated successfully."
             };
         }
 
@@ -188,7 +188,7 @@ namespace Asset.Application.Features.Assets.Commands.CommandHandlers
             var asset = await _unitOfWork.Assets.GetForUpdateAsync(request.AssetId, cancellationToken);
 
             if (asset is null)
-                throw new NotFoundException($"Asset {request.AssetId} was not found.");
+                throw new NotFoundException("Asset {0} was not found.", request.AssetId);
 
             if (asset.Status == (int)AssetStatus.Retired)
                 throw new BusinessException("Asset is already retired.");

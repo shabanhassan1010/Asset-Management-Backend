@@ -9,7 +9,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Asset.Domain.Models;
 
 [Index("AssetName", Name = "IX_Assets_AssetName")]
+[Index("AssetTypeId", Name = "IX_Assets_AssetTypeId")]
 [Index("AssignedEmployeeId", Name = "IX_Assets_AssignedEmployeeId")]
+[Index("CategoryId", Name = "IX_Assets_CategoryId")]
+[Index("DepartmentId", Name = "IX_Assets_DepartmentId")]
 [Index("LocationId", Name = "IX_Assets_LocationId")]
 [Index("Manufacturer", "AssetTypeId", Name = "IX_Assets_Manufacturer_AssetTypeId")]
 [Index("Status", "DepartmentId", Name = "IX_Assets_Status_DepartmentId")]

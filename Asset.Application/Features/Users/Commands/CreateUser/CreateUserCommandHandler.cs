@@ -34,16 +34,16 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserL
     public async Task<UserListItemDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
         if (await _users.UserNameExistsAsync(request.UserName, cancellationToken))
-            throw new ConflictException($"Username '{request.UserName}' is already taken.");
+            throw new ConflictException("Username '{0}' is already taken.", request.UserName);
 
         if (await _users.EmailExistsAsync(request.Email, cancellationToken))
-            throw new ConflictException($"Email '{request.Email}' is already in use.");
+            throw new ConflictException("Email '{0}' is already in use.", request.Email);
 
         if (!await _unitOfWork.Employees.ExistsAsync(request.EmployeeId, cancellationToken))
-            throw new NotFoundException($"Employee {request.EmployeeId} was not found.");
+            throw new NotFoundException("Employee {0} was not found.", request.EmployeeId);
 
         if (await _users.EmployeeHasUserAsync(request.EmployeeId, cancellationToken))
-            throw new ConflictException($"Employee {request.EmployeeId} already has a user account.");
+            throw new ConflictException("Employee {0} already has a user account.", request.EmployeeId);
 
         var user = new ApplicationUser
         {

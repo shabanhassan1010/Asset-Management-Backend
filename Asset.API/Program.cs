@@ -54,26 +54,44 @@ namespace Asset.API
                 #endregion
 
                 #region Localization
-                // (1) Registers IStringLocalizer<T> (needed by BaseResponseHandler)
-                //     and says where the .resx files are.
-                builder.Services.AddLocalization(options =>
-                {
-                    options.ResourcesPath = "Resources";
-                });
+                // (1) Registers IStringLocalizer<T>.
+                //     No ResourcesPath on purpose: SharedResources lives in namespace
+                //     Asset.Application.Resources, inside the Resources folder, so its .resx files are
+                //     found by the class's own namespace. Adding ResourcesPath = "Resources" here would
+                //     make .NET look for "Asset.Application.Resources.Resources.SharedResources" (twice) and
+                //     every lookup would silently fall back to the key.
+                builder.Services.AddLocalization();
 
-                // (2) Which languages a request may use.
-                //     English only: cached responses include their Message text, so with a
-                //     second language the first caller's language would be cached for everyone.
-                var supportedCultures = new[]
+                // (2) Which languages a request may use. English is the default: a request with no
+                //     Accept-Language header, or with a language we don't support, gets English.
+                //     The cache stays correct with two languages because LocalizationBehavior
+                //     translates AFTER the cache (see Asset.Application/Behaviors/LocalizationBehavior.cs).
+                //     Two different lists on purpose:
+                //       UICulture = the language of the TEXT (messages)        → en or ar
+                //       Culture   = how numbers and dates are FORMATTED on the server → always en
+                //     (the "ar" culture can switch dates to the Hijri calendar; the Angular app
+                //      formats dates for the user, the server never needs to.)
+                var supportedUICultures = new[]
                 {
-                    new CultureInfo("en")
+                    new CultureInfo("en"),
+                    new CultureInfo("ar")
                 };
 
                 var localizationOptions = new RequestLocalizationOptions
                 {
                     DefaultRequestCulture = new RequestCulture("en"),
-                    SupportedCultures = supportedCultures,
-                    SupportedUICultures = supportedCultures
+                    SupportedCultures = new[] { new CultureInfo("en") },
+                    SupportedUICultures = supportedUICultures,
+                    // "ar-EG" or "ar-SA" from the browser still selects "ar".
+                    FallBackToParentCultures = true,
+                    FallBackToParentUICultures = true
+                };
+
+                // Only the Accept-Language header (sent by the Angular languageInterceptor).
+                // The default providers also read ?culture= and a cookie; one source is easier to reason about.
+                localizationOptions.RequestCultureProviders = new List<IRequestCultureProvider>
+                {
+                    new AcceptLanguageHeaderRequestCultureProvider()
                 };
                 #endregion
 
@@ -86,22 +104,12 @@ namespace Asset.API
 
                 await IdentitySeeder.SeedAsync(app.Services);
 
-                #region Localization Configuration
-                //var supportedCultures = new[]
-                //{
-                //new CultureInfo("en"),
-                //new CultureInfo("ar")
-                //};
-
-                //var localizationOptions = new RequestLocalizationOptions
-                //{
-                //    DefaultRequestCulture = new RequestCulture("en"),
-                //    SupportedCultures = supportedCultures,
-                //    SupportedUICultures = supportedCultures
-                //};
-                #endregion
-
                 #region Middleware
+                // FIRST: set the request's language from Accept-Language.
+                // It must run BEFORE ExceptionHandlingMiddleware: the culture only flows "down" the
+                // pipeline, so an error handler placed before it would always answer in English.
+                app.UseRequestLocalization(localizationOptions);
+
                 app.UseMiddleware<ExceptionHandlingMiddleware>();
                 #endregion
 
@@ -114,8 +122,6 @@ namespace Asset.API
 
 
                 app.UseHttpsRedirection();
-
-                app.UseRequestLocalization(localizationOptions);
 
                 app.UseCors(AngularCorsPolicy);
 

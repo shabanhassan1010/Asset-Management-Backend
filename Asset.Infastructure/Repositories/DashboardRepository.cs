@@ -33,22 +33,22 @@ namespace Asset.Infastructure.Repositories
         // Get
         public async Task<IReadOnlyList<CategoryCountDto>> GetCountsByCategoryAsync(CancellationToken cancellationToken)
         {
-          var rows = await ActiveAssets.GroupBy(a => new {a.CategoryId,a.Category!.CategoryName})
-                                       .Select(g => new { g.Key.CategoryId, g.Key.CategoryName, Count = g.Count() })
+          var rows = await ActiveAssets.GroupBy(a => new {a.CategoryId,a.Category!.CategoryName, a.Category.CategoryNameAr})
+                                       .Select(g => new { g.Key.CategoryId, g.Key.CategoryName, g.Key.CategoryNameAr, Count = g.Count() })
                                        .OrderByDescending(x => x.Count)
                                        .ToListAsync(cancellationToken);
 
-            return rows.Select(r => new CategoryCountDto(r.CategoryId,r.CategoryName, r.Count)).ToList();
+            return rows.Select(r => new CategoryCountDto(r.CategoryId,r.CategoryName, r.CategoryNameAr, r.Count)).ToList();
         }
         public async Task<IReadOnlyList<DepartmentCountDto>> GetCountsByDepartmentAsync(CancellationToken cancellationToken)
         {
-            var rows = await ActiveAssets.GroupBy(a => new { a.DepartmentId, a.Department!.DepartmentName })
-                                         .Select(g => new { g.Key.DepartmentId, g.Key.DepartmentName, Count = g.Count() })
+            var rows = await ActiveAssets.GroupBy(a => new { a.DepartmentId, a.Department!.DepartmentName, a.Department.DepartmentNameAr })
+                                         .Select(g => new { g.Key.DepartmentId, g.Key.DepartmentName, g.Key.DepartmentNameAr, Count = g.Count() })
                                          .OrderByDescending(x => x.Count)
                                          .ToListAsync(cancellationToken);
 
             // DepartmentId is nullable → those assets come back with a null name → give them a readable label
-            return rows.Select(r => new DepartmentCountDto(r.DepartmentId, r.DepartmentName ?? "No department", r.Count)).ToList();
+            return rows.Select(r => new DepartmentCountDto(r.DepartmentId, r.DepartmentName ?? "No department", r.DepartmentNameAr, r.Count)).ToList();
         }
 
         public async Task<IReadOnlyList<ExpiringWarrantyDto>> GetExpiringWarrantiesAsync(DateOnly from, DateOnly to, int take, CancellationToken cancellationToken)

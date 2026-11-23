@@ -192,4 +192,539 @@
   <data name="IsNotExist" xml:space="preserve">
     <value>غير موجود.</value>
   </data>
+  <!-- API messages: the key is the English text used in the code ({0} = a value). Keep both in sync. -->
+  <data name="A Category with this name already exists." xml:space="preserve">
+    <value>توجد فئة بهذا الاسم بالفعل.</value>
+  </data>
+  <data name="A department with this name already exists." xml:space="preserve">
+    <value>يوجد قسم بهذا الاسم بالفعل.</value>
+  </data>
+  <data name="A location is required: every asset must have a location." xml:space="preserve">
+    <value>الموقع مطلوب: يجب أن يكون لكل أصل موقع.</value>
+  </data>
+  <data name="A location with this name already exists." xml:space="preserve">
+    <value>يوجد موقع بهذا الاسم بالفعل.</value>
+  </data>
+  <data name="A reason is required for every transfer." xml:space="preserve">
+    <value>السبب مطلوب لكل عملية نقل.</value>
+  </data>
+  <data name="A retirement reason is required." xml:space="preserve">
+    <value>سبب التكهين مطلوب.</value>
+  </data>
+  <data name="A transfer date cannot be in the future." xml:space="preserve">
+    <value>لا يمكن أن يكون تاريخ النقل في المستقبل.</value>
+  </data>
+  <data name="A transfer date is required." xml:space="preserve">
+    <value>تاريخ النقل مطلوب.</value>
+  </data>
+  <data name="A transfer must change the employee, department or location." xml:space="preserve">
+    <value>يجب أن يغيّر النقل الموظف أو القسم أو الموقع.</value>
+  </data>
+  <data name="A transfer to an employee also needs a department." xml:space="preserve">
+    <value>النقل إلى موظف يحتاج أيضاً إلى قسم.</value>
+  </data>
+  <data name="A user must be linked to an employee." xml:space="preserve">
+    <value>يجب ربط المستخدم بموظف.</value>
+  </data>
+  <data name="An Asset Type with this name already exists" xml:space="preserve">
+    <value>يوجد نوع أصل بهذا الاسم بالفعل</value>
+  </data>
+  <data name="An Asset Type with this name already exists." xml:space="preserve">
+    <value>يوجد نوع أصل بهذا الاسم بالفعل.</value>
+  </data>
+  <data name="An asset with this code already exists." xml:space="preserve">
+    <value>يوجد أصل بهذا الكود بالفعل.</value>
+  </data>
+  <data name="An asset with this serial number already exists." xml:space="preserve">
+    <value>يوجد أصل بهذا الرقم التسلسلي بالفعل.</value>
+  </data>
+  <data name="An assigned asset must have an employee." xml:space="preserve">
+    <value>الأصل المُسنَد يجب أن يكون له موظف.</value>
+  </data>
+  <data name="An available asset cannot have an employee assigned." xml:space="preserve">
+    <value>الأصل المتاح لا يمكن أن يكون مُسنَداً لموظف.</value>
+  </data>
+  <data name="An employee must be assigned when status is &#x27;Assigned&#x27;." xml:space="preserve">
+    <value>يجب اختيار موظف عندما تكون الحالة "مُسنَد".</value>
+  </data>
+  <data name="An unexpected error occurred." xml:space="preserve">
+    <value>حدث خطأ غير متوقع.</value>
+  </data>
+  <data name="Any time. Anything else you&#x27;d like to look up?" xml:space="preserve">
+    <value>العفو. هل تريد البحث عن شيء آخر؟</value>
+  </data>
+  <data name="Asset Retired Successfully" xml:space="preserve">
+    <value>تم تكهين الأصل بنجاح</value>
+  </data>
+  <data name="Asset Transferred Successfully" xml:space="preserve">
+    <value>تم نقل الأصل بنجاح</value>
+  </data>
+  <data name="Asset code &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>كود الأصل '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Asset code is required." xml:space="preserve">
+    <value>كود الأصل مطلوب.</value>
+  </data>
+  <data name="Asset created successfully." xml:space="preserve">
+    <value>تم إنشاء الأصل بنجاح.</value>
+  </data>
+  <data name="Asset id is required." xml:space="preserve">
+    <value>معرّف الأصل مطلوب.</value>
+  </data>
+  <data name="Asset is already retired." xml:space="preserve">
+    <value>الأصل مُكهَّن بالفعل.</value>
+  </data>
+  <data name="Asset name &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>اسم الأصل '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Asset name is required." xml:space="preserve">
+    <value>اسم الأصل مطلوب.</value>
+  </data>
+  <data name="Asset type id is required." xml:space="preserve">
+    <value>معرّف نوع الأصل مطلوب.</value>
+  </data>
+  <data name="Asset type name &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>اسم نوع الأصل '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Asset type name is required." xml:space="preserve">
+    <value>اسم نوع الأصل مطلوب.</value>
+  </data>
+  <data name="Asset type not found" xml:space="preserve">
+    <value>نوع الأصل غير موجود</value>
+  </data>
+  <data name="Asset type {0} was not found." xml:space="preserve">
+    <value>نوع الأصل {0} غير موجود.</value>
+  </data>
+  <data name="Asset updated successfully." xml:space="preserve">
+    <value>تم تحديث الأصل بنجاح.</value>
+  </data>
+  <data name="Asset {0} was not found." xml:space="preserve">
+    <value>الأصل {0} غير موجود.</value>
+  </data>
+  <data name="Authentication failed." xml:space="preserve">
+    <value>فشل التحقق من الهوية.</value>
+  </data>
+  <data name="Cannot deactivate this department: it has {0} employee(s) and {1} asset(s). Reassign them first." xml:space="preserve">
+    <value>لا يمكن إلغاء تفعيل هذا القسم: به {0} موظف و{1} أصل. انقلهم إلى قسم آخر أولاً.</value>
+  </data>
+  <data name="Cannot disable employee &#x27;{0}&#x27; while assets are still assigned to them. Transfer or return the assets first." xml:space="preserve">
+    <value>لا يمكن تعطيل الموظف '{0}' بينما ما زالت أصول مُسنَدة إليه. انقل الأصول أو استرجعها أولاً.</value>
+  </data>
+  <data name="Categories Retrieved Successfully" xml:space="preserve">
+    <value>تم جلب الفئات بنجاح</value>
+  </data>
+  <data name="Category Created Successfully" xml:space="preserve">
+    <value>تم إنشاء الفئة بنجاح</value>
+  </data>
+  <data name="Category Deactivated Successfully" xml:space="preserve">
+    <value>تم إلغاء تفعيل الفئة بنجاح</value>
+  </data>
+  <data name="Category Retrieved Successfully" xml:space="preserve">
+    <value>تم جلب الفئة بنجاح</value>
+  </data>
+  <data name="Category Updated Successfully" xml:space="preserve">
+    <value>تم تحديث الفئة بنجاح</value>
+  </data>
+  <data name="Category id is required." xml:space="preserve">
+    <value>معرّف الفئة مطلوب.</value>
+  </data>
+  <data name="Category is required." xml:space="preserve">
+    <value>الفئة مطلوبة.</value>
+  </data>
+  <data name="Category name &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>اسم الفئة '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Category name is required." xml:space="preserve">
+    <value>اسم الفئة مطلوب.</value>
+  </data>
+  <data name="Category {0} was not found." xml:space="preserve">
+    <value>الفئة {0} غير موجودة.</value>
+  </data>
+  <data name="Concurrency conflict." xml:space="preserve">
+    <value>تعارض في التعديل.</value>
+  </data>
+  <data name="Department Created Successfully" xml:space="preserve">
+    <value>تم إنشاء القسم بنجاح</value>
+  </data>
+  <data name="Department Deactivated Successfully" xml:space="preserve">
+    <value>تم إلغاء تفعيل القسم بنجاح</value>
+  </data>
+  <data name="Department Retrieved Successfully" xml:space="preserve">
+    <value>تم جلب القسم بنجاح</value>
+  </data>
+  <data name="Department Updated Successfully" xml:space="preserve">
+    <value>تم تحديث القسم بنجاح</value>
+  </data>
+  <data name="Department code &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>كود القسم '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Department code is required." xml:space="preserve">
+    <value>كود القسم مطلوب.</value>
+  </data>
+  <data name="Department id is required." xml:space="preserve">
+    <value>معرّف القسم مطلوب.</value>
+  </data>
+  <data name="Department is required." xml:space="preserve">
+    <value>القسم مطلوب.</value>
+  </data>
+  <data name="Department name &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>اسم القسم '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Department name is required." xml:space="preserve">
+    <value>اسم القسم مطلوب.</value>
+  </data>
+  <data name="Department with name &#x27;{0}&#x27; already exists." xml:space="preserve">
+    <value>يوجد قسم باسم '{0}' بالفعل.</value>
+  </data>
+  <data name="Department {0} does not exist." xml:space="preserve">
+    <value>القسم {0} غير موجود.</value>
+  </data>
+  <data name="Department {0} was not found." xml:space="preserve">
+    <value>القسم {0} غير موجود.</value>
+  </data>
+  <data name="Departments Retrieved Successfully" xml:space="preserve">
+    <value>تم جلب الأقسام بنجاح</value>
+  </data>
+  <data name="Description must not exceed 500 characters" xml:space="preserve">
+    <value>يجب ألا يزيد الوصف عن 500 حرف</value>
+  </data>
+  <data name="Duplicate value." xml:space="preserve">
+    <value>قيمة مكررة.</value>
+  </data>
+  <data name="Email &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>البريد الإلكتروني '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Email &#x27;{0}&#x27; is already used by another employee." xml:space="preserve">
+    <value>البريد الإلكتروني '{0}' مستخدم لموظف آخر.</value>
+  </data>
+  <data name="Email format is not valid." xml:space="preserve">
+    <value>صيغة البريد الإلكتروني غير صحيحة.</value>
+  </data>
+  <data name="Email is required." xml:space="preserve">
+    <value>البريد الإلكتروني مطلوب.</value>
+  </data>
+  <data name="Email must not exceed 256 characters." xml:space="preserve">
+    <value>يجب ألا يزيد البريد الإلكتروني عن 256 حرفاً.</value>
+  </data>
+  <data name="Employee Created Successfully" xml:space="preserve">
+    <value>تم إنشاء الموظف بنجاح</value>
+  </data>
+  <data name="Employee Disabled Successfully" xml:space="preserve">
+    <value>تم تعطيل الموظف بنجاح</value>
+  </data>
+  <data name="Employee Enabled Successfully" xml:space="preserve">
+    <value>تم تفعيل الموظف بنجاح</value>
+  </data>
+  <data name="Employee Retrieved Successfully" xml:space="preserve">
+    <value>تم جلب الموظف بنجاح</value>
+  </data>
+  <data name="Employee Updated Successfully" xml:space="preserve">
+    <value>تم تحديث الموظف بنجاح</value>
+  </data>
+  <data name="Employee code &#x27;{0}&#x27; is already used." xml:space="preserve">
+    <value>كود الموظف '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Employee code is required." xml:space="preserve">
+    <value>كود الموظف مطلوب.</value>
+  </data>
+  <data name="Employee code must not exceed 30 characters." xml:space="preserve">
+    <value>يجب ألا يزيد كود الموظف عن 30 حرفاً.</value>
+  </data>
+  <data name="Employee id is required." xml:space="preserve">
+    <value>معرّف الموظف مطلوب.</value>
+  </data>
+  <data name="Employee information not found for the current user." xml:space="preserve">
+    <value>لم يتم العثور على بيانات الموظف للمستخدم الحالي.</value>
+  </data>
+  <data name="Employee is already active" xml:space="preserve">
+    <value>الموظف نشط بالفعل</value>
+  </data>
+  <data name="Employee is already disabled" xml:space="preserve">
+    <value>الموظف معطَّل بالفعل</value>
+  </data>
+  <data name="Employee name is required." xml:space="preserve">
+    <value>اسم الموظف مطلوب.</value>
+  </data>
+  <data name="Employee name must not exceed 200 characters." xml:space="preserve">
+    <value>يجب ألا يزيد اسم الموظف عن 200 حرف.</value>
+  </data>
+  <data name="Employee {0} already has a user account." xml:space="preserve">
+    <value>الموظف {0} لديه حساب مستخدم بالفعل.</value>
+  </data>
+  <data name="Employee {0} does not exist." xml:space="preserve">
+    <value>الموظف {0} غير موجود.</value>
+  </data>
+  <data name="Employee {0} was not found." xml:space="preserve">
+    <value>الموظف {0} غير موجود.</value>
+  </data>
+  <data name="Employees Retrieved Successfully" xml:space="preserve">
+    <value>تم جلب الموظفين بنجاح</value>
+  </data>
+  <data name="Goodbye. I&#x27;ll be here when you need me." xml:space="preserve">
+    <value>مع السلامة. سأكون هنا عندما تحتاجني.</value>
+  </data>
+  <data name="Hi. What would you like to know about your assets?" xml:space="preserve">
+    <value>أهلاً. ماذا تريد أن تعرف عن أصولك؟</value>
+  </data>
+  <data name="How many Dell laptops do we have?" xml:space="preserve">
+    <value>كم جهاز لابتوب Dell لدينا؟</value>
+  </data>
+  <data name="I can only answer questions about looking up assets - for example &quot;which assets are available?&quot;, &quot;how many Dell laptops do we have?&quot;, or &quot;which assets are assigned to the Presales department?&quot;. I can&#x27;t create, change, transfer or delete anything." xml:space="preserve">
+    <value>أستطيع فقط الإجابة عن أسئلة البحث عن الأصول - مثلاً "ما الأصول المتاحة؟" أو "كم جهاز لابتوب Dell لدينا؟" أو "ما الأصول المُسنَدة لقسم Presales؟". لا أستطيع إنشاء أو تعديل أو نقل أو حذف أي شيء.</value>
+  </data>
+  <data name="I couldn&#x27;t find a department called &quot;{0}&quot;." xml:space="preserve">
+    <value>لم أجد قسماً باسم "{0}".</value>
+  </data>
+  <data name="I couldn&#x27;t find any assets matching your question." xml:space="preserve">
+    <value>لم أجد أي أصول تطابق سؤالك.</value>
+  </data>
+  <data name="I couldn&#x27;t find anyone called &quot;{0}&quot;." xml:space="preserve">
+    <value>لم أجد أي شخص باسم "{0}".</value>
+  </data>
+  <data name="I don&#x27;t recognise &quot;{0}&quot; as an asset type in the system." xml:space="preserve">
+    <value>لا أعرف "{0}" كنوع أصل في النظام.</value>
+  </data>
+  <data name="I found 1 asset matching your question." xml:space="preserve">
+    <value>وجدت أصلاً واحداً يطابق سؤالك.</value>
+  </data>
+  <data name="I found {0} assets matching your question." xml:space="preserve">
+    <value>وجدت {0} أصول تطابق سؤالك.</value>
+  </data>
+  <data name="I found {0} assets. Showing the first {1}." xml:space="preserve">
+    <value>وجدت {0} أصول. أعرض أول {1}.</value>
+  </data>
+  <data name="I&#x27;m doing well, thanks for asking - ready whenever you are. How are you doing? And what would you like to know about your assets?" xml:space="preserve">
+    <value>أنا بخير، شكراً لسؤالك - جاهز وقتما تريد. كيف حالك أنت؟ وماذا تريد أن تعرف عن أصولك؟</value>
+  </data>
+  <data name="I&#x27;m the asset assistant. I can look up assets by type, manufacturer, status, department, or the person they&#x27;re assigned to - and count them. I only read data; I can&#x27;t change anything." xml:space="preserve">
+    <value>أنا مساعد الأصول. أستطيع البحث عن الأصول حسب النوع أو الشركة المصنعة أو الحالة أو القسم أو الشخص المُسنَدة إليه - وعدّها أيضاً. أنا أقرأ البيانات فقط ولا أستطيع تغيير أي شيء.</value>
+  </data>
+  <data name="Invalid reference." xml:space="preserve">
+    <value>مرجع غير صالح.</value>
+  </data>
+  <data name="Location Created Successfully" xml:space="preserve">
+    <value>تم إنشاء الموقع بنجاح</value>
+  </data>
+  <data name="Location Deactivated Successfully" xml:space="preserve">
+    <value>تم إلغاء تفعيل الموقع بنجاح</value>
+  </data>
+  <data name="Location Retrieved Successfully" xml:space="preserve">
+    <value>تم جلب الموقع بنجاح</value>
+  </data>
+  <data name="Location Updated Successfully" xml:space="preserve">
+    <value>تم تحديث الموقع بنجاح</value>
+  </data>
+  <data name="Location id is required." xml:space="preserve">
+    <value>معرّف الموقع مطلوب.</value>
+  </data>
+  <data name="Location name &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>اسم الموقع '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Location name is required." xml:space="preserve">
+    <value>اسم الموقع مطلوب.</value>
+  </data>
+  <data name="Location with name &#x27;{0}&#x27; already exists." xml:space="preserve">
+    <value>يوجد موقع باسم '{0}' بالفعل.</value>
+  </data>
+  <data name="Location {0} was not found." xml:space="preserve">
+    <value>الموقع {0} غير موجود.</value>
+  </data>
+  <data name="Locations Retrieved Successfully" xml:space="preserve">
+    <value>تم جلب المواقع بنجاح</value>
+  </data>
+  <data name="More than one person matches &quot;{0}&quot;: {1}. Which one did you mean?" xml:space="preserve">
+    <value>يوجد أكثر من شخص يطابق "{0}": {1}. من تقصد؟</value>
+  </data>
+  <data name="Not found." xml:space="preserve">
+    <value>غير موجود.</value>
+  </data>
+  <data name="Please keep your question under 500 characters." xml:space="preserve">
+    <value>برجاء ألا يزيد سؤالك عن 500 حرف.</value>
+  </data>
+  <data name="Please try again. If the problem continues, quote the traceId below when reporting it." xml:space="preserve">
+    <value>برجاء المحاولة مرة أخرى. إذا استمرت المشكلة، اذكر رقم traceId الموضح أدناه عند الإبلاغ عنها.</value>
+  </data>
+  <data name="Please type a question." xml:space="preserve">
+    <value>برجاء كتابة سؤال.</value>
+  </data>
+  <data name="Purchase cost cannot be negative." xml:space="preserve">
+    <value>لا يمكن أن تكون تكلفة الشراء بالسالب.</value>
+  </data>
+  <data name="Question answered successfully." xml:space="preserve">
+    <value>تمت الإجابة على السؤال بنجاح.</value>
+  </data>
+  <data name="Row version format is invalid." xml:space="preserve">
+    <value>صيغة إصدار السجل غير صحيحة.</value>
+  </data>
+  <data name="Row version is required for update." xml:space="preserve">
+    <value>إصدار السجل مطلوب للتحديث.</value>
+  </data>
+  <data name="RowVersion is not a valid Base64 value." xml:space="preserve">
+    <value>إصدار السجل ليس قيمة Base64 صحيحة.</value>
+  </data>
+  <data name="RowVersion is not a valid base64 value." xml:space="preserve">
+    <value>إصدار السجل ليس قيمة base64 صحيحة.</value>
+  </data>
+  <data name="RowVersion is required." xml:space="preserve">
+    <value>إصدار السجل مطلوب.</value>
+  </data>
+  <data name="RowVersion is required. Re-read the asset and try again." xml:space="preserve">
+    <value>إصدار السجل مطلوب. أعد تحميل الأصل وحاول مرة أخرى.</value>
+  </data>
+  <data name="Serial number &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>الرقم التسلسلي '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Show assets assigned to {0}" xml:space="preserve">
+    <value>اعرض الأصول المُسنَدة إلى {0}</value>
+  </data>
+  <data name="Show me all laptops in the Presales department" xml:space="preserve">
+    <value>اعرض كل أجهزة اللابتوب في قسم Presales</value>
+  </data>
+  <data name="Status must be Available, Assigned, or Under Maintenance." xml:space="preserve">
+    <value>يجب أن تكون الحالة: متاح أو مُسنَد أو تحت الصيانة.</value>
+  </data>
+  <data name="That user no longer exists." xml:space="preserve">
+    <value>هذا المستخدم لم يعد موجوداً.</value>
+  </data>
+  <data name="The data violates a business rule. Check the assigned employee, department, location, and status values." xml:space="preserve">
+    <value>البيانات تخالف إحدى قواعد العمل. راجع الموظف والقسم والموقع والحالة.</value>
+  </data>
+  <data name="The record version is not valid." xml:space="preserve">
+    <value>إصدار السجل غير صالح.</value>
+  </data>
+  <data name="The record version is required." xml:space="preserve">
+    <value>إصدار السجل مطلوب.</value>
+  </data>
+  <data name="The refresh token is invalid or has expired. Please sign in again." xml:space="preserve">
+    <value>رمز التحديث غير صالح أو منتهي. برجاء تسجيل الدخول مرة أخرى.</value>
+  </data>
+  <data name="The request could not be completed." xml:space="preserve">
+    <value>تعذّر إكمال الطلب.</value>
+  </data>
+  <data name="The row version is missing or malformed. Please reload the asset." xml:space="preserve">
+    <value>إصدار السجل مفقود أو غير صحيح. برجاء إعادة تحميل الأصل.</value>
+  </data>
+  <data name="The selected department does not exist or is inactive." xml:space="preserve">
+    <value>القسم المختار غير موجود أو غير نشط.</value>
+  </data>
+  <data name="The selected employee does not belong to the selected department." xml:space="preserve">
+    <value>الموظف المختار لا يتبع القسم المختار.</value>
+  </data>
+  <data name="The selected employee does not belong to the target department." xml:space="preserve">
+    <value>الموظف المختار لا يتبع القسم المستهدف.</value>
+  </data>
+  <data name="The selected employee does not exist." xml:space="preserve">
+    <value>الموظف المختار غير موجود.</value>
+  </data>
+  <data name="The selected location does not exist or is inactive." xml:space="preserve">
+    <value>الموقع المختار غير موجود أو غير نشط.</value>
+  </data>
+  <data name="The selected status is not valid." xml:space="preserve">
+    <value>الحالة المختارة غير صحيحة.</value>
+  </data>
+  <data name="The target department does not exist or is inactive." xml:space="preserve">
+    <value>القسم المستهدف غير موجود أو غير نشط.</value>
+  </data>
+  <data name="The target employee does not exist." xml:space="preserve">
+    <value>الموظف المستهدف غير موجود.</value>
+  </data>
+  <data name="The target location does not exist or is inactive." xml:space="preserve">
+    <value>الموقع المستهدف غير موجود أو غير نشط.</value>
+  </data>
+  <data name="The username or password is incorrect." xml:space="preserve">
+    <value>اسم المستخدم أو كلمة المرور غير صحيحة.</value>
+  </data>
+  <data name="The value you entered already exists. Please use a different value." xml:space="preserve">
+    <value>القيمة التي أدخلتها موجودة بالفعل. برجاء استخدام قيمة مختلفة.</value>
+  </data>
+  <data name="This Category has linked assets. Please remove or reassign them before deleting this category." xml:space="preserve">
+    <value>هذه الفئة مرتبطة بأصول. برجاء إزالتها أو نقلها لفئة أخرى قبل حذف هذه الفئة.</value>
+  </data>
+  <data name="This account has been disabled by an administrator." xml:space="preserve">
+    <value>تم تعطيل هذا الحساب بواسطة المسؤول.</value>
+  </data>
+  <data name="This account is no longer active." xml:space="preserve">
+    <value>هذا الحساب لم يعد نشطاً.</value>
+  </data>
+  <data name="This asset type is in use. Delete or reassign its assets first." xml:space="preserve">
+    <value>نوع الأصل هذا مستخدم. احذف أصوله أو انقلها أولاً.</value>
+  </data>
+  <data name="This asset was modified by another user. Reload it and try again." xml:space="preserve">
+    <value>قام مستخدم آخر بتعديل هذا الأصل. أعد تحميله وحاول مرة أخرى.</value>
+  </data>
+  <data name="This is the last active administrator. Promote somebody else first." xml:space="preserve">
+    <value>هذا آخر مسؤول نشط. قم بترقية شخص آخر أولاً.</value>
+  </data>
+  <data name="This record was modified by another user. Please reload and try again." xml:space="preserve">
+    <value>قام مستخدم آخر بتعديل هذا السجل. برجاء إعادة التحميل والمحاولة مرة أخرى.</value>
+  </data>
+  <data name="Transfer {0} was not found for asset {1}." xml:space="preserve">
+    <value>عملية النقل {0} غير موجودة للأصل {1}.</value>
+  </data>
+  <data name="Type is required." xml:space="preserve">
+    <value>النوع مطلوب.</value>
+  </data>
+  <data name="Use the Retire action to retire an asset." xml:space="preserve">
+    <value>استخدم إجراء التكهين لتكهين الأصل.</value>
+  </data>
+  <data name="Username &#x27;{0}&#x27; is already taken." xml:space="preserve">
+    <value>اسم المستخدم '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Username may only contain letters, digits, dot, underscore or hyphen." xml:space="preserve">
+    <value>اسم المستخدم يمكن أن يحتوي فقط على حروف وأرقام ونقطة وشرطة سفلية أو شرطة.</value>
+  </data>
+  <data name="Validation failed." xml:space="preserve">
+    <value>البيانات المدخلة غير صحيحة.</value>
+  </data>
+  <data name="Warranty expiry date cannot be before the purchase date." xml:space="preserve">
+    <value>لا يمكن أن يكون تاريخ انتهاء الضمان قبل تاريخ الشراء.</value>
+  </data>
+  <data name="Which assets are assigned to me?" xml:space="preserve">
+    <value>ما الأصول المُسنَدة إليّ؟</value>
+  </data>
+  <data name="Which assets are currently available?" xml:space="preserve">
+    <value>ما الأصول المتاحة حالياً؟</value>
+  </data>
+  <data name="You can only look up assets assigned to you. Try &quot;which assets are assigned to me?&quot;." xml:space="preserve">
+    <value>يمكنك البحث فقط عن الأصول المُسنَدة إليك. جرّب "ما الأصول المُسنَدة إليّ؟".</value>
+  </data>
+  <data name="You cannot change your own role. Ask another administrator." xml:space="preserve">
+    <value>لا يمكنك تغيير دورك بنفسك. اطلب ذلك من مسؤول آخر.</value>
+  </data>
+  <data name="You cannot disable your own account." xml:space="preserve">
+    <value>لا يمكنك تعطيل حسابك بنفسك.</value>
+  </data>
+  <data name="You&#x27;re sending questions a bit too quickly. Please wait a moment and try again." xml:space="preserve">
+    <value>أنت ترسل الأسئلة بسرعة كبيرة. برجاء الانتظار قليلاً ثم المحاولة مرة أخرى.</value>
+  </data>
+  <data name="Your account isn&#x27;t linked to an employee record yet, so I can&#x27;t look up assets assigned to you. Please contact an administrator." xml:space="preserve">
+    <value>حسابك غير مرتبط بسجل موظف بعد، لذلك لا أستطيع البحث عن الأصول المُسنَدة إليك. برجاء التواصل مع المسؤول.</value>
+  </data>
+  <data name="{0} has no assets assigned that match your question." xml:space="preserve">
+    <value>{0} ليس لديه أصول مُسنَدة تطابق سؤالك.</value>
+  </data>
+  <data name="{0} is not an active employee." xml:space="preserve">
+    <value>{0} ليس موظفاً نشطاً.</value>
+  </data>
+  <data name="{0} is retired and cannot be edited." xml:space="preserve">
+    <value>{0} مُكهَّن ولا يمكن تعديله.</value>
+  </data>
+  <data name="{0} is retired and cannot be transferred." xml:space="preserve">
+    <value>{0} مُكهَّن ولا يمكن نقله.</value>
+  </data>
+  <data name="Arabic name must not exceed {0} characters." xml:space="preserve">
+    <value>يجب ألا يزيد الاسم العربي عن {0} حرفًا.</value>
+  </data>
+  <data name="Arabic category name &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>الاسم العربي للفئة '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Arabic asset type name &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>الاسم العربي لنوع الأصل '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Arabic department name &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>الاسم العربي للقسم '{0}' مستخدم بالفعل.</value>
+  </data>
+  <data name="Arabic location name &#x27;{0}&#x27; is already in use." xml:space="preserve">
+    <value>الاسم العربي للموقع '{0}' مستخدم بالفعل.</value>
+  </data>
 </root>

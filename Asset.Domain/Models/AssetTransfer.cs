@@ -9,6 +9,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Asset.Domain.Models;
 
 [Index("AssetId", "TransferDate", Name = "IX_AssetTransfers_AssetId_TransferDate", IsDescending = new[] { false, true })]
+[Index("FromDepartmentId", Name = "IX_AssetTransfers_FromDepartmentId")]
+[Index("FromEmployeeId", Name = "IX_AssetTransfers_FromEmployeeId")]
+[Index("FromLocationId", Name = "IX_AssetTransfers_FromLocationId")]
+[Index("ToDepartmentId", Name = "IX_AssetTransfers_ToDepartmentId")]
+[Index("ToEmployeeId", Name = "IX_AssetTransfers_ToEmployeeId")]
+[Index("ToLocationId", Name = "IX_AssetTransfers_ToLocationId")]
 [Index("TransferredByUserId", Name = "IX_AssetTransfers_TransferredByUserId")]
 public partial class AssetTransfer
 {

@@ -1,11 +1,12 @@
 ﻿#region
 using Asset.Application.Bases;
+using Asset.Application.Common;
 using Asset.Application.Common.Caching;
 using Asset.Application.Common.Responses;
 using Asset.Application.Features.Employees.Commands.CommandModels;
 using Asset.Application.Features.Employees.Commands.CommandResponse;
 using Asset.Application.Interfaces.Comman;
-using Asset.Application.Resoures;
+using Asset.Application.Resources;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Models;
 using AutoMapper;
@@ -25,16 +26,19 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICacheService _cache;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUser;   // who moved the assets (saved in the transfer history)
         #endregion
 
         #region Constructor
         public EmployeeCommandHandler(IUnitOfWork unitOfWork, ICacheService cache,
                                       IMapper mapper,
+                                      ICurrentUserService currentUser,
                                       IStringLocalizer<SharedResources> localizer) : base(localizer)
         {
             _unitOfWork = unitOfWork;
             _cache = cache;
             _mapper = mapper;
+            _currentUser = currentUser;
         }
         #endregion
 
@@ -46,23 +50,24 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
 
             var departmentExists = await _unitOfWork.Departments.ExistsActiveAsync(request.DepartmentId, cancellationToken);
             if (!departmentExists)
-                throw new NotFoundException($"Department {request.DepartmentId} does not exist.");
+                throw new NotFoundException("Department {0} does not exist.", request.DepartmentId);
 
             var codeExists = await _unitOfWork.Employees.IsCodeExistsAsync(employeeCode, null, cancellationToken);
             if (codeExists)
-                throw new ConflictException($"Employee code '{employeeCode}' is already used.");
+                throw new ConflictException("Employee code '{0}' is already used.", employeeCode);
 
             if (!string.IsNullOrWhiteSpace(email))
             {
                 var emailExists = await _unitOfWork.Employees.IsEmailExistsAsync(email, null, cancellationToken);
                 if (emailExists)
-                    throw new ConflictException($"Email '{email}' is already used by another employee.");
+                    throw new ConflictException("Email '{0}' is already used by another employee.", email);
 
             }
             var employee = new Employee
             {
                 EmployeeCode = employeeCode,
                 FullName = request.FullName.Trim(),
+                FullNameAr = LocalizedName.TrimOrNull(request.FullNameAr),   // "" from the form is saved as NULL
                 Email = email,
                 Phone = request.Phone?.Trim(),
                 DepartmentId = request.DepartmentId,
@@ -86,25 +91,30 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
 
             var employee = await _unitOfWork.Employees.GetByIdAsync(request.Id, cancellationToken);
             if (employee is null)
-                throw new NotFoundException($"Employee {request.Id} does not exist.");
+                throw new NotFoundException("Employee {0} does not exist.", request.Id);
 
             if (!string.IsNullOrWhiteSpace(email))
             {
                 var emailExists = await _unitOfWork.Employees.IsEmailExistsAsync(email, request.Id, cancellationToken);
                 if (emailExists)
-                    throw new ConflictException($"Email '{email}' is already used by another employee.");
+                    throw new ConflictException("Email '{0}' is already used by another employee.", email);
             }
 
             if (employee.DepartmentId != request.DepartmentId)
             {
                 var departmentExists = await _unitOfWork.Departments.ExistsActiveAsync(request.DepartmentId, cancellationToken);
                 if (!departmentExists)
-                    throw new NotFoundException($"Department {request.DepartmentId} does not exist.");
+                    throw new NotFoundException("Department {0} does not exist.", request.DepartmentId);
 
                 employee.DepartmentId = request.DepartmentId;
+
+                // The bug this fixes: Assets has its OWN DepartmentId column, so changing the
+                // employee's department left their assets in the old one (and the asset list showed it).
+                await MoveAssignedAssetsAsync(employee, cancellationToken);
             }
 
             employee.FullName = request.FullName.Trim();
+            employee.FullNameAr = LocalizedName.TrimOrNull(request.FullNameAr);
             employee.Email = email;
             employee.Phone = request.Phone?.Trim();
 
@@ -123,7 +133,7 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
         {
             var employee = await _unitOfWork.Employees.GetByIdWithDepartmentAsync(request.Id, cancellationToken);
             if (employee is null)
-                throw new NotFoundException($"Employee {request.Id} does not exist.");
+                throw new NotFoundException("Employee {0} does not exist.", request.Id);
 
             if (employee.IsActive == request.IsActive)
             {
@@ -139,8 +149,8 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
             {
                 var hasAssets = await _unitOfWork.Employees.HasAssignedAssetsAsync(request.Id, cancellationToken);
                 if (hasAssets)
-                    throw new BusinessException(
-                        $"Cannot disable employee '{employee.FullName}' while assets are still assigned to them. Transfer or return the assets first.");
+                    throw new BusinessException("Cannot disable employee '{0}' while assets are still assigned to them. Transfer or return the assets first.",
+                                                LocalizedName.Pick(employee.FullName, employee.FullNameAr));
             }
 
             employee.IsActive = request.IsActive;
@@ -157,6 +167,43 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
         #endregion
 
         #region Private Methods
+        // Rule used everywhere in the app (TransferAssetCommandHandler checks the same thing):
+        // an asset assigned to a person sits in that person's department.
+        // So when the person moves, their assets move with them, and each move is written to the
+        // transfer history like a normal transfer, so the audit trail stays complete.
+        // Nothing is saved here: the caller's single SaveChangesAsync saves the employee, the assets
+        // and the history together (one transaction — all or nothing).
+        private async Task MoveAssignedAssetsAsync(Employee employee, CancellationToken cancellationToken)
+        {
+            var assets = await _unitOfWork.Assets.GetActiveAssignedToEmployeeAsync(employee.Id, cancellationToken);
+            var now = DateTime.UtcNow;
+
+            foreach (var asset in assets.Where(a => a.DepartmentId != employee.DepartmentId))
+            {
+                await _unitOfWork.Assets.AddTransferAsync(new AssetTransfer
+                {
+                    AssetId = asset.Id,
+
+                    FromEmployeeId = asset.AssignedEmployeeId,
+                    FromDepartmentId = asset.DepartmentId,
+                    FromLocationId = asset.LocationId,
+
+                    ToEmployeeId = asset.AssignedEmployeeId,     // same person
+                    ToDepartmentId = employee.DepartmentId,      // new department
+                    ToLocationId = asset.LocationId,             // same place
+
+                    TransferDate = now,
+                    // Kept in English in the database; the Angular app translates it when it shows the history.
+                    Reason = "Moved automatically: the assigned employee changed department.",
+                    TransferredByUserId = _currentUser.UserId!
+                }, cancellationToken);
+
+                asset.DepartmentId = employee.DepartmentId;
+                asset.UpdatedAt = now;
+                asset.UpdatedByUserId = _currentUser.UserId;
+            }
+        }
+
         private async Task InvalidateAsync()
         {
             await _cache.RemoveAsync(new[] { CacheKeys.EmployeeList, CacheKeys.DepartmentList });

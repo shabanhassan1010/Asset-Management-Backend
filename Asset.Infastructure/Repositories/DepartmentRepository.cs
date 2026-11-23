@@ -33,6 +33,7 @@ namespace Asset.Infastructure.Repositories
                                                 {
                                                     Id = d.Id,
                                                     DepartmentName = d.DepartmentName,
+                                                    DepartmentNameAr = d.DepartmentNameAr,
                                                     Code = d.Code,
                                                     IsActive = d.IsActive,
                                                     AssetsCount = d.Assets.Count(a => a.Status != (int)AssetStatus.Retired),
@@ -46,7 +47,9 @@ namespace Asset.Infastructure.Repositories
             if (!string.IsNullOrWhiteSpace(search))
             {
                 search = search.Trim();
-                query = query.Where(e => e.DepartmentName.Contains(search));
+                // Search the English AND the Arabic name, so typing in either language finds the row.
+                query = query.Where(e => e.DepartmentName.Contains(search) ||
+                                         (e.DepartmentNameAr != null && e.DepartmentNameAr.Contains(search)));
             }
 
             if (isActive.HasValue)
@@ -63,6 +66,7 @@ namespace Asset.Infastructure.Repositories
                 {
                     Id = t.Id,
                     DepartmentName = t.DepartmentName,
+                    DepartmentNameAr = t.DepartmentNameAr,
                     Code = t.Code,
                     IsActive = t.IsActive,
                     AssetsCount = t.Assets.Count(a => a.Status != (int)AssetStatus.Retired),
@@ -84,6 +88,18 @@ namespace Asset.Infastructure.Repositories
             {
                 query = query.Where(a => a.Id != exceptId.Value);
             }
+            return query.AnyAsync(ct);
+        }
+        // Same rule as the unique index UX_Departments_DepartmentNameAr_Active: only ACTIVE rows count.
+        public Task<bool> IsNameArExistsAsync(string nameAr, int? exceptId, CancellationToken ct)
+        {
+            var query = _dbContext.Departments.AsNoTracking().Where(a => a.DepartmentNameAr == nameAr && a.IsActive);
+
+            if (exceptId.HasValue)
+            {
+                query = query.Where(a => a.Id != exceptId.Value);
+            }
+
             return query.AnyAsync(ct);
         }
         public Task<bool> IsCodeExistsAsync(string code, int? exceptId, CancellationToken ct)

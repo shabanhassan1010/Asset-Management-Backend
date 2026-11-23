@@ -26,6 +26,12 @@ namespace Asset.Infastructure.Configurations
             entity.HasIndex(a=>a.DepartmentName, "UX_Departments_DepartmentName_Active")
                   .IsUnique()
                   .HasFilter("[IsActive] = 1");
+
+            // Arabic name (script 05 + 07). Optional, but unique among active rows when it is filled in.
+            entity.Property(e => e.DepartmentNameAr).HasMaxLength(150);
+            entity.HasIndex(a => a.DepartmentNameAr, "UX_Departments_DepartmentNameAr_Active")
+                  .IsUnique()
+                  .HasFilter("[IsActive] = 1 AND [DepartmentNameAr] IS NOT NULL");
         }
     }
 }

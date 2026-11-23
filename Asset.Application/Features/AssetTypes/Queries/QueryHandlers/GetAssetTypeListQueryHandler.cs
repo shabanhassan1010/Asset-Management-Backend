@@ -7,7 +7,7 @@ using Asset.Application.Features.AssetTypes.Queries.QueryResponses;
 using Asset.Application.Features.Employees.Queries.QueryResponses;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
-using Asset.Application.Resoures;
+using Asset.Application.Resources;
 using Asset.Domain.Exceptions;
 using Asset.Domain.Models;
 using AutoMapper;
@@ -56,7 +56,7 @@ namespace Asset.Application.Features.AssetTypes.Queries.QueryHandlers
             // Throw, don't return: this query is cached, and a returned "not found"
             // would be saved in Redis. An exception is never saved.
             if (assetType is null)
-                throw new NotFoundException($"Asset type {request.Id} was not found.");
+                throw new NotFoundException("Asset type {0} was not found.", request.Id);
 
             var data = _mapper.Map<GetAssetTypeByIdQueryResponse>(assetType);
             return Success(data);

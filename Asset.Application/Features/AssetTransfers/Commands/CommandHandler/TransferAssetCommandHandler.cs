@@ -36,7 +36,7 @@ namespace Asset.Application.Features.AssetTransfers.Commands.CommandHandler
         {
             // Get Asset From Database which i went to transfer it
             var asset = await _unitOfWork.Assets.GetForUpdateAsync(request.AssetId, cancellationToken)
-                        ?? throw new NotFoundException($"Asset {request.AssetId} was not found.");
+                        ?? throw new NotFoundException("Asset {0} was not found.", request.AssetId);
 
             // client must tell me which version of the asset it is editing.
             if (string.IsNullOrWhiteSpace(request.RowVersion))
@@ -65,7 +65,7 @@ namespace Asset.Application.Features.AssetTransfers.Commands.CommandHandler
 
             // check if Asset status is Retired
             if (asset.Status == (int)AssetStatus.Retired)
-                throw new BusinessException($"{asset.AssetCode} is retired and cannot be transferred.");
+                throw new BusinessException("{0} is retired and cannot be transferred.", asset.AssetCode);
 
             // TransferDate must in the same time not the future.
             if (request.TransferDate.Date > DateTime.UtcNow.Date)
@@ -83,7 +83,7 @@ namespace Asset.Application.Features.AssetTransfers.Commands.CommandHandler
                                ?? throw new BusinessException("The target employee does not exist.");
 
                 if (!employee.IsActive)
-                    throw new BusinessException($"{employee.FullName} is not an active employee.");
+                    throw new BusinessException("{0} is not an active employee.", employee.FullName);
 
                 // Assign the right side only if the left side is null.
                 if (toDepartmentId == null)

@@ -7,7 +7,7 @@ using Asset.Application.Features.Category.Queries.QueryResponse;
 using Asset.Application.Features.Departments.Queries.QueryResponse;
 using Asset.Application.Interfaces.Comman;
 using Asset.Application.Interfaces.IRepository;
-using Asset.Application.Resoures;
+using Asset.Application.Resources;
 using Asset.Domain.Exceptions;
 using AutoMapper;
 using MediatR;
@@ -52,7 +52,7 @@ namespace Asset.Application.Features.Category.Queries.QueryHandlers
             var category = await _unitOfWork.Categories.GetByIdAsync(request.Id, cancellationToken);
 
             if (category == null || category.IsActive == false)
-                throw new NotFoundException($"Category {request.Id} was not found.");
+                throw new NotFoundException("Category {0} was not found.", request.Id);
 
 
             return new ApiResponse<GetCategoryByIdResponse>

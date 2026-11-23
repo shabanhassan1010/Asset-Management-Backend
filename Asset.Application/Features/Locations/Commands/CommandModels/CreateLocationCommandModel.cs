@@ -6,6 +6,7 @@ namespace Asset.Application.Features.Locations.Commands.CommandModels
     public class CreateLocationCommandModel : IRequest<ApiResponse<CreateLocationResponseDto>>
     {
         public string LocationName { get; set; }
+        public string? LocationNameAr { get; set; }      // optional
         public string Address { get; set; }
     }
 }

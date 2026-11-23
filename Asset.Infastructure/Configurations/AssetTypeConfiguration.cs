@@ -20,6 +20,12 @@ namespace Asset.Infastructure.Configurations
             entity.HasIndex(a=>a.TypeName, "UX_AssetTypes_TypeName_Active")  
                   .IsUnique()
                   .HasFilter("[IsActive] = 1");
+
+            // Arabic name (script 05 + 07). Optional, but unique among active rows when it is filled in.
+            entity.Property(e => e.TypeNameAr).HasMaxLength(100);
+            entity.HasIndex(a => a.TypeNameAr, "UX_AssetTypes_TypeNameAr_Active")
+                  .IsUnique()
+                  .HasFilter("[IsActive] = 1 AND [TypeNameAr] IS NOT NULL");
         }
     }
 }

@@ -5,7 +5,7 @@ using Asset.Application.Features.Departments.Queries.QueryModels;
 using Asset.Application.Features.Departments.Queries.QueryResponse;
 using Asset.Application.Features.Employees.Queries.QueryResponses;
 using Asset.Application.Interfaces.Comman;
-using Asset.Application.Resoures;
+using Asset.Application.Resources;
 using Asset.Domain.Exceptions;
 using AutoMapper;
 using MediatR;
@@ -49,7 +49,7 @@ namespace Asset.Application.Features.Departments.Queries.QueryHandlers
         {
             var entity = await _unitOfWork.Departments.GetByIdAsync(request.Id, cancellationToken);
             if (entity is null || entity.IsActive == false)
-                throw new NotFoundException($"Department {request.Id} does not exist.");
+                throw new NotFoundException("Department {0} does not exist.", request.Id);
 
             return new ApiResponse<GetDepartmentByIdResponse>
             {

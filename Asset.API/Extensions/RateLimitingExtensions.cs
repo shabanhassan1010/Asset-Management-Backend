@@ -1,4 +1,6 @@
-﻿using Asset.Application.Common.Responses;
+﻿using Asset.Application.Resources;
+using Microsoft.Extensions.Localization;
+using Asset.Application.Common.Responses;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.RateLimiting;
@@ -54,10 +56,14 @@ namespace Asset.API.Extensions
                             ((int)retryAfter.TotalSeconds).ToString();
                     }
 
+                    // This runs outside MediatR (no LocalizationBehavior), so it translates itself.
+                    // RequestServices = this request's services; the culture is already set by UseRequestLocalization.
+                    var localizer = context.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<SharedResources>>();
+
                     var body = new ApiResponse<object>
                     {
                         Success = false,
-                        Message = "You're sending questions a bit too quickly. Please wait a moment and try again."
+                        Message = localizer["You're sending questions a bit too quickly. Please wait a moment and try again."]
                     };
 
                     await context.HttpContext.Response.WriteAsync(

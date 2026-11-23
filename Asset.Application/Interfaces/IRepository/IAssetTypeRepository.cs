@@ -12,6 +12,7 @@ namespace Asset.Application.Interfaces.IRepository
         Task<(List<GetAssetTypeListQueryResponse> Items, int TotalCount)> GetPagedAsync(string? search, bool? isActive, int pageNumber, int pageSize, CancellationToken ct);
         Task<bool> AnyAsync(Expression<Func<AssetType, bool>> predicate, CancellationToken cancellationToken);
         Task<bool> AssetTypeNameExistsAsync(string name, int? exceptId, CancellationToken cancellationToken);
+        Task<bool> AssetTypeNameArExistsAsync(string nameAr, int? exceptId, CancellationToken cancellationToken);
         public void Deactivate(AssetType entity);
     }
 }

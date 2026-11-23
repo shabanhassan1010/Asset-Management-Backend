@@ -7,6 +7,7 @@ namespace Asset.Application.Features.Locations.Commands.CommandModels
     {
         public int Id { get; set; }
         public string LocationName { get; set; }
+        public string? LocationNameAr { get; set; }      // optional
         public string Address { get; set; }
     }
 }

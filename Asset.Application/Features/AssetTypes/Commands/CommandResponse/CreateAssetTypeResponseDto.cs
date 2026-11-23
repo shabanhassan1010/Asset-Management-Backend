@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string TypeName { get; set; }
+        public string? TypeNameAr { get; set; }
         public string Description { get; set; }
         public bool IsActive { get; set; }
     }

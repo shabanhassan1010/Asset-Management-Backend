@@ -5,10 +5,12 @@
         public int Id { get; set; }
         public string EmployeeCode { get; set; }
         public string FullName { get; set; }
+        public string? FullNameAr { get; set; }
         public string Email { get; set; }
         public string Phone { get; set; }
         public int DepartmentId { get; set; }
         public string DepartmentName { get; set; }
+        public string? DepartmentNameAr { get; set; }
         public bool IsActive { get; set; }
     }
 }

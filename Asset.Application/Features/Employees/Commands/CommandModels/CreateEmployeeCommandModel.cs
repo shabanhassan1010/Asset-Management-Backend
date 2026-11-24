@@ -6,7 +6,7 @@ namespace Asset.Application.Features.Employees.Commands.CommandModels
 {
     public class CreateEmployeeCommandModel : IRequest<ApiResponse<CreateEmployeeCommandResponse>>
     {
-        public string EmployeeCode { get; set; }
+        // No EmployeeCode: the server makes it (EmployeeCodes.Next), so it can't be duplicated or skipped.
         public string FullName { get; set; }
         public string? FullNameAr { get; set; }          // optional
         public string Email { get; set; }

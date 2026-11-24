@@ -18,6 +18,8 @@ namespace Asset.Application.Interfaces.IRepository
         Task<bool> IsEmailExistsAsync(string email, int? exceptId, CancellationToken ct);
         Task<bool> ExistsAsync(int employeeId, CancellationToken cancellationToken);
         Task<bool> IsCodeExistsAsync(string employeeCode, int? exceptId, CancellationToken ct);
+        // Every employee code that starts with the prefix (active AND inactive), used to work out the next code.
+        Task<List<string>> GetCodesStartingWithAsync(string prefix, CancellationToken ct);
         Task<bool> HasAssignedAssetsAsync(int employeeId, CancellationToken ct);
 
         // Add

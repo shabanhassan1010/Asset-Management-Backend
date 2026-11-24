@@ -8,9 +8,6 @@ namespace Asset.Application.Features.Employees.Commands.CommandValidators
     {
         public CreateEmployeeCommandValidator(IStringLocalizer<SharedResources> localizer)
         {
-            RuleFor(x => x.EmployeeCode)
-                .NotEmpty().WithMessage(_ => localizer["Employee code is required."])
-                .MaximumLength(30).WithMessage(_ => localizer["Employee code must not exceed 30 characters."]);
 
             RuleFor(x => x.FullName)
                 .NotEmpty().WithMessage(_ => localizer["Employee name is required."])

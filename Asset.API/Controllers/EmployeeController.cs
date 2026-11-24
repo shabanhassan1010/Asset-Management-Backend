@@ -64,6 +64,16 @@ namespace Asset.API.Controllers
         }
         #endregion
 
+        #region NextCode
+        // Before {id} matters only for readability: {id:int} can't match "next-code" anyway.
+        [Authorize(Roles = nameof(Role.Admin))]
+        [HttpGet(BaseRouter.EmployeeRouter.NextCode)]
+        public async Task<IActionResult> GetNextCode(CancellationToken cancellationToken)
+        {
+            return Ok(await _sender.Send(new GetNextEmployeeCodeQuery(), cancellationToken));
+        }
+        #endregion
+
         #region CreateEmployee
         [Authorize(Roles = nameof(Role.Admin))]
         [HttpPost(BaseRouter.EmployeeRouter.Base)]
@@ -96,4 +106,4 @@ namespace Asset.API.Controllers
         }
         #endregion
     }
-}
+}

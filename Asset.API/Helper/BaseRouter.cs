@@ -40,6 +40,7 @@
             public const string Id = Base + "/{id:int}";
             public const string Base = Rule + "/employees";
             public const string AvailableForUser = Base + "/available-for-user";
+            public const string NextCode = Base + "/next-code";
         }
 
         public static class AssetTypeRouter
@@ -77,4 +78,4 @@
             public const string Ask = Base + "/ask";
         }
     }
-}
+}

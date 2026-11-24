@@ -45,16 +45,12 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
         #region Handlers
         public async Task<ApiResponse<CreateEmployeeCommandResponse>> Handle(CreateEmployeeCommandModel request, CancellationToken cancellationToken)
         {
-            var employeeCode = request.EmployeeCode.Trim();
             var email = request.Email?.Trim();
 
             var departmentExists = await _unitOfWork.Departments.ExistsActiveAsync(request.DepartmentId, cancellationToken);
             if (!departmentExists)
                 throw new NotFoundException("Department {0} does not exist.", request.DepartmentId);
 
-            var codeExists = await _unitOfWork.Employees.IsCodeExistsAsync(employeeCode, null, cancellationToken);
-            if (codeExists)
-                throw new ConflictException("Employee code '{0}' is already used.", employeeCode);
 
             if (!string.IsNullOrWhiteSpace(email))
             {
@@ -63,6 +59,12 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
                     throw new ConflictException("Email '{0}' is already used by another employee.", email);
 
             }
+            // The code is made here, right before saving (not taken from the form), so it is always
+            // the last number + 1. If two admins save at the same moment and get the same code, the
+            // UNIQUE index on EmployeeCode rejects the second one (409) and Save again gives it the next number.
+            var existingCodes = await _unitOfWork.Employees.GetCodesStartingWithAsync(EmployeeCodes.Prefix, cancellationToken);
+            var employeeCode = EmployeeCodes.Next(existingCodes);
+
             var employee = new Employee
             {
                 EmployeeCode = employeeCode,
@@ -217,4 +219,4 @@ namespace Asset.Application.Features.Employees.Commands.CommandHandlers
         }
         #endregion
     }
-}
+}

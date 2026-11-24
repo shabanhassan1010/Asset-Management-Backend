@@ -15,7 +15,8 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
     public class GetEmployeeListQueryHandler :  IRequestHandler<GetAvailableEmployeesQueryModel, IReadOnlyList<AvailableEmployeeDto>>,
                                                 IRequestHandler<GetEmployeesPaginatedQuery, ApiResponse<PagedResult<GetEmployeeListQueryResponse>>>,
                                                 IRequestHandler<GetEmployeeByIdQueryModel,  ApiResponse<GetEmployeeByIdResponse>> ,
-                                                IRequestHandler<GetEmployeesLookupQueryModel, IReadOnlyList<AvailableEmployeeDto>>
+                                                IRequestHandler<GetEmployeesLookupQueryModel, IReadOnlyList<AvailableEmployeeDto>>,
+                                                IRequestHandler<GetNextEmployeeCodeQuery, ApiResponse<string>>
 
     {
         #region Fields
@@ -97,6 +98,18 @@ namespace Asset.Application.Features.Employees.Queries.QueryHandlers
                 IsActive = e.IsActive
             }).ToList();
         }
+        public async Task<ApiResponse<string>> Handle(GetNextEmployeeCodeQuery request, CancellationToken cancellationToken)
+        {
+            // Same rule the create handler uses, so the preview matches what Save will store
+            // (unless someone else saves an employee in between).
+            var existingCodes = await _unitOfWork.Employees.GetCodesStartingWithAsync(EmployeeCodes.Prefix, cancellationToken);
+            return new ApiResponse<string>
+            {
+                data = EmployeeCodes.Next(existingCodes),
+                Success = true,
+                Message = "Next employee code generated."
+            };
+        }
         #endregion
     }
-}
+}

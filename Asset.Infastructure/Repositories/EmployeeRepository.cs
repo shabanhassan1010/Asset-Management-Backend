@@ -121,6 +121,15 @@ namespace Asset.Infastructure.Repositories
 
             return query.AnyAsync(ct);
         }
+        public Task<List<string>> GetCodesStartingWithAsync(string prefix, CancellationToken ct)
+        {
+            // Inactive employees are included: their code is still taken (the column is UNIQUE).
+            // StartsWith becomes SQL "LIKE 'EMP-%'", and only the code column is read.
+            return _dbContext.Employees.AsNoTracking()
+                                       .Where(e => e.EmployeeCode.StartsWith(prefix))
+                                       .Select(e => e.EmployeeCode)
+                                       .ToListAsync(ct);
+        }
         public Task<bool> IsCodeExistsAsync(string employeeCode, int? exceptId, CancellationToken ct)
         {
             var query = _dbContext.Employees.AsNoTracking().Where(e => e.EmployeeCode == employeeCode);
@@ -150,4 +159,4 @@ namespace Asset.Infastructure.Repositories
         }
         #endregion
     }
-}
+}

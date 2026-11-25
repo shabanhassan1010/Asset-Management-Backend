@@ -727,4 +727,52 @@
   <data name="Arabic location name &#x27;{0}&#x27; is already in use." xml:space="preserve">
     <value>الاسم العربي للموقع '{0}' مستخدم بالفعل.</value>
   </data>
+  <data name="Category is already active" xml:space="preserve">
+    <value>الفئة مفعّلة بالفعل</value>
+  </data>
+  <data name="Category Activated Successfully" xml:space="preserve">
+    <value>تم تفعيل الفئة بنجاح</value>
+  </data>
+  <data name="Another active category is already named '{0}'. Rename one of them first." xml:space="preserve">
+    <value>يوجد فئة آخر مفعّل بنفس الاسم '{0}'. غيّر اسم أحدهما أولاً.</value>
+  </data>
+  <data name="Another active category already uses the Arabic name '{0}'. Rename one of them first." xml:space="preserve">
+    <value>يوجد فئة آخر مفعّل بنفس الاسم العربي '{0}'. غيّر اسم أحدهما أولاً.</value>
+  </data>
+  <data name="Asset type is already active" xml:space="preserve">
+    <value>نوع الأصل مفعّل بالفعل</value>
+  </data>
+  <data name="Asset type Activated Successfully" xml:space="preserve">
+    <value>تم تفعيل نوع الأصل بنجاح</value>
+  </data>
+  <data name="Another active asset type is already named '{0}'. Rename one of them first." xml:space="preserve">
+    <value>يوجد نوع أصل آخر مفعّل بنفس الاسم '{0}'. غيّر اسم أحدهما أولاً.</value>
+  </data>
+  <data name="Another active asset type already uses the Arabic name '{0}'. Rename one of them first." xml:space="preserve">
+    <value>يوجد نوع أصل آخر مفعّل بنفس الاسم العربي '{0}'. غيّر اسم أحدهما أولاً.</value>
+  </data>
+  <data name="Department is already active" xml:space="preserve">
+    <value>القسم مفعّل بالفعل</value>
+  </data>
+  <data name="Department Activated Successfully" xml:space="preserve">
+    <value>تم تفعيل القسم بنجاح</value>
+  </data>
+  <data name="Another active department is already named '{0}'. Rename one of them first." xml:space="preserve">
+    <value>يوجد قسم آخر مفعّل بنفس الاسم '{0}'. غيّر اسم أحدهما أولاً.</value>
+  </data>
+  <data name="Another active department already uses the Arabic name '{0}'. Rename one of them first." xml:space="preserve">
+    <value>يوجد قسم آخر مفعّل بنفس الاسم العربي '{0}'. غيّر اسم أحدهما أولاً.</value>
+  </data>
+  <data name="Location is already active" xml:space="preserve">
+    <value>الموقع مفعّل بالفعل</value>
+  </data>
+  <data name="Location Activated Successfully" xml:space="preserve">
+    <value>تم تفعيل الموقع بنجاح</value>
+  </data>
+  <data name="Another active location is already named '{0}'. Rename one of them first." xml:space="preserve">
+    <value>يوجد موقع آخر مفعّل بنفس الاسم '{0}'. غيّر اسم أحدهما أولاً.</value>
+  </data>
+  <data name="Another active location already uses the Arabic name '{0}'. Rename one of them first." xml:space="preserve">
+    <value>يوجد موقع آخر مفعّل بنفس الاسم العربي '{0}'. غيّر اسم أحدهما أولاً.</value>
+  </data>
 </root>

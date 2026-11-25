@@ -129,11 +129,9 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(_ct), Times.Once);
 
             // Remove keys 
-            _cacheServiceMock.Verify(
-                x => x.RemoveAsync(
-                        It.Is<string[]>(keys => keys.Length == 2
-                                             && keys.Contains(CacheKeys.LocationById(id))
-                                             && keys.Contains(CacheKeys.LocationList))), Times.Once);
+            // The handler clears the dropdown list and gives every page of the paged list a new version.
+            _cacheServiceMock.Verify(x => x.RemoveAsync(CacheKeys.LocationList), Times.Once);
+            _cacheServiceMock.Verify(x => x.BumpVersionAsync(CacheKeys.LocationsVersion), Times.Once);
         }
 
         [Fact]
@@ -158,7 +156,7 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
             _locationRepositoryMock.Verify(x => x.GetByIdAsync(id, It.IsAny<CancellationToken>()), Times.Once);
             _mapperMock.Verify(x => x.Map(It.IsAny<UpdateLocationCommandModel>(), It.IsAny<Location>()), Times.Never);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-            _cacheServiceMock.Verify(x => x.RemoveAsync(It.IsAny<string[]>()), Times.Never);
+            _cacheServiceMock.Verify(x => x.RemoveAsync(It.IsAny<string>()), Times.Never);
         }
         #endregion
 
@@ -207,11 +205,9 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
             _unitOfWorkMock.Verify(x => x.Locations.DeActivate(location), Times.Once);              // soft delete → IsActive = false
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(_ct), Times.Once);
 
-            _cacheServiceMock.Verify(
-                x => x.RemoveAsync(
-                        It.Is<string[]>(keys => keys.Length == 2
-                                             && keys.Contains(CacheKeys.LocationById(id))
-                                             && keys.Contains(CacheKeys.LocationList))),Times.Once);
+            // The handler clears the dropdown list and gives every page of the paged list a new version.
+            _cacheServiceMock.Verify(x => x.RemoveAsync(CacheKeys.LocationList), Times.Once);
+            _cacheServiceMock.Verify(x => x.BumpVersionAsync(CacheKeys.LocationsVersion), Times.Once);
         }
 
         [Fact]
@@ -266,7 +262,7 @@ namespace Asset.XUnitTest.ApplicationTests.Locations.Commands
             _locationRepositoryMock.Verify(x => x.GetTrackedAssetsByLocationAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
             _locationRepositoryMock.Verify(x => x.DeActivate(It.IsAny<Location>()), Times.Never);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-            _cacheServiceMock.Verify(x => x.RemoveAsync(It.IsAny<string[]>()), Times.Never);
+            _cacheServiceMock.Verify(x => x.RemoveAsync(It.IsAny<string>()), Times.Never);
         }
 
         #endregion

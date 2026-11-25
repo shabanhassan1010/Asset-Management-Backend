@@ -15,7 +15,8 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
     public class LocationCommandHandler :
                                             IRequestHandler<CreateLocationCommandModel, ApiResponse<CreateLocationResponseDto>>,
                                             IRequestHandler<UpdateLocationCommandModel, ApiResponse<UpdateLocationResponseDto>>,
-                                            IRequestHandler<DeleteLocationCommandModel, ApiResponse<string>>
+                                            IRequestHandler<DeleteLocationCommandModel, ApiResponse<string>>,
+                                            IRequestHandler<ActivateLocationCommandModel, ApiResponse<string>>
     {
         #region Fields
         private readonly IUnitOfWork _unitOfWork;
@@ -117,6 +118,45 @@ namespace Asset.Application.Features.Locations.Commands.CommandHandler
             };
         }
         #endregion
+
+        public async Task<ApiResponse<string>> Handle(ActivateLocationCommandModel request, CancellationToken cancellationToken)
+        {
+            // GetByIdAsync returns inactive rows too (it is a plain find by id), and the entity is tracked,
+            // so changing IsActive and calling SaveChanges is enough.
+            var entity = await _unitOfWork.Locations.GetByIdAsync(request.Id, cancellationToken);
+            if (entity is null)
+                throw new NotFoundException("Location {0} was not found.", request.Id);
+
+            // Nothing to do: answer OK instead of an error, so clicking twice is harmless.
+            if (entity.IsActive)
+                return new ApiResponse<string>
+                {
+                    data = entity.LocationName,
+                    Success = true,
+                    Message = "Location is already active"
+                };
+
+            // The names are UNIQUE among ACTIVE rows only (filtered indexes ..._Active).
+            // While this row was inactive someone may have created a new one with the same name.
+            // Turning this one back on would then break the index, so we refuse with a clear message.
+            if (await _unitOfWork.Locations.LocationNameExistsAsync(entity.LocationName, entity.Id, cancellationToken))
+                throw new ConflictException("Another active location is already named '{0}'. Rename one of them first.", entity.LocationName);
+
+            if (entity.LocationNameAr is not null &&
+                await _unitOfWork.Locations.LocationNameArExistsAsync(entity.LocationNameAr, entity.Id, cancellationToken))
+                throw new ConflictException("Another active location already uses the Arabic name '{0}'. Rename one of them first.", entity.LocationNameAr);
+
+            entity.IsActive = true;
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await InvalidateAsync();     // the dropdowns and every page of the list must show it again
+
+            return new ApiResponse<string>
+            {
+                data = entity.LocationName,
+                Success = true,
+                Message = "Location Activated Successfully"
+            };
+        }
 
         #region Private Methods
         private async Task InvalidateAsync()

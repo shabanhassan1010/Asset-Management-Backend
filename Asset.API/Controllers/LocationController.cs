@@ -82,5 +82,15 @@ namespace Asset.API.Controllers
             return NoContent();
         }
         #endregion
+
+        #region Activate
+        // PATCH, not DELETE/POST: it changes one field (IsActive) of a row that already exists.
+        [Authorize(Roles = nameof(Role.Admin))]
+        [HttpPatch(BaseRouter.LocationRouter.Activate)]
+        public async Task<IActionResult> Activate([FromRoute] int id, CancellationToken ct)
+        {
+            return Ok(await _sender.Send(new ActivateLocationCommandModel(id), ct));
+        }
+        #endregion
     }
 }

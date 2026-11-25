@@ -71,5 +71,15 @@ namespace Asset.API.Controllers
             return Ok(response);
         }
         #endregion
+
+        #region Activate
+        // PATCH, not DELETE/POST: it changes one field (IsActive) of a row that already exists.
+        [Authorize(Roles = nameof(Role.Admin))]
+        [HttpPatch(BaseRouter.AssetTypeRouter.Activate)]
+        public async Task<IActionResult> Activate([FromRoute] int id, CancellationToken ct)
+        {
+            return Ok(await sender.Send(new ActivateAssetTypeCommandModel(id), ct));
+        }
+        #endregion
     }
 }

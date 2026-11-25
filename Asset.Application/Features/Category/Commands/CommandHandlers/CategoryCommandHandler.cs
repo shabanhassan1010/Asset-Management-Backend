@@ -21,7 +21,8 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
     public class CategoryCommandHandler : BaseResponseHandler,
                                                 IRequestHandler<CreateCategoryCommandModel, ApiResponse<CreateCategoryResponseDto>>,
                                                 IRequestHandler<UpdateCategoryCommandModel, ApiResponse<UpdateCategoryResponseDto>>,
-                                                IRequestHandler<DeleteCategoryCommandModel, ApiResponse<string>>
+                                                IRequestHandler<DeleteCategoryCommandModel, ApiResponse<string>>,
+                                            IRequestHandler<ActivateCategoryCommandModel, ApiResponse<string>>
     {
         #region Fields
         private readonly IUnitOfWork _unitOfWork;
@@ -122,6 +123,45 @@ namespace Asset.Application.Features.Category.Commands.CommandHandlers
             };
         }
         #endregion
+
+        public async Task<ApiResponse<string>> Handle(ActivateCategoryCommandModel request, CancellationToken cancellationToken)
+        {
+            // GetByIdAsync returns inactive rows too (it is a plain find by id), and the entity is tracked,
+            // so changing IsActive and calling SaveChanges is enough.
+            var entity = await _unitOfWork.Categories.GetByIdAsync(request.Id, cancellationToken);
+            if (entity is null)
+                throw new NotFoundException("Category {0} was not found.", request.Id);
+
+            // Nothing to do: answer OK instead of an error, so clicking twice is harmless.
+            if (entity.IsActive)
+                return new ApiResponse<string>
+                {
+                    data = entity.CategoryName,
+                    Success = true,
+                    Message = "Category is already active"
+                };
+
+            // The names are UNIQUE among ACTIVE rows only (filtered indexes ..._Active).
+            // While this row was inactive someone may have created a new one with the same name.
+            // Turning this one back on would then break the index, so we refuse with a clear message.
+            if (await _unitOfWork.Categories.CategoryNameExistsAsync(entity.CategoryName, entity.Id, cancellationToken))
+                throw new ConflictException("Another active category is already named '{0}'. Rename one of them first.", entity.CategoryName);
+
+            if (entity.CategoryNameAr is not null &&
+                await _unitOfWork.Categories.CategoryNameArExistsAsync(entity.CategoryNameAr, entity.Id, cancellationToken))
+                throw new ConflictException("Another active category already uses the Arabic name '{0}'. Rename one of them first.", entity.CategoryNameAr);
+
+            entity.IsActive = true;
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await InvalidateAsync();     // the dropdowns and every page of the list must show it again
+
+            return new ApiResponse<string>
+            {
+                data = entity.CategoryName,
+                Success = true,
+                Message = "Category Activated Successfully"
+            };
+        }
 
         #region Pricate Methods
         private async Task InvalidateAsync()

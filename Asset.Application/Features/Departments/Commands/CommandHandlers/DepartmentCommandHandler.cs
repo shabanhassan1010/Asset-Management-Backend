@@ -15,7 +15,8 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
 {
     public class DepartmentCommandHandler : IRequestHandler<CreateDepartmentCommandModel, ApiResponse<CreateDepartmentResponseDto>>,
                                             IRequestHandler<UpdateDepartmentCommandModel, ApiResponse<UpdateDepartmentResponseDto>>,
-                                            IRequestHandler<DeactivateDepartmentCommandModel, ApiResponse<string>>
+                                            IRequestHandler<DeactivateDepartmentCommandModel, ApiResponse<string>>,
+                                            IRequestHandler<ActivateDepartmentCommandModel, ApiResponse<string>>
     {
         #region Fields
         private readonly IUnitOfWork _unitOfWork;
@@ -119,6 +120,45 @@ namespace Asset.Application.Features.Departments.Commands.CommandHandlers
             };
         }
         #endregion
+
+        public async Task<ApiResponse<string>> Handle(ActivateDepartmentCommandModel request, CancellationToken cancellationToken)
+        {
+            // GetByIdAsync returns inactive rows too (it is a plain find by id), and the entity is tracked,
+            // so changing IsActive and calling SaveChanges is enough.
+            var entity = await _unitOfWork.Departments.GetByIdAsync(request.Id, cancellationToken);
+            if (entity is null)
+                throw new NotFoundException("Department {0} was not found.", request.Id);
+
+            // Nothing to do: answer OK instead of an error, so clicking twice is harmless.
+            if (entity.IsActive)
+                return new ApiResponse<string>
+                {
+                    data = entity.DepartmentName,
+                    Success = true,
+                    Message = "Department is already active"
+                };
+
+            // The names are UNIQUE among ACTIVE rows only (filtered indexes ..._Active).
+            // While this row was inactive someone may have created a new one with the same name.
+            // Turning this one back on would then break the index, so we refuse with a clear message.
+            if (await _unitOfWork.Departments.IsNameExistsAsync(entity.DepartmentName, entity.Id, cancellationToken))
+                throw new ConflictException("Another active department is already named '{0}'. Rename one of them first.", entity.DepartmentName);
+
+            if (entity.DepartmentNameAr is not null &&
+                await _unitOfWork.Departments.IsNameArExistsAsync(entity.DepartmentNameAr, entity.Id, cancellationToken))
+                throw new ConflictException("Another active department already uses the Arabic name '{0}'. Rename one of them first.", entity.DepartmentNameAr);
+
+            entity.IsActive = true;
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await InvalidateAsync();     // the dropdowns and every page of the list must show it again
+
+            return new ApiResponse<string>
+            {
+                data = entity.DepartmentName,
+                Success = true,
+                Message = "Department Activated Successfully"
+            };
+        }
 
         #region Private Methods
         private async Task InvalidateAsync()

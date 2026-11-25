@@ -124,9 +124,9 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
             _mapperMock.Verify(x => x.Map(request, entity), Times.Once);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(CancellationToken.None), Times.Once);
 
-            _cacheMock.Verify(x => x.RemoveAsync(It.Is<string[]>(keys =>  keys.Length == 2 && 
-                                                                 keys.Contains(CacheKeys.DepartmentById(request.Id)) && 
-                                                                 keys.Contains(CacheKeys.DepartmentList))),Times.Once);
+            // The handler clears the dropdown list and gives every page of the paged list a new version.
+            _cacheMock.Verify(x => x.RemoveAsync(CacheKeys.DepartmentList), Times.Once);
+            _cacheMock.Verify(x => x.BumpVersionAsync(CacheKeys.DepartmentsVersion), Times.Once);
         }
 
         [Fact]
@@ -149,7 +149,7 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
                      .Where(e => (int)e.Args[0] == 99);
 
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
-            _cacheMock.Verify(x => x.RemoveAsync(It.IsAny<string[]>()), Times.Never);
+            _cacheMock.Verify(x => x.RemoveAsync(It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
@@ -206,12 +206,9 @@ namespace Asset.XUnitTest.ApplicationTests.Departments.Commands
             _unitOfWorkMock.Verify(x => x.Departments.DeActivate(entity), Times.Once);
             _unitOfWorkMock.Verify(x => x.SaveChangesAsync(CancellationToken.None), Times.Once);
 
-            _cacheMock.Verify(x => x.RemoveAsync(
-                It.Is<string[]>(keys =>
-                    keys.Length == 2 &&
-                    keys.Contains(CacheKeys.DepartmentById(request.Id)) &&
-                    keys.Contains(CacheKeys.DepartmentList))),
-                Times.Once);
+            // The handler clears the dropdown list and gives every page of the paged list a new version.
+            _cacheMock.Verify(x => x.RemoveAsync(CacheKeys.DepartmentList), Times.Once);
+            _cacheMock.Verify(x => x.BumpVersionAsync(CacheKeys.DepartmentsVersion), Times.Once);
         }
 
         [Fact]
